@@ -2,15 +2,18 @@
 import React, { useState } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/lib/cart-context';
+import { useToast } from '@/lib/toast-context';
 
-export default function AddToCartButton({ productId }: { productId: string }) {
+export default function AddToCartButton({ productId, productName }: { productId: string; productName: string }) {
     const { addToCart } = useCart();
+    const { showToast } = useToast();
     const [added, setAdded] = useState(false);
 
     const handleClick = () => {
         addToCart(productId, 1);
         setAdded(true);
         setTimeout(() => setAdded(false), 1500);
+        showToast(`${productName} added to your bag`, { href: '/cart', actionLabel: 'View Bag' });
     };
 
     return (

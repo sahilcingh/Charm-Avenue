@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Syne, Plus_Jakarta_Sans } from 'next/font/google';
 import { CartProvider } from '@/lib/cart-context';
+import { ToastProvider } from '@/lib/toast-context';
 import '../styles/tailwind.css';
 
 const syne = Syne({
@@ -41,7 +42,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     return (
         <html lang="en" className={`${syne.variable} ${plusJakartaSans.variable}`}>
             <body className={plusJakartaSans.className}>
-                <CartProvider>{children}</CartProvider>
+                <ToastProvider>
+                    <CartProvider>{children}</CartProvider>
+                </ToastProvider>
 
                 <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fcharmavenu6077back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.19" />
                 <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></body>

@@ -40,9 +40,9 @@ export default function HeroSection() {
             {/* Rotating badge — monochrome pink */}
             <div
                 ref={badgeRef}
-                className="absolute top-28 right-4 md:top-32 md:right-12 z-30 hidden sm:block"
+                className="absolute top-24 right-3 sm:top-28 sm:right-4 md:top-32 md:right-12 z-30"
             >
-                <div className="relative w-28 h-28 flex items-center justify-center">
+                <div className="relative w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center">
                     <svg className="animate-spin-slow w-full h-full" viewBox="0 0 100 100">
                         <defs>
                             <path id="cp" d="M 50,50 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" />
@@ -53,7 +53,7 @@ export default function HeroSection() {
                             </textPath>
                         </text>
                     </svg>
-                    <span className="absolute text-xl">💍</span>
+                    <span className="absolute text-base sm:text-xl">💍</span>
                 </div>
             </div>
 

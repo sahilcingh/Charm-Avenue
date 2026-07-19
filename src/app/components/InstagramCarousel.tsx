@@ -4,6 +4,7 @@ import Link from 'next/link';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/lib/cart-context';
+import { useToast } from '@/lib/toast-context';
 
 interface FeedItem {
     id: string;
@@ -99,12 +100,14 @@ export default function InstagramCarousel() {
     const sectionRef = useRef<HTMLElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const { addToCart } = useCart();
+    const { showToast } = useToast();
 
-    const handleAddToBag = (e: React.MouseEvent, productId: string) => {
+    const handleAddToBag = (e: React.MouseEvent, item: FeedItem) => {
         e.preventDefault();
-        addToCart(productId, 1);
-        setAddedId(productId);
-        setTimeout(() => setAddedId((current) => (current === productId ? null : current)), 1200);
+        addToCart(item.productId, 1);
+        setAddedId(item.productId);
+        setTimeout(() => setAddedId((current) => (current === item.productId ? null : current)), 1200);
+        showToast(`${item.tag} added to your bag`, { href: '/cart', actionLabel: 'View Bag' });
     };
 
     useEffect(() => {
@@ -192,7 +195,7 @@ export default function InstagramCarousel() {
                             >
                                 <span className="text-white font-display font-black text-2xl">{item.price}</span>
                                 <button
-                                    onClick={(e) => handleAddToBag(e, item.productId)}
+                                    onClick={(e) => handleAddToBag(e, item)}
                                     className="bg-[#E91E8C] text-white px-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:bg-white hover:text-[#E91E8C] transition-colors shadow-lg"
                                 >
                                     <Icon name={addedId === item.productId ? 'CheckIcon' : 'ShoppingBagIcon'} size={16} />

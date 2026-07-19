@@ -123,7 +123,7 @@ export default async function ProductPage({
 
                             <p className="text-[#3D0030]/80 text-base leading-relaxed mb-8">{product.description}</p>
 
-                            <AddToCartButton productId={product.id} />
+                            <AddToCartButton productId={product.id} productName={product.name} />
 
                             {/* Trust row */}
                             <div className="grid grid-cols-2 gap-3 mt-8">

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/lib/cart-context';
+import { useToast } from '@/lib/toast-context';
 import type { Product } from '@/lib/products';
 
 interface ProductCardProps {
@@ -16,12 +17,14 @@ export default function ProductCard({ product, transitionDelay = 0, className = 
     const [hovered, setHovered] = useState(false);
     const [added, setAdded] = useState(false);
     const { addToCart } = useCart();
+    const { showToast } = useToast();
 
     const handleQuickAdd = (e: React.MouseEvent) => {
         e.preventDefault();
         addToCart(product.id, 1);
         setAdded(true);
         setTimeout(() => setAdded(false), 1200);
+        showToast(`${product.name} added to your bag`, { href: '/cart', actionLabel: 'View Bag' });
     };
 
     return (
@@ -49,7 +52,7 @@ export default function ProductCard({ product, transitionDelay = 0, className = 
                         {product.tag}
                     </span>
                 )}
-                {/* Quick add overlay — decorative, no cart yet */}
+                {/* Quick add overlay */}
                 <div
                     className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}
                     style={{ background: 'rgba(173,20,87,0.45)' }}
