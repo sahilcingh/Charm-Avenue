@@ -11,6 +11,9 @@ const navLinks = [
     { label: 'Accessories', href: '/shop/accessories' },
 ];
 
+// Matches navLinks length — staggers each link's entrance when the mobile menu opens.
+const navLinkDelays = ['delay-200', 'delay-300', 'delay-400', 'delay-500'];
+
 interface HeaderProps {
     /** 'solid' forces the light/dark-text styling used when there's no full-bleed dark hero behind it. */
     variant?: 'transparent' | 'solid';
@@ -108,51 +111,55 @@ export default function Header({ variant = 'transparent' }: HeaderProps) {
             </header>
 
             {/* Mobile Menu Overlay — deep rose background */}
-            {menuOpen && (
-                <div
-                    className="fixed inset-0 z-[100] flex flex-col p-6"
-                    style={{ background: 'rgba(61,0,48,0.97)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
-                >
-                    <div className="flex items-center justify-between mb-10">
-                        <div className="flex items-center gap-2.5">
-                            <span className="font-display font-black text-xl tracking-tight text-white">
-                                Charm Avenue
-                            </span>
-                            <span className="text-xs font-semibold text-white/70">by Nandini</span>
-                        </div>
-                        <button
-                            className="w-10 h-10 rounded-full glass-white flex items-center justify-center"
-                            onClick={() => setMenuOpen(false)}
-                            aria-label="Close menu"
-                        >
-                            <Icon name="XMarkIcon" size={20} className="text-white" />
-                        </button>
-                    </div>
-
-                    <nav className="flex flex-col gap-5 flex-1">
-                        {navLinks?.map((link) => (
-                            <Link
-                                key={link?.label}
-                                href={link?.href}
-                                className="font-display font-black text-3xl text-white hover:text-[#FF6EC7] transition-colors"
+            <div
+                className={`fixed inset-0 z-[100] flex flex-col p-6 transition-all duration-300 ease-out ${menuOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
+                    }`}
+                style={{ background: 'rgba(61,0,48,0.97)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
+                aria-hidden={!menuOpen}
+            >
+                {menuOpen && (
+                    <>
+                        <div className="flex items-center justify-between mb-10 animate-enter">
+                            <div className="flex items-center gap-2.5">
+                                <span className="font-display font-black text-xl tracking-tight text-white">
+                                    Charm Avenue
+                                </span>
+                                <span className="text-xs font-semibold text-white/70">by Nandini</span>
+                            </div>
+                            <button
+                                className="w-10 h-10 rounded-full glass-white flex items-center justify-center"
                                 onClick={() => setMenuOpen(false)}
+                                aria-label="Close menu"
                             >
-                                {link?.label}
-                            </Link>
-                        ))}
-                    </nav>
+                                <Icon name="XMarkIcon" size={20} className="text-white" />
+                            </button>
+                        </div>
 
-                    <Link
-                        href="/shop"
-                        className="w-full text-white py-4 rounded-full font-display font-bold text-base uppercase tracking-widest flex items-center justify-center gap-2 mt-6 transition-all duration-300"
-                        style={{ background: '#E91E8C', boxShadow: '0 4px 20px rgba(233,30,140,0.5)' }}
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        <Icon name="ShoppingBagIcon" size={18} />
-                        Shop Now
-                    </Link>
-                </div>
-            )}
+                        <nav className="flex flex-col gap-5 flex-1">
+                            {navLinks?.map((link, i) => (
+                                <Link
+                                    key={link?.label}
+                                    href={link?.href}
+                                    className={`font-display font-black text-3xl text-white hover:text-[#FF6EC7] transition-colors animate-enter ${navLinkDelays[i]}`}
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    {link?.label}
+                                </Link>
+                            ))}
+                        </nav>
+
+                        <Link
+                            href="/shop"
+                            className="w-full text-white py-4 rounded-full font-display font-bold text-base uppercase tracking-widest flex items-center justify-center gap-2 mt-6 transition-all duration-300 animate-enter delay-600"
+                            style={{ background: '#E91E8C', boxShadow: '0 4px 20px rgba(233,30,140,0.5)' }}
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            <Icon name="ShoppingBagIcon" size={18} />
+                            Shop Now
+                        </Link>
+                    </>
+                )}
+            </div>
         </>
     );
 }
