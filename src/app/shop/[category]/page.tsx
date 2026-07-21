@@ -47,7 +47,7 @@ export default async function CategoryPage({
             />
 
             <section className="w-full px-4 md:px-10 pt-6 pb-16" style={{ background: 'var(--blush-bg)' }}>
-                <div className="max-w-screen-xl mx-auto">
+                <div className="max-w-screen-2xl mx-auto">
                     {/* Other categories */}
                     <div className="flex gap-3 overflow-x-auto no-scrollbar pb-6">
                         {CATEGORIES.map((c) => (

@@ -73,7 +73,7 @@ export default function HeroSection() {
                     className="text-sm sm:text-base leading-relaxed mb-8"
                     style={{ color: 'var(--blush-text)', opacity: 0.8 }}
                 >
-                    Cute Accessories, Jewellery, Hair Accessories, Bag Charms, Home Décor &amp; more.
+                    Little charms, beautiful moments, and a touch of magic — made to make you uniquely you.
                 </p>
                 <Link
                     href="/shop"

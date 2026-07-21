@@ -7,14 +7,15 @@ import Icon from '@/components/ui/AppIcon';
 
 export const metadata: Metadata = {
     title: 'About Us | Charm Avenue by Nandini',
-    description: 'The story behind Charm Avenue by Nandini — cute, affordable, anti-tarnish jewellery and accessories for every girl.',
+    description: 'Meet Nandini, the founder of Charm Avenue — bringing you trendy, stylish and affordable accessories, jewellery and cute lifestyle products.',
 };
 
-const values = [
-    { icon: '✨', title: 'Anti-Tarnish, Always', text: 'Every jewellery piece is coated to stay shiny wear after wear — no green fingers, no fading.' },
-    { icon: '💝', title: 'Budget-Friendly Cute', text: 'Starting at just ₹150, because looking cute shouldn’t need a big budget.' },
-    { icon: '🚀', title: 'Fast, Reliable Delivery', text: 'Pan India shipping in 2–5 days, with COD available on every order.' },
-    { icon: '🎀', title: 'Made for Every Girl', text: 'From dainty rings to viral bag charms — curated for every vibe and every mood.' },
+const whyChooseUs = [
+    { icon: '✨', title: 'Carefully Curated Collections' },
+    { icon: '💅', title: 'Trendy Designs' },
+    { icon: '✅', title: 'Quality Checks' },
+    { icon: '🔒', title: 'Secure Shopping' },
+    { icon: '🛍️', title: 'Trendy Finds' },
 ];
 
 export default function AboutPage() {
@@ -22,36 +23,32 @@ export default function AboutPage() {
         <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
             <Header />
             <PageHero
-                eyebrow="🌸 Our Story"
-                title={
-                    <>
-                        Charm you can wear, <span className="font-script" style={{ color: 'var(--blush-rose)' }}>everyday.</span>
-                    </>
-                }
-                subtitle="Charm Avenue by Nandini started with one simple idea: cute, quality accessories shouldn't be hard to find or expensive to own."
+                eyebrow="🌸 Who Am I"
+                title="Hey, I'm Nandini"
+                subtitle="The founder of Charm Avenue by Nandini."
                 breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'About' }]}
             />
 
             <section className="w-full px-4 md:px-10 py-14">
-                <div className="max-w-screen-xl mx-auto grid md:grid-cols-2 gap-10 items-center mb-16">
+                <div className="max-w-screen-2xl mx-auto grid md:grid-cols-2 gap-10 items-center mb-14">
                     <div>
                         <span
                             className="badge-pill mb-4 inline-flex"
                             style={{ background: '#FFFFFF', color: 'var(--blush-rose)', border: '1px solid var(--blush-border)' }}
                         >
-                            <span>💕</span> Meet Nandini
+                            <span>💕</span> Founder of Charm Avenue
                         </span>
                         <h2 className="font-elegant-serif text-section-title tracking-tight mb-4" style={{ color: 'var(--blush-text)' }}>
-                            Built by someone who loves cute things as much as you do.
+                            Little charms, beautiful moments, and a touch of magic —{' '}
+                            <span className="font-script" style={{ color: 'var(--blush-rose)' }}>made to make you uniquely you.</span>
                         </h2>
                         <p className="text-base leading-relaxed mb-4" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>
-                            Charm Avenue began as a small collection of anti-tarnish jewellery hand-picked for friends and
-                            family, and grew into a home for everything cute — hair clips, glossy makeup, bag charms and
-                            organiser pouches included.
+                            I started Charm Avenue with a passion for bringing you trendy, stylish and affordable
+                            accessories, jewellery, and cute lifestyle products. Every item is carefully selected with
+                            love to ensure quality and style.
                         </p>
                         <p className="text-base leading-relaxed" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>
-                            Every product is chosen (and often tested first) with one question in mind: would I wear this
-                            every single day? If the answer's yes, it makes it into the shop.
+                            Thank you for supporting my small business and being a part of this journey.
                         </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -69,24 +66,51 @@ export default function AboutPage() {
                     </div>
                 </div>
 
-                {/* Values */}
-                <div className="max-w-screen-xl mx-auto mb-16">
+                {/* What We Sell */}
+                <div className="max-w-screen-2xl mx-auto text-center mb-14">
+                    <span
+                        className="badge-pill mb-4 inline-flex"
+                        style={{ background: '#FFFFFF', color: 'var(--blush-rose)', border: '1px solid var(--blush-border)' }}
+                    >
+                        <span>🛍️</span> What We Sell
+                    </span>
+                    <p className="text-base leading-relaxed max-w-2xl mx-auto" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>
+                        Hair accessories, cute trendy products, makeup, organisers and many more.
+                    </p>
+                </div>
+
+                {/* Mission pull-quote */}
+                <div className="max-w-screen-2xl mx-auto mb-16">
+                    <div
+                        className="rounded-4xl p-8 md:p-12 text-center"
+                        style={{ background: 'linear-gradient(135deg, #B85864 0%, #E8828F 50%, #D1636F 100%)' }}
+                    >
+                        <span className="badge-pill mb-4 inline-flex" style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.35)', color: '#FFFFFF' }}>
+                            🎯 My Mission
+                        </span>
+                        <p className="font-script text-2xl md:text-3xl text-white max-w-2xl mx-auto leading-snug">
+                            To bring stylish, affordable and high-quality products that add charm to everyday life.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Why Choose Charm Avenue */}
+                <div className="max-w-screen-2xl mx-auto mb-16">
                     <h2 className="font-elegant-serif text-section-title tracking-tight mb-8 text-center" style={{ color: 'var(--blush-text)' }}>
-                        What we stand for
+                        Why Choose Charm Avenue
                     </h2>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {values.map((v) => (
-                            <div key={v.title} className="bg-white rounded-3xl p-6 card-bubble">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        {whyChooseUs.map((v) => (
+                            <div key={v.title} className="bg-white rounded-3xl p-6 text-center card-bubble">
                                 <span className="text-3xl block mb-3">{v.icon}</span>
-                                <h3 className="font-bold text-base mb-1.5" style={{ color: 'var(--blush-text)' }}>{v.title}</h3>
-                                <p className="text-sm leading-relaxed" style={{ color: 'var(--blush-muted)' }}>{v.text}</p>
+                                <h3 className="font-bold text-base" style={{ color: 'var(--blush-text)' }}>{v.title}</h3>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* CTA */}
-                <div className="max-w-screen-xl mx-auto text-center">
+                <div className="max-w-screen-2xl mx-auto text-center">
                     <Link
                         href="/shop"
                         className="inline-flex items-center gap-2 px-10 py-4 rounded-full font-bold text-base uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"

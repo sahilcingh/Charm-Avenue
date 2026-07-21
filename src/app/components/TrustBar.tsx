@@ -11,7 +11,7 @@ const items = [
 export default function TrustBar() {
     return (
         <section className="w-full border-t" style={{ background: 'var(--blush-bg)', borderColor: 'var(--blush-border)' }}>
-            <div className="max-w-screen-xl mx-auto px-4 md:px-10 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
+            <div className="max-w-screen-2xl mx-auto px-4 md:px-10 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
                 {items.map((item) => (
                     <div key={item.title} className="flex items-center gap-3">
                         <Icon name={item.icon} size={26} style={{ color: 'var(--blush-text)' }} className="shrink-0" />

@@ -39,7 +39,7 @@ export default function BudgetFilter() {
 
     return (
         <section ref={sectionRef} className="w-full px-4 md:px-10 pt-14 pb-12" style={{ background: 'var(--blush-border)' }}>
-            <div className="max-w-screen-xl mx-auto">
+            <div className="max-w-screen-2xl mx-auto">
                 {/* Header */}
                 <div className="reveal mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>

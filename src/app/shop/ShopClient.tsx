@@ -27,7 +27,7 @@ export default function ShopClient({ initialFilter }: { initialFilter: FilterKey
         <>
             {/* Category quick links */}
             <section className="w-full px-4 md:px-10 pt-10" style={{ background: 'var(--blush-bg)' }}>
-                <div className="max-w-screen-xl mx-auto flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                <div className="max-w-screen-2xl mx-auto flex gap-3 overflow-x-auto no-scrollbar pb-2">
                     {CATEGORIES.map((cat) => (
                         <Link
                             key={cat.slug}
@@ -42,7 +42,7 @@ export default function ShopClient({ initialFilter }: { initialFilter: FilterKey
             </section>
 
             <section className="w-full px-4 md:px-10 pt-6 pb-16" style={{ background: 'var(--blush-bg)' }}>
-                <div className="max-w-screen-xl mx-auto">
+                <div className="max-w-screen-2xl mx-auto">
                     {/* Filter tabs */}
                     <div className="flex gap-2 mb-6 flex-wrap">
                         {filters.map((f) => (

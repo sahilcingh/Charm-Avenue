@@ -6,35 +6,34 @@ import PolicyContent from '@/components/PolicyContent';
 
 export const metadata: Metadata = {
     title: 'Shipping Policy | Charm Avenue by Nandini',
-    description: 'Shipping timelines, charges and order tracking for Charm Avenue by Nandini.',
+    description: 'Prepaid ordering, secure packaging and shipping timelines for Charm Avenue by Nandini.',
 };
 
 const sections = [
     {
-        heading: 'Processing Time',
+        heading: 'Prepaid Orders Only',
         body: (
             <p>
-                Orders are packed and handed to our courier partners within 1–2 business days of being placed. During
-                sales or festive drops, processing may take up to 3 business days.
+                We currently accept prepaid orders only. Cash on Delivery (COD) is not available at this time.
             </p>
         ),
     },
     {
-        heading: 'Delivery Timelines',
+        heading: 'Secure Packaging',
         body: (
             <p>
-                We ship Pan India and most orders arrive within 2–5 business days of dispatch, depending on your
-                location. Remote areas may take a little longer.
+                Every order is carefully packed with secure and protective packaging to ensure your products reach you
+                safely.
             </p>
         ),
     },
     {
-        heading: 'Shipping Charges & COD',
+        heading: 'Shipping',
         body: (
-            <>
-                <p>Shipping is free on prepaid orders above ₹499. A small shipping fee applies below that threshold.</p>
-                <p>Cash on Delivery (COD) is available on all orders, with a nominal COD handling fee.</p>
-            </>
+            <p>
+                Orders are dispatched after successful payment confirmation. Delivery timelines may vary depending on
+                your location and courier services.
+            </p>
         ),
     },
     {

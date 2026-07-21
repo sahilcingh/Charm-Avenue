@@ -37,7 +37,7 @@ export default function CartClient() {
 
     return (
         <section className="w-full px-4 md:px-10 py-14">
-            <div className="max-w-screen-xl mx-auto grid md:grid-cols-3 gap-8">
+            <div className="max-w-screen-2xl mx-auto grid md:grid-cols-3 gap-8">
                 {/* Line items */}
                 <div className="md:col-span-2 flex flex-col gap-4">
                     {items.map(({ line, product }) => (

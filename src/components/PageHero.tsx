@@ -16,7 +16,7 @@ interface PageHeroProps {
 export default function PageHero({ eyebrow, title, subtitle, breadcrumbs }: PageHeroProps) {
     return (
         <section className="w-full px-4 md:px-10 pt-32 pb-12 md:pt-40 md:pb-16" style={{ background: 'var(--blush-bg)' }}>
-            <div className="max-w-screen-xl mx-auto">
+            <div className="max-w-screen-2xl mx-auto">
                 {breadcrumbs && breadcrumbs.length > 0 && (
                     <nav className="flex items-center flex-wrap gap-1.5 text-xs font-semibold mb-5" style={{ color: 'var(--blush-muted)' }}>
                         {breadcrumbs.map((crumb, i) => (

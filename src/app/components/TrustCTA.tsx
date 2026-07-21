@@ -7,9 +7,9 @@ const trustItems = [
     { icon: '🚀', text: 'Fast Shipping Across India' },
     { icon: '💎', text: '100% Authentic Products' },
     { icon: '🎀', text: 'Gift Wrapping Available' },
-    { icon: '💝', text: 'Easy 7-Day Returns' },
+    { icon: '📦', text: 'Secure Protective Packaging' },
     { icon: '🌟', text: '12,000+ Happy Customers' },
-    { icon: '📦', text: 'COD Available' },
+    { icon: '💳', text: 'Prepaid Orders Only' },
 ];
 
 export default function TrustCTA() {
@@ -66,7 +66,7 @@ export default function TrustCTA() {
             </div>
 
             {/* Stats Row */}
-            <div className="max-w-screen-xl mx-auto px-4 md:px-10 pt-14 pb-12">
+            <div className="max-w-screen-2xl mx-auto px-4 md:px-10 pt-14 pb-12">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
                     {[
                         { num: '12K+', label: 'Happy Customers', emoji: '💝' },

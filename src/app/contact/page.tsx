@@ -32,7 +32,7 @@ export default function ContactPage() {
             />
 
             <section className="w-full px-4 md:px-10 py-14">
-                <div className="max-w-screen-xl mx-auto grid md:grid-cols-5 gap-8">
+                <div className="max-w-screen-2xl mx-auto grid md:grid-cols-5 gap-8">
                     <div className="md:col-span-2 flex flex-col gap-4">
                         {contactMethods.map((m) => (
                             <div key={m.label} className="flex items-center gap-4 bg-white rounded-3xl p-5 card-bubble">

@@ -21,7 +21,7 @@ const socialLinks = [
 export default function Footer() {
     return (
         <footer className="border-t pt-12 pb-8 px-4 md:px-10" style={{ background: 'var(--blush-bg)', borderColor: 'var(--blush-border)' }}>
-            <div className="max-w-screen-xl mx-auto">
+            <div className="max-w-screen-2xl mx-auto">
                 {/* Brand + links */}
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 mb-10">
                     {/* Left: Brand */}

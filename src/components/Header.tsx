@@ -42,10 +42,10 @@ export default function Header() {
                 className="fixed top-0 left-0 right-0 z-50 border-b"
                 style={{ background: 'var(--blush-bg)', borderColor: 'var(--blush-border)' }}
             >
-                <div className="relative max-w-screen-xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+                <div className="relative max-w-screen-2xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
                     {/* Left: nav (desktop) / hamburger (mobile) */}
                     <div className="flex items-center">
-                        <nav className="hidden md:flex items-center gap-4 lg:gap-5">
+                        <nav className="hidden 2xl:flex items-center gap-7 2xl:gap-9">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.label}
@@ -58,7 +58,7 @@ export default function Header() {
                             ))}
                         </nav>
                         <button
-                            className="md:hidden w-10 h-10 rounded-full flex items-center justify-center"
+                            className="2xl:hidden w-10 h-10 rounded-full flex items-center justify-center"
                             style={{ background: 'var(--blush-border)', color: 'var(--blush-text)' }}
                             onClick={() => setMenuOpen(true)}
                             aria-label="Open menu"
@@ -87,7 +87,7 @@ export default function Header() {
                     </Link>
 
                     {/* Right: icons */}
-                    <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 2xl:mr-24">
                         <button
                             className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
                             style={{ color: 'var(--blush-text)' }}

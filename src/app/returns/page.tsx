@@ -5,45 +5,35 @@ import PageHero from '@/components/PageHero';
 import PolicyContent from '@/components/PolicyContent';
 
 export const metadata: Metadata = {
-    title: 'Returns & Refunds | Charm Avenue by Nandini',
-    description: 'Our 7-day return window, conditions and refund process at Charm Avenue by Nandini.',
+    title: 'Returns Policy | Charm Avenue by Nandini',
+    description: 'Our returns and exchange policy at Charm Avenue by Nandini.',
 };
 
 const sections = [
     {
-        heading: '7-Day Return Window',
+        heading: 'No Return or Exchange',
         body: (
             <p>
-                Not the right fit or vibe? You can request a return within 7 days of delivery for most items, no
-                questions asked.
+                All products are non-returnable and non-exchangeable. Please check the product details carefully
+                before placing your order.
             </p>
         ),
     },
     {
-        heading: 'Return Conditions',
-        body: (
-            <ul className="list-disc list-inside space-y-1.5">
-                <li>Items must be unused, unworn and in their original packaging.</li>
-                <li>Earrings and other hygiene-sensitive items cannot be returned once opened.</li>
-                <li>Items marked "Final Sale" are not eligible for return.</li>
-            </ul>
-        ),
-    },
-    {
-        heading: 'How to Initiate a Return',
+        heading: 'Please Choose Carefully',
         body: (
             <p>
-                Message us on WhatsApp or through the Contact page with your order number and reason for return.
-                We&apos;ll share pickup or drop-off instructions within 24 hours.
+                Since we&apos;re unable to accept returns or exchanges, we&apos;d love for you to take a moment to
+                review the size, colour and description of each item before checking out.
             </p>
         ),
     },
     {
-        heading: 'Refunds',
+        heading: 'Questions Before You Order?',
         body: (
             <p>
-                Once we receive and inspect your return, refunds are processed to your original payment method within
-                5–7 business days. COD orders are refunded via bank transfer or store credit.
+                Not sure if a piece is right for you? Reach out on our Contact page before placing your order and
+                we&apos;ll be happy to help.
             </p>
         ),
     },
@@ -54,9 +44,9 @@ export default function ReturnsPage() {
         <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
             <Header />
             <PageHero
-                eyebrow="💝 Returns"
-                title="Returns & Refunds"
-                subtitle="Easy 7-day returns, because we want you to love every piece you order."
+                eyebrow="📋 Returns"
+                title="Returns Policy"
+                subtitle="Please read our return and exchange policy before placing your order."
                 breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Returns' }]}
             />
             <PolicyContent sections={sections} updatedAt="19 July 2026" />

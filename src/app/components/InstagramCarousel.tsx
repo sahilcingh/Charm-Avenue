@@ -133,7 +133,7 @@ export default function InstagramCarousel() {
 
     return (
         <section ref={sectionRef} className="w-full pt-14 pb-12 overflow-hidden" style={{ background: 'var(--blush-bg)' }}>
-            <div className="max-w-screen-xl mx-auto px-4 md:px-10">
+            <div className="max-w-screen-2xl mx-auto px-4 md:px-10">
                 {/* Header */}
                 <div className="reveal mb-8 flex items-end justify-between gap-4">
                     <div>

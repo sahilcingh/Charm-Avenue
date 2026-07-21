@@ -47,7 +47,7 @@ export default async function ProductPage({
             <Header />
 
             <section className="w-full px-4 md:px-10 pt-28 md:pt-32 pb-16">
-                <div className="max-w-screen-xl mx-auto">
+                <div className="max-w-screen-2xl mx-auto">
                     {/* Breadcrumb */}
                     <nav className="flex items-center flex-wrap gap-1.5 text-xs font-semibold mb-6" style={{ color: 'var(--blush-muted)' }}>
                         <Link href="/" className="hover:opacity-70 transition-opacity">Home</Link>
