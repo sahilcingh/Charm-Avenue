@@ -18,13 +18,13 @@ export default async function ShopPage({
     const initialFilter = params?.filter === 'new' ? 'new' : 'all';
 
     return (
-        <main className="min-h-screen bg-[#FFF0F7] overflow-x-hidden">
-            <Header variant="solid" />
+        <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+            <Header />
             <PageHero
                 eyebrow="🛍️ Shop All"
                 title={
                     <>
-                        All the <span className="shimmer-text">Cute Stuff</span> in one place.
+                        All the <span style={{ color: 'var(--blush-rose)' }}>Cute Stuff</span> in one place.
                     </>
                 }
                 subtitle="Anti-tarnish jewellery, hair accessories, cute makeup and trending finds — starting at just ₹150."

@@ -55,11 +55,22 @@ export default function ProductCard({ product, transitionDelay = 0, className = 
                 {/* Quick add overlay */}
                 <div
                     className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}
-                    style={{ background: 'rgba(173,20,87,0.45)' }}
+                    style={{ background: 'rgba(30,23,18,0.45)' }}
                 >
                     <button
                         onClick={handleQuickAdd}
-                        className="bg-white text-[#E91E8C] px-4 py-2 rounded-full font-bold text-xs flex items-center gap-1.5 shadow-lg hover:bg-[#E91E8C] hover:text-white transition-colors"
+                        className="px-4 py-2 rounded-full font-bold text-xs flex items-center gap-1.5 shadow-lg transition-colors"
+                        style={{ background: '#FFFFFF', color: 'var(--blush-rose)' }}
+                        onMouseEnter={(e) => {
+                            const btn = e.currentTarget as HTMLButtonElement;
+                            btn.style.background = 'var(--blush-rose)';
+                            btn.style.color = '#FFFFFF';
+                        }}
+                        onMouseLeave={(e) => {
+                            const btn = e.currentTarget as HTMLButtonElement;
+                            btn.style.background = '#FFFFFF';
+                            btn.style.color = 'var(--blush-rose)';
+                        }}
                     >
                         <Icon name={added ? 'CheckIcon' : 'ShoppingBagIcon'} size={14} />
                         {added ? 'Added!' : 'Quick Add'}
@@ -69,12 +80,12 @@ export default function ProductCard({ product, transitionDelay = 0, className = 
 
             {/* Info */}
             <div className="p-3">
-                <p className="text-xs text-[#9B4070] font-medium mb-0.5 truncate">{product.category}</p>
-                <p className="font-bold text-[#3D0030] text-sm leading-tight mb-1.5 truncate">{product.name}</p>
+                <p className="text-xs font-medium mb-0.5 truncate" style={{ color: 'var(--blush-muted)' }}>{product.category}</p>
+                <p className="font-bold text-sm leading-tight mb-1.5 truncate" style={{ color: 'var(--blush-text)' }}>{product.name}</p>
                 <div className="flex items-center gap-1.5">
-                    <span className="font-display font-black text-[#E91E8C] text-base">₹{product.price}</span>
+                    <span className="font-elegant-serif font-bold text-base" style={{ color: 'var(--blush-rose)' }}>₹{product.price}</span>
                     {product.originalPrice && (
-                        <span className="text-[#9B4070] text-xs line-through">₹{product.originalPrice}</span>
+                        <span className="text-xs line-through" style={{ color: 'var(--blush-muted)' }}>₹{product.originalPrice}</span>
                     )}
                 </div>
             </div>

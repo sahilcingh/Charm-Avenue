@@ -1,5 +1,6 @@
 import React from 'react';
 import HeroSection from './components/HeroSection';
+import TrustBar from './components/TrustBar';
 import CategoryBento from './components/CategoryBento';
 import BudgetFilter from './components/BudgetFilter';
 import InstagramCarousel from './components/InstagramCarousel';
@@ -12,6 +13,7 @@ export default function HomePage() {
         <main className="min-h-screen bg-background overflow-x-hidden">
             <Header />
             <HeroSection />
+            <TrustBar />
             <CategoryBento />
             <BudgetFilter />
             <InstagramCarousel />

@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 
 export default function CartPage() {
     return (
-        <main className="min-h-screen bg-[#FFF0F7] overflow-x-hidden">
-            <Header variant="solid" />
+        <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+            <Header />
             <PageHero
                 eyebrow="🛍️ Your Bag"
                 title="Your Shopping Bag"

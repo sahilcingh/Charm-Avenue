@@ -8,8 +8,8 @@ import Image from 'next/image';
 const SHIMMER_SVG =
     "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'>" +
     "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
-    "<stop stop-color='#FFE4F4' offset='0%'/><stop stop-color='#FFD6EE' offset='50%'/>" +
-    "<stop stop-color='#FFE4F4' offset='100%'/></linearGradient></defs>" +
+    "<stop stop-color='#FBF1EF' offset='0%'/><stop stop-color='#F6D3D6' offset='50%'/>" +
+    "<stop stop-color='#FBF1EF' offset='100%'/></linearGradient></defs>" +
     "<rect width='64' height='64' fill='url(#g)'/></svg>";
 const SHIMMER_BLUR_DATA_URL = `data:image/svg+xml,${encodeURIComponent(SHIMMER_SVG)}`;
 
@@ -69,7 +69,7 @@ const AppImage = memo(function AppImage({
 
     const imageClassName = useMemo(() => {
         const classes = [className];
-        if (isLoading) classes.push('bg-[#FFE4F4]');
+        if (isLoading) classes.push('bg-[#FBF1EF]');
         if (onClick) classes.push('cursor-pointer hover:opacity-90 transition-opacity duration-200');
         return classes.filter(Boolean).join(' ');
     }, [className, isLoading, onClick]);

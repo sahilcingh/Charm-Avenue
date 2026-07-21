@@ -43,22 +43,22 @@ export default async function ProductPage({
         : null;
 
     return (
-        <main className="min-h-screen bg-[#FFF0F7] overflow-x-hidden">
-            <Header variant="solid" />
+        <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+            <Header />
 
             <section className="w-full px-4 md:px-10 pt-28 md:pt-32 pb-16">
                 <div className="max-w-screen-xl mx-auto">
                     {/* Breadcrumb */}
-                    <nav className="flex items-center flex-wrap gap-1.5 text-xs font-semibold text-[#9B4070] mb-6">
-                        <Link href="/" className="hover:text-[#E91E8C] transition-colors">Home</Link>
-                        <span className="text-[#FFB3E0]">/</span>
-                        <Link href="/shop" className="hover:text-[#E91E8C] transition-colors">Shop</Link>
-                        <span className="text-[#FFB3E0]">/</span>
-                        <Link href={`/shop/${product.categorySlug}`} className="hover:text-[#E91E8C] transition-colors">
+                    <nav className="flex items-center flex-wrap gap-1.5 text-xs font-semibold mb-6" style={{ color: 'var(--blush-muted)' }}>
+                        <Link href="/" className="hover:opacity-70 transition-opacity">Home</Link>
+                        <span style={{ color: 'var(--blush-border)' }}>/</span>
+                        <Link href="/shop" className="hover:opacity-70 transition-opacity">Shop</Link>
+                        <span style={{ color: 'var(--blush-border)' }}>/</span>
+                        <Link href={`/shop/${product.categorySlug}`} className="hover:opacity-70 transition-opacity">
                             {product.category}
                         </Link>
-                        <span className="text-[#FFB3E0]">/</span>
-                        <span className="text-[#3D0030]">{product.name}</span>
+                        <span style={{ color: 'var(--blush-border)' }}>/</span>
+                        <span style={{ color: 'var(--blush-text)' }}>{product.name}</span>
                     </nav>
 
                     <div className="grid md:grid-cols-2 gap-8 md:gap-14">
@@ -86,11 +86,12 @@ export default async function ProductPage({
                         <div className="flex flex-col">
                             <Link
                                 href={`/shop/${product.categorySlug}`}
-                                className="text-[#E91E8C] text-sm font-bold uppercase tracking-widest mb-2 hover:underline"
+                                className="text-sm font-bold uppercase tracking-widest mb-2 hover:underline"
+                                style={{ color: 'var(--blush-rose)' }}
                             >
                                 {product.emoji} {product.category}
                             </Link>
-                            <h1 className="font-display font-black text-[#3D0030] text-3xl md:text-4xl tracking-tight mb-3">
+                            <h1 className="font-elegant-serif text-3xl md:text-4xl tracking-tight mb-3" style={{ color: 'var(--blush-text)' }}>
                                 {product.name}
                             </h1>
 
@@ -102,26 +103,26 @@ export default async function ProductPage({
                                             name="StarIcon"
                                             size={16}
                                             variant="solid"
-                                            className={i < Math.round(product.rating) ? 'text-[#E91E8C]' : 'text-[#FFCCE8]'}
+                                            style={{ color: i < Math.round(product.rating) ? 'var(--blush-rose)' : 'var(--blush-border)' }}
                                         />
                                     ))}
                                 </div>
-                                <span className="text-[#9B4070] text-sm font-medium">
+                                <span className="text-sm font-medium" style={{ color: 'var(--blush-muted)' }}>
                                     {product.rating} ({product.reviewCount} reviews)
                                 </span>
                             </div>
 
                             <div className="flex items-center gap-3 mb-6">
-                                <span className="font-display font-black text-[#E91E8C] text-3xl">₹{product.price}</span>
+                                <span className="font-elegant-serif font-bold text-3xl" style={{ color: 'var(--blush-rose)' }}>₹{product.price}</span>
                                 {product.originalPrice && (
                                     <>
-                                        <span className="text-[#9B4070] text-lg line-through">₹{product.originalPrice}</span>
-                                        <span className="badge-pill bg-[#FFE4F4] text-[#E91E8C]">{discountPct}% off</span>
+                                        <span className="text-lg line-through" style={{ color: 'var(--blush-muted)' }}>₹{product.originalPrice}</span>
+                                        <span className="badge-pill" style={{ background: 'var(--blush-border)', color: 'var(--blush-rose)' }}>{discountPct}% off</span>
                                     </>
                                 )}
                             </div>
 
-                            <p className="text-[#3D0030]/80 text-base leading-relaxed mb-8">{product.description}</p>
+                            <p className="text-base leading-relaxed mb-8" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>{product.description}</p>
 
                             <AddToCartButton productId={product.id} productName={product.name} />
 
@@ -129,18 +130,18 @@ export default async function ProductPage({
                             <div className="grid grid-cols-2 gap-3 mt-8">
                                 <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 card-bubble">
                                     <span className="text-lg">💎</span>
-                                    <p className="text-[#3D0030] text-xs font-bold leading-tight">
+                                    <p className="text-xs font-bold leading-tight" style={{ color: 'var(--blush-text)' }}>
                                         Anti-Tarnish
                                         <br />
-                                        <span className="font-medium text-[#9B4070]">100% Guaranteed</span>
+                                        <span className="font-medium" style={{ color: 'var(--blush-muted)' }}>100% Guaranteed</span>
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 card-bubble">
                                     <span className="text-lg">🚀</span>
-                                    <p className="text-[#3D0030] text-xs font-bold leading-tight">
+                                    <p className="text-xs font-bold leading-tight" style={{ color: 'var(--blush-text)' }}>
                                         Fast Shipping
                                         <br />
-                                        <span className="font-medium text-[#9B4070]">Pan India 2–5 days</span>
+                                        <span className="font-medium" style={{ color: 'var(--blush-muted)' }}>Pan India 2–5 days</span>
                                     </p>
                                 </div>
                             </div>
@@ -150,7 +151,7 @@ export default async function ProductPage({
                     {/* Related products */}
                     {related.length > 0 && (
                         <div className="mt-20">
-                            <h2 className="font-display font-black text-[#3D0030] text-2xl md:text-3xl tracking-tight mb-6">
+                            <h2 className="font-elegant-serif text-2xl md:text-3xl tracking-tight mb-6" style={{ color: 'var(--blush-text)' }}>
                                 More from {category?.title ?? product.category}
                             </h2>
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">

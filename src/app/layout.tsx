@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Syne, Plus_Jakarta_Sans } from 'next/font/google';
+import { Syne, Plus_Jakarta_Sans, Playfair_Display, Dancing_Script } from 'next/font/google';
 import { CartProvider } from '@/lib/cart-context';
 import { ToastProvider } from '@/lib/toast-context';
 import '../styles/tailwind.css';
@@ -16,6 +16,21 @@ const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ['latin'],
     weight: ['400', '500', '600', '700', '800'],
     variable: '--font-plus-jakarta-sans',
+    display: 'swap',
+});
+
+// Blush theme (homepage redesign): elegant serif headline + script logo/accent.
+const playfairDisplay = Playfair_Display({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700'],
+    variable: '--font-playfair',
+    display: 'swap',
+});
+
+const dancingScript = Dancing_Script({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700'],
+    variable: '--font-dancing-script',
     display: 'swap',
 });
 
@@ -40,7 +55,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <html lang="en" className={`${syne.variable} ${plusJakartaSans.variable}`}>
+        <html lang="en" className={`${syne.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} ${dancingScript.variable}`}>
             <body className={plusJakartaSans.className}>
                 <ToastProvider>
                     <CartProvider>{children}</CartProvider>

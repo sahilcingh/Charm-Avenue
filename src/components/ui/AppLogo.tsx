@@ -36,8 +36,10 @@ const AppLogo = memo(function AppLogo({
                     alt="Logo"
                     width={size}
                     height={size}
+                    style={{ width: size, height: size }}
                     className="flex-shrink-0"
                     priority={true}
+                    placeholder="empty"
                     unoptimized={src.endsWith('.svg')}
                 />
             ) : (

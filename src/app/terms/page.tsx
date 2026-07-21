@@ -72,8 +72,8 @@ const sections = [
 
 export default function TermsPage() {
     return (
-        <main className="min-h-screen bg-[#FFF0F7] overflow-x-hidden">
-            <Header variant="solid" />
+        <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+            <Header />
             <PageHero
                 eyebrow="📜 Terms"
                 title="Terms of Service"

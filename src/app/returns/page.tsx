@@ -51,8 +51,8 @@ const sections = [
 
 export default function ReturnsPage() {
     return (
-        <main className="min-h-screen bg-[#FFF0F7] overflow-x-hidden">
-            <Header variant="solid" />
+        <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+            <Header />
             <PageHero
                 eyebrow="💝 Returns"
                 title="Returns & Refunds"

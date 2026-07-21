@@ -37,8 +37,8 @@ export default async function CategoryPage({
     const products = getProductsByCategory(cat.slug);
 
     return (
-        <main className="min-h-screen bg-[#FFF0F7] overflow-x-hidden">
-            <Header variant="solid" />
+        <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+            <Header />
             <PageHero
                 eyebrow={`${cat.emoji} ${cat.tag}`}
                 title={cat.title}
@@ -46,7 +46,7 @@ export default async function CategoryPage({
                 breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Shop', href: '/shop' }, { label: cat.title }]}
             />
 
-            <section className="bg-[#FFF0F7] w-full px-4 md:px-10 pt-6 pb-16">
+            <section className="w-full px-4 md:px-10 pt-6 pb-16" style={{ background: 'var(--blush-bg)' }}>
                 <div className="max-w-screen-xl mx-auto">
                     {/* Other categories */}
                     <div className="flex gap-3 overflow-x-auto no-scrollbar pb-6">
@@ -54,17 +54,19 @@ export default async function CategoryPage({
                             <Link
                                 key={c.slug}
                                 href={`/shop/${c.slug}`}
-                                className={`shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300 ${c.slug === cat.slug
-                                        ? 'bg-[#E91E8C] text-white'
-                                        : 'bg-white border border-[#FFCCE8] text-[#3D0030] hover:border-[#E91E8C]/50 hover:bg-[#FFE4F4]'
-                                    }`}
+                                className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300"
+                                style={
+                                    c.slug === cat.slug
+                                        ? { background: 'var(--blush-rose)', color: '#FFFFFF' }
+                                        : { background: '#FFFFFF', color: 'var(--blush-text)', border: '1px solid var(--blush-border)' }
+                                }
                             >
                                 <span>{c.emoji}</span> {c.title}
                             </Link>
                         ))}
                     </div>
 
-                    <p className="text-[#9B4070] text-sm font-medium mb-6">
+                    <p className="text-sm font-medium mb-6" style={{ color: 'var(--blush-muted)' }}>
                         {products.length} product{products.length === 1 ? '' : 's'}
                     </p>
 
@@ -75,7 +77,7 @@ export default async function CategoryPage({
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-16 text-[#9B4070]">
+                        <div className="text-center py-16" style={{ color: 'var(--blush-muted)' }}>
                             <span className="text-4xl block mb-3">✨</span>
                             <p className="font-medium">New styles dropping soon in this category!</p>
                         </div>

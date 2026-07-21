@@ -3,41 +3,31 @@
 @tailwind utilities;
 
 :root {
-    --background: #FFF0F7;
-    --foreground: #3D0030;
-    --primary: #E91E8C;
+    --background: #FBF1EF;
+    --foreground: #1E1712;
+    --primary: #E8828F;
     --primary-foreground: #FFFFFF;
-    --secondary: #FF6EC7;
-    --secondary-foreground: #3D0030;
-    --accent: #FFB3E0;
-    --accent-foreground: #3D0030;
-    --muted: #FFE4F4;
-    --muted-foreground: #9B4070;
+    --secondary: #D1636F;
+    --secondary-foreground: #FFFFFF;
+    --accent: #F6D3D6;
+    --accent-foreground: #1E1712;
+    --muted: #EBD9D5;
+    --muted-foreground: #9C6D74;
     --card: #FFFFFF;
-    --card-foreground: #3D0030;
-    --border: #FFCCE8;
-    --input: #FFE4F4;
-    --ring: #E91E8C;
+    --card-foreground: #1E1712;
+    --border: #EBD9D5;
+    --input: #EBD9D5;
+    --ring: #E8828F;
     --radius: 1.5rem;
     --font-sans: var(--font-plus-jakarta-sans), sans-serif;
 
-    /* Brand extras — all pink shades */
-    --hot-pink: #E91E8C;
-    --bubblegum: #FF6EC7;
-    --blush: #FFB3E0;
-    --millennial: #FFF0F7;
-    --deep-rose: #C2185B;
-    --magenta: #AD1457;
-    --pale-pink: #FCE4EC;
-    --deep-plum: #3D0030;
-    /* Legacy aliases kept for component compatibility */
-    --lavender: #FF6EC7;
-    --lavender-light: #FFE4F4;
-    --mint: #FFB3E0;
-    --mint-light: #FFD6EE;
-    --pink-light: #FFE4F4;
-    --yellow: #FF6EC7;
-    --vanilla: #FFF0F7;
+    /* Blush theme — sitewide palette (colors sampled directly from the client's reference comp) */
+    --blush-bg: #FBF1EF;
+    --blush-rose: #E8828F;
+    --blush-rose-dark: #D1636F;
+    --blush-text: #1E1712;
+    --blush-muted: #9C6D74;
+    --blush-border: #EBD9D5;
 }
 
 @layer base {
@@ -77,6 +67,15 @@
 @layer utilities {
     .font-display {
         font-family: var(--font-syne), sans-serif;
+    }
+
+    /* Blush theme fonts */
+    .font-elegant-serif {
+        font-family: var(--font-playfair), serif;
+    }
+
+    .font-script {
+        font-family: var(--font-dancing-script), cursive;
     }
 
     /* Glass morphism — hot pink tones */
@@ -302,32 +301,6 @@
         animation: pulseGlow 2s ease-in-out infinite;
     }
 
-    /* Monochrome pink shimmer — hot pink → bubblegum → blush → hot pink */
-    .shimmer-text {
-        background: linear-gradient(90deg, #E91E8C 0%, #FF6EC7 35%, #FFB3E0 55%, #FF6EC7 75%, #E91E8C 100%);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        animation: shimmer 4s linear infinite;
-    }
-
-    /* Hot pink CTA button with glassmorphism */
-    .btn-glass-hot-pink {
-        background: rgba(233, 30, 140, 0.22);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1.5px solid rgba(233, 30, 140, 0.5);
-        color: #E91E8C;
-        font-weight: 800;
-    }
-
-    .btn-glass-hot-pink:hover {
-        background: rgba(233, 30, 140, 0.35);
-        border-color: rgba(233, 30, 140, 0.7);
-        box-shadow: 0 0 24px rgba(233, 30, 140, 0.4);
-    }
-
     .delay-100 {
         animation-delay: 100ms;
     }
@@ -350,6 +323,14 @@
 
     .delay-600 {
         animation-delay: 600ms;
+    }
+
+    .delay-700 {
+        animation-delay: 700ms;
+    }
+
+    .delay-800 {
+        animation-delay: 800ms;
     }
 
     /* Horizontal scroll snap */

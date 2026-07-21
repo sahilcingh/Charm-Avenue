@@ -30,7 +30,7 @@ const feedItems: FeedItem[] = [
         likes: '4.2k',
         tag: 'Crystal Neck Chain',
         emoji: '💎',
-        tagBg: '#AD1457',
+        tagBg: '#B85864',
     },
     {
         id: 'f2',
@@ -42,7 +42,7 @@ const feedItems: FeedItem[] = [
         likes: '3.8k',
         tag: 'Butterfly Claw Clip',
         emoji: '🦋',
-        tagBg: '#FF6EC7',
+        tagBg: '#D1636F',
     },
     {
         id: 'f3',
@@ -54,7 +54,7 @@ const feedItems: FeedItem[] = [
         likes: '5.1k',
         tag: 'Glossy Lip Set',
         emoji: '💄',
-        tagBg: '#E91E8C',
+        tagBg: '#E8828F',
     },
     {
         id: 'f4',
@@ -66,7 +66,7 @@ const feedItems: FeedItem[] = [
         likes: '6.3k',
         tag: 'Pearl Drop Bracelet',
         emoji: '🤍',
-        tagBg: '#FFB3E0',
+        tagBg: '#F6D3D6',
     },
     {
         id: 'f5',
@@ -78,7 +78,7 @@ const feedItems: FeedItem[] = [
         likes: '2.9k',
         tag: 'Mini Teddy Bag Charm',
         emoji: '🧸',
-        tagBg: '#FF6EC7',
+        tagBg: '#D1636F',
     },
     {
         id: 'f6',
@@ -90,7 +90,7 @@ const feedItems: FeedItem[] = [
         likes: '3.4k',
         tag: 'Floral Organiser Pouch',
         emoji: '🌸',
-        tagBg: '#C2185B',
+        tagBg: '#B85864',
     },
 ];
 
@@ -132,31 +132,40 @@ export default function InstagramCarousel() {
     };
 
     return (
-        <section ref={sectionRef} className="bg-[#FFF0F7] w-full pt-14 pb-12 overflow-hidden">
+        <section ref={sectionRef} className="w-full pt-14 pb-12 overflow-hidden" style={{ background: 'var(--blush-bg)' }}>
             <div className="max-w-screen-xl mx-auto px-4 md:px-10">
                 {/* Header */}
                 <div className="reveal mb-8 flex items-end justify-between gap-4">
                     <div>
-                        <span className="badge-pill bg-[#FFE4F4] text-[#E91E8C] border border-[#FFCCE8] mb-3 inline-flex">
+                        <span
+                            className="badge-pill mb-3 inline-flex"
+                            style={{ background: '#FFFFFF', color: 'var(--blush-rose)', border: '1px solid var(--blush-border)' }}
+                        >
                             <span>📸</span> Charm Feed
                         </span>
-                        <h2 className="font-display text-section-title font-black text-[#3D0030] tracking-tight">
+                        <h2 className="font-elegant-serif text-section-title tracking-tight" style={{ color: 'var(--blush-text)' }}>
                             Shop the{' '}
-                            <span className="shimmer-text">Aesthetic</span>
+                            <span style={{ color: 'var(--blush-rose)' }}>Aesthetic</span>
                         </h2>
                     </div>
                     <div className="hidden md:flex gap-2">
                         <button
                             onClick={() => scroll('left')}
-                            className="w-11 h-11 rounded-full border border-[#FFCCE8] bg-white flex items-center justify-center hover:bg-[#E91E8C] hover:text-white hover:border-[#E91E8C] transition-all duration-300"
+                            className="w-11 h-11 rounded-full border bg-white flex items-center justify-center hover:text-white transition-all duration-300"
+                            style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--blush-rose)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--blush-rose)'; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#FFFFFF'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--blush-border)'; }}
                         >
-                            <Icon name="ChevronLeftIcon" size={18} className="text-[#3D0030]" />
+                            <Icon name="ChevronLeftIcon" size={18} />
                         </button>
                         <button
                             onClick={() => scroll('right')}
-                            className="w-11 h-11 rounded-full border border-[#FFCCE8] bg-white flex items-center justify-center hover:bg-[#E91E8C] hover:text-white hover:border-[#E91E8C] transition-all duration-300"
+                            className="w-11 h-11 rounded-full border bg-white flex items-center justify-center hover:text-white transition-all duration-300"
+                            style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--blush-rose)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--blush-rose)'; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#FFFFFF'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--blush-border)'; }}
                         >
-                            <Icon name="ChevronRightIcon" size={18} className="text-[#3D0030]" />
+                            <Icon name="ChevronRightIcon" size={18} />
                         </button>
                     </div>
                 </div>
@@ -186,17 +195,28 @@ export default function InstagramCarousel() {
                                 sizes="300px"
                             />
                             {/* Base gradient */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#3D0030]/85 via-transparent to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#1E1712]/85 via-transparent to-transparent" />
 
                             {/* Hover overlay */}
                             <div
                                 className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 ${hoveredId === item.id ? 'opacity-100' : 'opacity-0'}`}
-                                style={{ background: 'rgba(173,20,87,0.55)' }}
+                                style={{ background: 'rgba(30,23,18,0.55)' }}
                             >
-                                <span className="text-white font-display font-black text-2xl">{item.price}</span>
+                                <span className="text-white font-elegant-serif font-bold text-2xl">{item.price}</span>
                                 <button
                                     onClick={(e) => handleAddToBag(e, item)}
-                                    className="bg-[#E91E8C] text-white px-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:bg-white hover:text-[#E91E8C] transition-colors shadow-lg"
+                                    className="text-white px-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-colors shadow-lg"
+                                    style={{ background: 'var(--blush-rose)' }}
+                                    onMouseEnter={(e) => {
+                                        const btn = e.currentTarget as HTMLButtonElement;
+                                        btn.style.background = '#FFFFFF';
+                                        btn.style.color = 'var(--blush-rose)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        const btn = e.currentTarget as HTMLButtonElement;
+                                        btn.style.background = 'var(--blush-rose)';
+                                        btn.style.color = '#FFFFFF';
+                                    }}
                                 >
                                     <Icon name={addedId === item.productId ? 'CheckIcon' : 'ShoppingBagIcon'} size={16} />
                                     {addedId === item.productId ? 'Added!' : 'Add to Bag'}
@@ -224,10 +244,10 @@ export default function InstagramCarousel() {
                                 <p className="text-white font-bold text-sm leading-tight mb-1">{item.caption}</p>
                                 <div className="flex items-center justify-between">
                                     <span className="text-white/80 text-xs flex items-center gap-1">
-                                        <Icon name="HeartIcon" size={12} className="text-[#FF6EC7]" variant="solid" />
+                                        <Icon name="HeartIcon" size={12} style={{ color: 'var(--blush-rose)' }} variant="solid" />
                                         {item.likes} likes
                                     </span>
-                                    <span className="font-display font-black text-white text-base">{item.price}</span>
+                                    <span className="font-elegant-serif font-bold text-white text-base">{item.price}</span>
                                 </div>
                             </div>
                         </div>
@@ -240,7 +260,7 @@ export default function InstagramCarousel() {
                 {feedItems.map((_, i) => (
                     <div
                         key={i}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${i === 0 ? 'w-5 bg-[#E91E8C]' : 'w-1.5 bg-[#FFCCE8]'}`}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${i === 0 ? 'w-5 bg-[#E8828F]' : 'w-1.5 bg-[#EBD9D5]'}`}
                     />
                 ))}
             </div>

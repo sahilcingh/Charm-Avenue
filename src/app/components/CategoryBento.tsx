@@ -5,37 +5,12 @@ import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import { CATEGORIES, type CategorySlug } from '@/lib/products';
 
-const layoutBySlug: Record<CategorySlug, { colSpan: string; rowSpan: string; minHeight: string; color: string }> = {
-    jewellery: {
-        colSpan: 'md:col-span-2',
-        rowSpan: 'md:row-span-2',
-        minHeight: 'min-h-[420px] md:min-h-[500px]',
-        color: 'from-[#AD1457]/85 via-[#E91E8C]/50 to-transparent',
-    },
-    hair: {
-        colSpan: 'md:col-span-1',
-        rowSpan: 'md:row-span-1',
-        minHeight: 'min-h-[220px]',
-        color: 'from-[#FF6EC7]/85 via-[#FF6EC7]/45 to-transparent',
-    },
-    makeup: {
-        colSpan: 'md:col-span-1',
-        rowSpan: 'md:row-span-1',
-        minHeight: 'min-h-[220px]',
-        color: 'from-[#C2185B]/85 via-[#E91E8C]/45 to-transparent',
-    },
-    accessories: {
-        colSpan: 'md:col-span-1',
-        rowSpan: 'md:row-span-1',
-        minHeight: 'min-h-[220px]',
-        color: 'from-[#E91E8C]/80 via-[#FF6EC7]/45 to-transparent',
-    },
-    pouches: {
-        colSpan: 'md:col-span-2',
-        rowSpan: 'md:row-span-1',
-        minHeight: 'min-h-[220px]',
-        color: 'from-[#FF6EC7]/80 via-[#FFB3E0]/50 to-transparent',
-    },
+const layoutBySlug: Record<CategorySlug, { colSpan: string; rowSpan: string; minHeight: string }> = {
+    jewellery: { colSpan: 'md:col-span-2', rowSpan: 'md:row-span-2', minHeight: 'min-h-[420px] md:min-h-[500px]' },
+    hair: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: 'min-h-[220px]' },
+    makeup: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: 'min-h-[220px]' },
+    accessories: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: 'min-h-[220px]' },
+    pouches: { colSpan: 'md:col-span-2', rowSpan: 'md:row-span-1', minHeight: 'min-h-[220px]' },
 };
 
 export default function CategoryBento() {
@@ -59,22 +34,25 @@ export default function CategoryBento() {
     }, []);
 
     return (
-        <section ref={sectionRef} className="bg-[#FFF0F7] w-full px-4 md:px-10 pt-16 pb-12">
+        <section ref={sectionRef} className="w-full px-4 md:px-10 pt-16 pb-12" style={{ background: 'var(--blush-bg)' }}>
             {/* Header */}
             <div className="max-w-screen-xl mx-auto mb-10">
                 <div className="reveal flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>
-                        <span className="badge-pill bg-[#FFE4F4] text-[#E91E8C] border border-[#FFCCE8] mb-3 inline-flex">
+                        <span
+                            className="badge-pill mb-3 inline-flex"
+                            style={{ background: '#FFFFFF', color: 'var(--blush-rose)', border: '1px solid var(--blush-border)' }}
+                        >
                             <span>🛍️</span> Shop by Category
                         </span>
-                        <h2 className="font-display text-section-title font-black text-[#3D0030] tracking-tight">
+                        <h2 className="font-elegant-serif text-section-title tracking-tight" style={{ color: 'var(--blush-text)' }}>
                             All the{' '}
-                            <span className="shimmer-text">Cute Stuff</span>
+                            <span style={{ color: 'var(--blush-rose)' }}>Cute Stuff</span>
                             <br />
                             in one place.
                         </h2>
                     </div>
-                    <p className="text-[#9B4070] text-base leading-relaxed max-w-xs">
+                    <p className="text-base leading-relaxed max-w-xs" style={{ color: 'var(--blush-muted)' }}>
                         5 categories. Endless charm. Every piece tells a story.
                     </p>
                 </div>
@@ -100,7 +78,7 @@ export default function CategoryBento() {
                                 sizes="(max-width: 768px) 100vw, 50vw"
                             />
                             {/* Gradient scrim */}
-                            <div className={`absolute inset-0 bg-gradient-to-t ${layout.color}`} />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#1E1712]/80 via-[#1E1712]/30 to-transparent" />
 
                             {/* Content */}
                             <div className="absolute inset-0 flex flex-col justify-between p-5 md:p-6 z-10">
@@ -119,7 +97,7 @@ export default function CategoryBento() {
 
                                 {/* Bottom text */}
                                 <div>
-                                    <h3 className="font-display font-black text-white text-xl md:text-2xl leading-tight mb-1">
+                                    <h3 className="font-elegant-serif text-white text-xl md:text-2xl leading-tight mb-1">
                                         {cat.title}
                                     </h3>
                                     <p className="text-white/80 text-xs md:text-sm font-medium">{cat.subtitle}</p>

@@ -38,20 +38,20 @@ export default function BudgetFilter() {
     });
 
     return (
-        <section ref={sectionRef} className="bg-[#FFE4F4] w-full px-4 md:px-10 pt-14 pb-12">
+        <section ref={sectionRef} className="w-full px-4 md:px-10 pt-14 pb-12" style={{ background: 'var(--blush-border)' }}>
             <div className="max-w-screen-xl mx-auto">
                 {/* Header */}
                 <div className="reveal mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>
-                        <span className="badge-pill bg-[#E91E8C] text-white mb-3 inline-flex">
+                        <span className="badge-pill text-white mb-3 inline-flex" style={{ background: 'var(--blush-rose)' }}>
                             <span>🏷️</span> Budget Friendly
                         </span>
-                        <h2 className="font-display text-section-title font-black text-[#3D0030] tracking-tight">
+                        <h2 className="font-elegant-serif text-section-title tracking-tight" style={{ color: 'var(--blush-text)' }}>
                             Impulse Buys{' '}
-                            <span className="shimmer-text">You Need</span>
+                            <span style={{ color: 'var(--blush-rose)' }}>You Need</span>
                         </h2>
                     </div>
-                    <p className="text-[#9B4070] text-sm max-w-xs leading-relaxed">
+                    <p className="text-sm max-w-xs leading-relaxed" style={{ color: 'var(--blush-muted)' }}>
                         Because cute shouldn't cost a fortune. Filter by your budget.
                     </p>
                 </div>
@@ -62,11 +62,12 @@ export default function BudgetFilter() {
                         <button
                             key={f.key}
                             onClick={() => setActive(f.key)}
-                            className={`px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-1.5 ${active === f.key
-                                    ? 'bg-[#E91E8C] text-white shadow-lg scale-105'
-                                    : 'bg-white text-[#3D0030] border border-[#FFCCE8] hover:border-[#E91E8C]/50 hover:bg-[#FFF0F7]'
-                                }`}
-                            style={active === f.key ? { boxShadow: '0 4px 16px rgba(233,30,140,0.35)' } : {}}
+                            className="px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-1.5"
+                            style={
+                                active === f.key
+                                    ? { background: 'var(--blush-rose)', color: '#FFFFFF', boxShadow: '0 4px 16px rgba(232,130,143,0.4)', transform: 'scale(1.05)' }
+                                    : { background: '#FFFFFF', color: 'var(--blush-text)', border: '1px solid var(--blush-border)' }
+                            }
                         >
                             <span>{f.emoji}</span> {f.label}
                         </button>
@@ -81,7 +82,7 @@ export default function BudgetFilter() {
                 </div>
 
                 {filtered.length === 0 && (
-                    <div className="text-center py-16 text-[#9B4070]">
+                    <div className="text-center py-16" style={{ color: 'var(--blush-muted)' }}>
                         <span className="text-4xl block mb-3">🛍️</span>
                         <p className="font-medium">No items in this range yet — check back soon!</p>
                     </div>

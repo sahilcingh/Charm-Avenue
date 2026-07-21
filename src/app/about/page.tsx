@@ -19,13 +19,13 @@ const values = [
 
 export default function AboutPage() {
     return (
-        <main className="min-h-screen bg-[#FFF0F7] overflow-x-hidden">
-            <Header variant="solid" />
+        <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+            <Header />
             <PageHero
                 eyebrow="🌸 Our Story"
                 title={
                     <>
-                        Charm you can wear, <span className="shimmer-text">everyday.</span>
+                        Charm you can wear, <span className="font-script" style={{ color: 'var(--blush-rose)' }}>everyday.</span>
                     </>
                 }
                 subtitle="Charm Avenue by Nandini started with one simple idea: cute, quality accessories shouldn't be hard to find or expensive to own."
@@ -35,18 +35,21 @@ export default function AboutPage() {
             <section className="w-full px-4 md:px-10 py-14">
                 <div className="max-w-screen-xl mx-auto grid md:grid-cols-2 gap-10 items-center mb-16">
                     <div>
-                        <span className="badge-pill bg-[#FFE4F4] text-[#E91E8C] border border-[#FFCCE8] mb-4 inline-flex">
+                        <span
+                            className="badge-pill mb-4 inline-flex"
+                            style={{ background: '#FFFFFF', color: 'var(--blush-rose)', border: '1px solid var(--blush-border)' }}
+                        >
                             <span>💕</span> Meet Nandini
                         </span>
-                        <h2 className="font-display text-section-title font-black text-[#3D0030] tracking-tight mb-4">
+                        <h2 className="font-elegant-serif text-section-title tracking-tight mb-4" style={{ color: 'var(--blush-text)' }}>
                             Built by someone who loves cute things as much as you do.
                         </h2>
-                        <p className="text-[#3D0030]/80 text-base leading-relaxed mb-4">
+                        <p className="text-base leading-relaxed mb-4" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>
                             Charm Avenue began as a small collection of anti-tarnish jewellery hand-picked for friends and
                             family, and grew into a home for everything cute — hair clips, glossy makeup, bag charms and
                             organiser pouches included.
                         </p>
-                        <p className="text-[#3D0030]/80 text-base leading-relaxed">
+                        <p className="text-base leading-relaxed" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>
                             Every product is chosen (and often tested first) with one question in mind: would I wear this
                             every single day? If the answer's yes, it makes it into the shop.
                         </p>
@@ -59,8 +62,8 @@ export default function AboutPage() {
                             { num: '2-5', label: 'Days Delivery' },
                         ].map((stat) => (
                             <div key={stat.label} className="bg-white rounded-3xl p-6 text-center card-bubble">
-                                <p className="font-display font-black text-2xl md:text-3xl text-[#E91E8C]">{stat.num}</p>
-                                <p className="text-[#9B4070] text-xs font-medium mt-1">{stat.label}</p>
+                                <p className="font-elegant-serif font-bold text-2xl md:text-3xl" style={{ color: 'var(--blush-rose)' }}>{stat.num}</p>
+                                <p className="text-xs font-medium mt-1" style={{ color: 'var(--blush-muted)' }}>{stat.label}</p>
                             </div>
                         ))}
                     </div>
@@ -68,15 +71,15 @@ export default function AboutPage() {
 
                 {/* Values */}
                 <div className="max-w-screen-xl mx-auto mb-16">
-                    <h2 className="font-display text-section-title font-black text-[#3D0030] tracking-tight mb-8 text-center">
+                    <h2 className="font-elegant-serif text-section-title tracking-tight mb-8 text-center" style={{ color: 'var(--blush-text)' }}>
                         What we stand for
                     </h2>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {values.map((v) => (
                             <div key={v.title} className="bg-white rounded-3xl p-6 card-bubble">
                                 <span className="text-3xl block mb-3">{v.icon}</span>
-                                <h3 className="font-display font-black text-[#3D0030] text-base mb-1.5">{v.title}</h3>
-                                <p className="text-[#9B4070] text-sm leading-relaxed">{v.text}</p>
+                                <h3 className="font-bold text-base mb-1.5" style={{ color: 'var(--blush-text)' }}>{v.title}</h3>
+                                <p className="text-sm leading-relaxed" style={{ color: 'var(--blush-muted)' }}>{v.text}</p>
                             </div>
                         ))}
                     </div>
@@ -86,8 +89,8 @@ export default function AboutPage() {
                 <div className="max-w-screen-xl mx-auto text-center">
                     <Link
                         href="/shop"
-                        className="inline-flex items-center gap-2 px-10 py-4 rounded-full font-display font-bold text-base uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
-                        style={{ background: '#E91E8C', boxShadow: '0 4px 20px rgba(233,30,140,0.4)' }}
+                        className="inline-flex items-center gap-2 px-10 py-4 rounded-full font-bold text-base uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
+                        style={{ background: 'var(--blush-rose)', boxShadow: '0 4px 20px rgba(232,130,143,0.4)' }}
                     >
                         <Icon name="ShoppingBagIcon" size={18} />
                         Shop the Collection

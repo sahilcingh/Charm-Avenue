@@ -40,14 +40,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                         key={t.id}
                         className="pointer-events-auto flex items-center gap-3 bg-white rounded-full pl-3 pr-4 py-2.5 card-bubble animate-bounce-in"
                     >
-                        <span className="w-7 h-7 rounded-full bg-[#E91E8C] flex items-center justify-center shrink-0">
+                        <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--blush-rose)' }}>
                             <Icon name="CheckIcon" size={14} className="text-white" />
                         </span>
-                        <span className="text-sm font-bold text-[#3D0030]">{t.message}</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--blush-text)' }}>{t.message}</span>
                         {t.href && (
                             <Link
                                 href={t.href}
-                                className="text-xs font-bold uppercase tracking-wide text-[#E91E8C] hover:underline shrink-0"
+                                className="text-xs font-bold uppercase tracking-wide hover:underline shrink-0"
+                                style={{ color: 'var(--blush-rose)' }}
                             >
                                 {t.actionLabel ?? 'View'}
                             </Link>

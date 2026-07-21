@@ -18,13 +18,13 @@ const contactMethods = [
 
 export default function ContactPage() {
     return (
-        <main className="min-h-screen bg-[#FFF0F7] overflow-x-hidden">
-            <Header variant="solid" />
+        <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+            <Header />
             <PageHero
                 eyebrow="💌 Get in Touch"
                 title={
                     <>
-                        We&apos;d love to <span className="shimmer-text">hear from you</span>
+                        We&apos;d love to <span className="font-script" style={{ color: 'var(--blush-rose)' }}>hear from you</span>
                     </>
                 }
                 subtitle="Questions about an order, a product, or just want to say hi? Drop us a message and we'll get back within 24 hours."
@@ -36,12 +36,12 @@ export default function ContactPage() {
                     <div className="md:col-span-2 flex flex-col gap-4">
                         {contactMethods.map((m) => (
                             <div key={m.label} className="flex items-center gap-4 bg-white rounded-3xl p-5 card-bubble">
-                                <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ background: '#FFE4F4' }}>
-                                    <Icon name={m.icon} size={20} className="text-[#E91E8C]" />
+                                <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--blush-border)' }}>
+                                    <Icon name={m.icon} size={20} style={{ color: 'var(--blush-rose)' }} />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-[#9B4070] font-semibold uppercase tracking-wide">{m.label}</p>
-                                    <p className="text-[#3D0030] font-bold">{m.value}</p>
+                                    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--blush-muted)' }}>{m.label}</p>
+                                    <p className="font-bold" style={{ color: 'var(--blush-text)' }}>{m.value}</p>
                                 </div>
                             </div>
                         ))}
