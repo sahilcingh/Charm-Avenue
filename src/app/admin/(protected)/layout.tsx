@@ -11,7 +11,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect('/admin/login');
+        redirect('/login?next=/admin/products');
+    }
+
+    const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
+    if (!profile?.is_admin) {
+        redirect('/');
     }
 
     return (
@@ -22,6 +27,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                         Charm Avenue <span className="text-sm font-sans font-semibold uppercase tracking-widest align-middle" style={{ color: 'var(--blush-muted)' }}>Admin</span>
                     </Link>
                     <div className="flex items-center gap-4">
+                        <Link
+                            href="/"
+                            className="text-sm font-semibold hover:opacity-70 transition-opacity"
+                            style={{ color: 'var(--blush-rose)' }}
+                        >
+                            View Store
+                        </Link>
                         <span className="text-sm hidden sm:block" style={{ color: 'var(--blush-muted)' }}>{user.email}</span>
                         <SignOutButton />
                     </div>

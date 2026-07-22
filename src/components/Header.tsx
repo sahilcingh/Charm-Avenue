@@ -4,6 +4,10 @@ import Icon from '@/components/ui/AppIcon';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
+import { useWishlist } from '@/lib/wishlist-context';
+import { useAdminMode } from '@/lib/admin-mode-context';
+import { createClient } from '@/lib/supabase/client';
+import { getInitial } from '@/lib/auth-validation';
 
 const navLinks = [
     { label: 'Home', href: '/' },
@@ -19,8 +23,31 @@ const navLinkDelays = ['delay-100', 'delay-200', 'delay-300', 'delay-400', 'dela
 
 export default function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
+    const [accountInitial, setAccountInitial] = useState<string | null>(null);
     const { itemCount } = useCart();
+    const { count: wishlistCount } = useWishlist();
+    const { isAdmin, adminModeOn, toggleAdminMode } = useAdminMode();
     const pathname = usePathname();
+
+    useEffect(() => {
+        const supabase = createClient();
+
+        const applyUser = (user: { user_metadata?: { name?: string }; email?: string } | null) => {
+            if (!user) {
+                setAccountInitial(null);
+                return;
+            }
+            setAccountInitial(getInitial(user.user_metadata?.name || user.email || ''));
+        };
+
+        supabase.auth.getUser().then(({ data }) => applyUser(data.user));
+
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+            applyUser(session?.user ?? null);
+        });
+
+        return () => listener.subscription.unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (menuOpen) {
@@ -45,12 +72,12 @@ export default function Header() {
                 <div className="relative max-w-screen-2xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
                     {/* Left: nav (desktop) / hamburger (mobile) */}
                     <div className="flex items-center">
-                        <nav className="hidden 2xl:flex items-center gap-7 2xl:gap-9">
+                        <nav className="hidden xl:flex items-center gap-4 2xl:gap-7">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.label}
                                     href={link.href}
-                                    className="whitespace-nowrap text-[11px] lg:text-xs font-semibold uppercase tracking-wide transition-colors hover:opacity-80"
+                                    className="whitespace-nowrap text-[0.6875rem] lg:text-xs font-semibold uppercase tracking-wide transition-colors hover:opacity-80"
                                     style={{ color: isLinkActive(link.href) ? 'var(--blush-rose)' : 'var(--blush-text)' }}
                                 >
                                     {link.label}
@@ -58,7 +85,7 @@ export default function Header() {
                             ))}
                         </nav>
                         <button
-                            className="2xl:hidden w-10 h-10 rounded-full flex items-center justify-center"
+                            className="xl:hidden w-10 h-10 rounded-full flex items-center justify-center"
                             style={{ background: 'var(--blush-border)', color: 'var(--blush-text)' }}
                             onClick={() => setMenuOpen(true)}
                             aria-label="Open menu"
@@ -77,7 +104,7 @@ export default function Header() {
                             <Icon name="HeartIcon" size={14} style={{ color: 'var(--blush-rose)' }} />
                         </span>
                         <span
-                            className="text-[9px] sm:text-[10px] font-semibold tracking-[0.35em] uppercase mt-1 flex items-center gap-2"
+                            className="text-[0.5625rem] sm:text-[0.625rem] font-semibold tracking-[0.35em] uppercase mt-1 flex items-center gap-2"
                             style={{ color: 'var(--blush-muted)' }}
                         >
                             <span className="w-3 h-px" style={{ background: 'var(--blush-muted)' }} />
@@ -87,7 +114,7 @@ export default function Header() {
                     </Link>
 
                     {/* Right: icons */}
-                    <div className="flex items-center gap-3 sm:gap-4 2xl:mr-24">
+                    <div className="flex items-center gap-3 sm:gap-4 xl:mr-16 2xl:mr-24">
                         <button
                             className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
                             style={{ color: 'var(--blush-text)' }}
@@ -95,26 +122,63 @@ export default function Header() {
                         >
                             <Icon name="MagnifyingGlassIcon" size={19} />
                         </button>
-                        <button
-                            className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
-                            style={{ color: 'var(--blush-text)' }}
-                            aria-label="Account"
-                        >
-                            <Icon name="UserIcon" size={19} />
-                        </button>
-                        <button
+                        {isAdmin && (
+                            <>
+                                <button
+                                    onClick={toggleAdminMode}
+                                    aria-label={adminModeOn ? 'Turn off Admin Mode' : 'Turn on Admin Mode'}
+                                    aria-pressed={adminModeOn}
+                                    className="hidden sm:flex w-9 h-5 rounded-full items-center transition-colors duration-200 px-0.5"
+                                    style={{ background: adminModeOn ? 'var(--blush-rose)' : 'var(--blush-border)' }}
+                                >
+                                    <span
+                                        className="w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                                        style={{ transform: adminModeOn ? 'translateX(1rem)' : 'translateX(0)' }}
+                                    />
+                                </button>
+                                <Link
+                                    href="/admin/products"
+                                    aria-label="Admin Dashboard"
+                                    className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
+                                    style={{ color: 'var(--blush-text)' }}
+                                >
+                                    <Icon name="Cog6ToothIcon" size={19} />
+                                </Link>
+                            </>
+                        )}
+                        {accountInitial ? (
+                            <Link
+                                href="/account"
+                                aria-label="My Account"
+                                className="hidden sm:flex w-9 h-9 items-center justify-center rounded-full text-xs font-bold text-white transition-opacity hover:opacity-80"
+                                style={{ background: 'var(--blush-rose)' }}
+                            >
+                                {accountInitial}
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/login"
+                                aria-label="Sign in"
+                                className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
+                                style={{ color: 'var(--blush-text)' }}
+                            >
+                                <Icon name="UserIcon" size={19} />
+                            </Link>
+                        )}
+                        <Link
+                            href="/wishlist"
                             className="relative w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-70"
                             style={{ color: 'var(--blush-text)' }}
                             aria-label="Wishlist"
                         >
                             <Icon name="HeartIcon" size={19} />
                             <span
-                                className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+                                className="absolute -top-1 -right-1 min-w-[1rem] h-[1rem] px-1 rounded-full text-white text-[0.5625rem] font-bold flex items-center justify-center"
                                 style={{ background: 'var(--blush-rose)' }}
                             >
-                                0
+                                {wishlistCount}
                             </span>
-                        </button>
+                        </Link>
                         <Link
                             href="/cart"
                             aria-label="View cart"
@@ -123,7 +187,7 @@ export default function Header() {
                         >
                             <Icon name="ShoppingBagIcon" size={19} />
                             <span
-                                className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+                                className="absolute -top-1 -right-1 min-w-[1rem] h-[1rem] px-1 rounded-full text-white text-[0.5625rem] font-bold flex items-center justify-center"
                                 style={{ background: 'var(--blush-rose)' }}
                             >
                                 {itemCount}
@@ -172,12 +236,51 @@ export default function Header() {
                         </nav>
 
                         <div className="flex items-center gap-4 mb-6 animate-enter delay-700">
-                            <button className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--blush-text)' }}>
+                            <Link
+                                href={accountInitial ? '/account' : '/login'}
+                                className="flex items-center gap-2 text-sm font-semibold"
+                                style={{ color: 'var(--blush-text)' }}
+                                onClick={() => setMenuOpen(false)}
+                            >
                                 <Icon name="UserIcon" size={18} /> Account
-                            </button>
-                            <button className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--blush-text)' }}>
+                            </Link>
+                            <Link
+                                href="/wishlist"
+                                className="flex items-center gap-2 text-sm font-semibold"
+                                style={{ color: 'var(--blush-text)' }}
+                                onClick={() => setMenuOpen(false)}
+                            >
                                 <Icon name="HeartIcon" size={18} /> Wishlist
-                            </button>
+                            </Link>
+                            {isAdmin && (
+                                <>
+                                    <Link
+                                        href="/admin/products"
+                                        className="flex items-center gap-2 text-sm font-semibold"
+                                        style={{ color: 'var(--blush-text)' }}
+                                        onClick={() => setMenuOpen(false)}
+                                    >
+                                        <Icon name="Cog6ToothIcon" size={18} /> Admin
+                                    </Link>
+                                    <button
+                                        onClick={toggleAdminMode}
+                                        aria-pressed={adminModeOn}
+                                        className="flex items-center gap-2 text-sm font-semibold"
+                                        style={{ color: 'var(--blush-text)' }}
+                                    >
+                                        <span
+                                            className="w-9 h-5 rounded-full flex items-center px-0.5 transition-colors duration-200"
+                                            style={{ background: adminModeOn ? 'var(--blush-rose)' : 'var(--blush-border)' }}
+                                        >
+                                            <span
+                                                className="w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                                                style={{ transform: adminModeOn ? 'translateX(1rem)' : 'translateX(0)' }}
+                                            />
+                                        </span>
+                                        Admin Mode
+                                    </button>
+                                </>
+                            )}
                         </div>
 
                         <Link

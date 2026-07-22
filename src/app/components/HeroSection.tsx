@@ -6,14 +6,14 @@ import Icon from '@/components/ui/AppIcon';
 export default function HeroSection() {
     return (
         <section
-            className="relative w-full min-h-[640px] md:min-h-[760px] flex items-center justify-center overflow-hidden"
+            className="relative w-full min-h-[clamp(40rem,70vh,47.5rem)] flex items-center justify-center overflow-hidden"
             style={{ background: 'var(--blush-bg)' }}
         >
             {/* Background flat-lay photo */}
             <div className="absolute inset-0">
                 <AppImage
                     src="https://images.pexels.com/photos/4515450/pexels-photo-4515450.jpeg"
-                    alt="Flat lay of pink peonies, pearl hair pins, a pearl necklace and gold jewellery on a light surface"
+                    alt="Flat lay of pink peonies and pearl hair pins on a light surface"
                     fill
                     priority
                     className="object-cover object-[center_62%] md:object-[center_48%]"

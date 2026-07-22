@@ -1,19 +1,74 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/lib/cart-context';
-import { getProductById, type Product } from '@/lib/products';
+import { useWishlistToggle } from '@/lib/use-wishlist-toggle';
+import { createClient } from '@/lib/supabase/client';
+import { mapProductRow, type Product } from '@/lib/supabase/product-mapper';
+import type { DbCategory, DbProduct } from '@/lib/supabase/types';
+import { buildWhatsAppEnquiryMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
+
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '';
+
+type ProductRowWithCategory = DbProduct & { category: Pick<DbCategory, 'title'> | null };
 
 export default function CartClient() {
-    const { lines, setQuantity, removeFromCart } = useCart();
+    const { lines, hydrated, adjustQuantity, removeFromCart } = useCart();
+    const { isInWishlist, toggleWithFeedback } = useWishlistToggle();
+    const [productsById, setProductsById] = useState<Record<string, Product> | null>(null);
+
+    useEffect(() => {
+        // Wait for the cart to finish reading localStorage before deciding anything —
+        // otherwise a non-empty cart briefly reads as `lines.length === 0` on the very
+        // first pass and flashes an incorrect "your bag is empty" state.
+        if (!hydrated) return;
+
+        if (lines.length === 0) {
+            setProductsById({});
+            return;
+        }
+        let cancelled = false;
+        const supabase = createClient();
+        supabase
+            .from('products')
+            .select('*, category:categories(title)')
+            .in('id', lines.map((l) => l.productId))
+            .then(({ data }) => {
+                if (cancelled) return;
+                const map: Record<string, Product> = {};
+                ((data ?? []) as unknown as ProductRowWithCategory[]).forEach((row) => {
+                    map[row.id] = mapProductRow(row, row.category?.title);
+                });
+                setProductsById(map);
+            });
+        return () => {
+            cancelled = true;
+        };
+        // Re-fetch only when the set of product ids in the cart actually changes, not on every quantity tick.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hydrated, lines.map((l) => l.productId).sort().join(',')]);
+
+    if (productsById === null) {
+        return (
+            <section className="w-full px-4 md:px-10 py-20">
+                <div className="max-w-screen-md mx-auto text-center" style={{ color: 'var(--blush-muted)' }}>
+                    Loading your bag…
+                </div>
+            </section>
+        );
+    }
 
     const items = lines
-        .map((line) => ({ line, product: getProductById(line.productId) }))
+        .map((line) => ({ line, product: productsById[line.productId] }))
         .filter((entry): entry is { line: typeof entry.line; product: Product } => Boolean(entry.product));
 
     const subtotal = items.reduce((sum, { line, product }) => sum + product.price * line.quantity, 0);
+    const whatsappUrl = buildWhatsAppUrl(
+        WHATSAPP_NUMBER,
+        buildWhatsAppEnquiryMessage(items.map(({ line, product }) => ({ name: product.name, quantity: line.quantity, price: product.price })))
+    );
 
     if (items.length === 0) {
         return (
@@ -43,7 +98,7 @@ export default function CartClient() {
                     {items.map(({ line, product }) => (
                         <div key={product.id} className="flex gap-4 bg-white rounded-3xl p-4 card-bubble">
                             <Link
-                                href={`/product/${product.id}`}
+                                href={`/product/${product.slug}`}
                                 className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0"
                             >
                                 <AppImage src={product.image} alt={product.imageAlt} fill className="object-cover" sizes="112px" />
@@ -52,7 +107,7 @@ export default function CartClient() {
                                 <div>
                                     <p className="text-xs font-medium mb-0.5" style={{ color: 'var(--blush-muted)' }}>{product.category}</p>
                                     <Link
-                                        href={`/product/${product.id}`}
+                                        href={`/product/${product.slug}`}
                                         className="font-bold text-sm sm:text-base hover:opacity-70 transition-opacity"
                                         style={{ color: 'var(--blush-text)' }}
                                     >
@@ -62,7 +117,7 @@ export default function CartClient() {
                                 <div className="flex items-center justify-between gap-2 mt-2">
                                     <div className="flex items-center gap-1 rounded-full p-1" style={{ background: 'var(--blush-bg)' }}>
                                         <button
-                                            onClick={() => setQuantity(product.id, line.quantity - 1)}
+                                            onClick={() => adjustQuantity(product.id, -1)}
                                             aria-label="Decrease quantity"
                                             className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold hover:opacity-70 transition-opacity"
                                             style={{ color: 'var(--blush-rose)' }}
@@ -71,7 +126,7 @@ export default function CartClient() {
                                         </button>
                                         <span className="w-6 text-center text-sm font-bold" style={{ color: 'var(--blush-text)' }}>{line.quantity}</span>
                                         <button
-                                            onClick={() => setQuantity(product.id, line.quantity + 1)}
+                                            onClick={() => adjustQuantity(product.id, 1)}
                                             aria-label="Increase quantity"
                                             className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold hover:opacity-70 transition-opacity"
                                             style={{ color: 'var(--blush-rose)' }}
@@ -84,14 +139,28 @@ export default function CartClient() {
                                     </span>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => removeFromCart(product.id)}
-                                aria-label="Remove item"
-                                className="self-start w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity shrink-0"
-                                style={{ color: 'var(--blush-muted)' }}
-                            >
-                                <Icon name="XMarkIcon" size={16} />
-                            </button>
+                            <div className="self-start flex flex-col items-center gap-2 shrink-0">
+                                <button
+                                    onClick={() => toggleWithFeedback(product.id, product.name)}
+                                    aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
+                                >
+                                    <Icon
+                                        name="HeartIcon"
+                                        variant={isInWishlist(product.id) ? 'solid' : 'outline'}
+                                        size={16}
+                                        style={{ color: isInWishlist(product.id) ? 'var(--blush-rose)' : 'var(--blush-muted)' }}
+                                    />
+                                </button>
+                                <button
+                                    onClick={() => removeFromCart(product.id)}
+                                    aria-label="Remove item"
+                                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
+                                    style={{ color: 'var(--blush-muted)' }}
+                                >
+                                    <Icon name="XMarkIcon" size={16} />
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -104,14 +173,24 @@ export default function CartClient() {
                             <span>Subtotal ({items.reduce((n, i) => n + i.line.quantity, 0)} items)</span>
                             <span className="font-bold">₹{subtotal}</span>
                         </div>
-                        <p className="text-xs mb-4" style={{ color: 'var(--blush-muted)' }}>Shipping & taxes calculated at checkout.</p>
+                        <p className="text-xs mb-4" style={{ color: 'var(--blush-muted)' }}>Final pricing & delivery confirmed over WhatsApp.</p>
                         <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--blush-border)' }}>
                             <span className="font-bold" style={{ color: 'var(--blush-text)' }}>Total</span>
                             <span className="font-elegant-serif font-bold text-xl" style={{ color: 'var(--blush-rose)' }}>₹{subtotal}</span>
                         </div>
+                        <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-6 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
+                            style={{ background: '#25D366', boxShadow: '0 4px 20px rgba(37,211,102,0.35)' }}
+                        >
+                            <Icon name="ChatBubbleLeftRightIcon" size={18} />
+                            Enquire on WhatsApp
+                        </a>
                         <Link
                             href="/shop"
-                            className="mt-6 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
+                            className="mt-3 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
                             style={{ background: 'var(--blush-rose)', boxShadow: '0 4px 20px rgba(232,130,143,0.35)' }}
                         >
                             Continue Shopping

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
-import { PRODUCTS, CATEGORIES } from '@/lib/products';
+import type { Product, Category } from '@/lib/supabase/product-mapper';
 
 type FilterKey = 'all' | 'new' | 'under499' | 'under999';
 
@@ -13,10 +13,16 @@ const filters: { key: FilterKey; label: string; emoji: string }[] = [
     { key: 'under999', label: 'Under ₹999', emoji: '💸' },
 ];
 
-export default function ShopClient({ initialFilter }: { initialFilter: FilterKey }) {
+interface ShopClientProps {
+    initialFilter: FilterKey;
+    products: Product[];
+    categories: Category[];
+}
+
+export default function ShopClient({ initialFilter, products, categories }: ShopClientProps) {
     const [active, setActive] = useState<FilterKey>(initialFilter);
 
-    const filtered = PRODUCTS.filter((p) => {
+    const filtered = products.filter((p) => {
         if (active === 'new') return p.tag?.toLowerCase().includes('new');
         if (active === 'under499') return p.price < 499;
         if (active === 'under999') return p.price < 999;
@@ -28,7 +34,7 @@ export default function ShopClient({ initialFilter }: { initialFilter: FilterKey
             {/* Category quick links */}
             <section className="w-full px-4 md:px-10 pt-10" style={{ background: 'var(--blush-bg)' }}>
                 <div className="max-w-screen-2xl mx-auto flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                         <Link
                             key={cat.slug}
                             href={`/shop/${cat.slug}`}
@@ -65,7 +71,7 @@ export default function ShopClient({ initialFilter }: { initialFilter: FilterKey
                         {filtered.length} product{filtered.length === 1 ? '' : 's'}
                     </p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(clamp(9rem,32vw,16rem),1fr))] gap-3 md:gap-4">
                         {filtered.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}

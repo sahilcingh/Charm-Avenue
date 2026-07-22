@@ -3,10 +3,11 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
 import ShopClient from './ShopClient';
+import { getCategories, getAllActiveProducts } from '@/lib/supabase/products-data';
 
 export const metadata: Metadata = {
     title: 'Shop All | Charm Avenue by Nandini',
-    description: 'Shop anti-tarnish jewellery, hair accessories, cute makeup and trending finds — starting at just ₹150.',
+    description: 'Shop cute accessories, hair accessories, gifts & novelty and trending finds — starting at just ₹150.',
 };
 
 export default async function ShopPage({
@@ -16,6 +17,7 @@ export default async function ShopPage({
 }) {
     const params = await searchParams;
     const initialFilter = params?.filter === 'new' ? 'new' : 'all';
+    const [categories, products] = await Promise.all([getCategories(), getAllActiveProducts()]);
 
     return (
         <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
@@ -27,10 +29,10 @@ export default async function ShopPage({
                         All the <span style={{ color: 'var(--blush-rose)' }}>Cute Stuff</span> in one place.
                     </>
                 }
-                subtitle="Anti-tarnish jewellery, hair accessories, cute makeup and trending finds — starting at just ₹150."
+                subtitle="Cute accessories, hair accessories, gifts & novelty and trending finds — starting at just ₹150."
                 breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Shop' }]}
             />
-            <ShopClient initialFilter={initialFilter} />
+            <ShopClient initialFilter={initialFilter} products={products} categories={categories} />
             <Footer />
         </main>
     );

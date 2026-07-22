@@ -31,7 +31,7 @@ export default function Footer() {
                             <Icon name="HeartIcon" size={13} style={{ color: 'var(--blush-rose)' }} />
                         </span>
                         <p className="text-sm leading-relaxed" style={{ color: 'var(--blush-muted)' }}>
-                            by Nandini — Cute accessories & anti-tarnish jewellery for every girl.
+                            by Nandini — Cute accessories & everyday finds for every girl.
                         </p>
                         {/* Social icons */}
                         <div className="flex items-center gap-2 mt-4">

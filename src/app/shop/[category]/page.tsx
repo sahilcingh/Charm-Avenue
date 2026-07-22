@@ -5,10 +5,11 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
 import ProductCard from '@/components/ProductCard';
-import { CATEGORIES, getCategoryBySlug, getProductsByCategory } from '@/lib/products';
+import { getCategories, getCategoryBySlug, getProductsByCategory } from '@/lib/supabase/products-data';
 
-export function generateStaticParams() {
-    return CATEGORIES.map((c) => ({ category: c.slug }));
+export async function generateStaticParams() {
+    const categories = await getCategories();
+    return categories.map((c) => ({ category: c.slug }));
 }
 
 export async function generateMetadata({
@@ -17,7 +18,7 @@ export async function generateMetadata({
     params: Promise<{ category: string }>;
 }): Promise<Metadata> {
     const { category } = await params;
-    const cat = getCategoryBySlug(category);
+    const cat = await getCategoryBySlug(category);
     if (!cat) return {};
     return {
         title: `${cat.title} | Charm Avenue by Nandini`,
@@ -31,10 +32,10 @@ export default async function CategoryPage({
     params: Promise<{ category: string }>;
 }) {
     const { category } = await params;
-    const cat = getCategoryBySlug(category);
+    const cat = await getCategoryBySlug(category);
     if (!cat) notFound();
 
-    const products = getProductsByCategory(cat.slug);
+    const [allCategories, products] = await Promise.all([getCategories(), getProductsByCategory(cat.slug)]);
 
     return (
         <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
@@ -50,7 +51,7 @@ export default async function CategoryPage({
                 <div className="max-w-screen-2xl mx-auto">
                     {/* Other categories */}
                     <div className="flex gap-3 overflow-x-auto no-scrollbar pb-6">
-                        {CATEGORIES.map((c) => (
+                        {allCategories.map((c) => (
                             <Link
                                 key={c.slug}
                                 href={`/shop/${c.slug}`}
@@ -71,7 +72,7 @@ export default async function CategoryPage({
                     </p>
 
                     {products.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(clamp(9rem,32vw,16rem),1fr))] gap-3 md:gap-4">
                             {products.map((product) => (
                                 <ProductCard key={product.id} product={product} />
                             ))}

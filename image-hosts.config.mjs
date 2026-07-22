@@ -19,4 +19,10 @@ export const imageHosts = [
         protocol: 'https',
         hostname: 'img.rocket.new',
     },
+    {
+        // Product photos uploaded via the admin panel are stored in Supabase Storage —
+        // wildcarded so it keeps working if the project ref ever changes.
+        protocol: 'https',
+        hostname: '*.supabase.co',
+    },
 ];

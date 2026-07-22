@@ -7,7 +7,7 @@ import Icon from '@/components/ui/AppIcon';
 
 export const metadata: Metadata = {
     title: 'About Us | Charm Avenue by Nandini',
-    description: 'Meet Nandini, the founder of Charm Avenue — bringing you trendy, stylish and affordable accessories, jewellery and cute lifestyle products.',
+    description: 'Meet Nandini, the founder of Charm Avenue — bringing you trendy, stylish and affordable accessories and cute lifestyle products.',
 };
 
 const whyChooseUs = [
@@ -44,7 +44,7 @@ export default function AboutPage() {
                         </h2>
                         <p className="text-base leading-relaxed mb-4" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>
                             I started Charm Avenue with a passion for bringing you trendy, stylish and affordable
-                            accessories, jewellery, and cute lifestyle products. Every item is carefully selected with
+                            accessories and cute lifestyle products. Every item is carefully selected with
                             love to ensure quality and style.
                         </p>
                         <p className="text-base leading-relaxed" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>
@@ -75,7 +75,7 @@ export default function AboutPage() {
                         <span>🛍️</span> What We Sell
                     </span>
                     <p className="text-base leading-relaxed max-w-2xl mx-auto" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>
-                        Hair accessories, cute trendy products, makeup, organisers and many more.
+                        Hair accessories, cute trendy products, gifts, organisers and many more.
                     </p>
                 </div>
 

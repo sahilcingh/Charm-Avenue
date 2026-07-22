@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const trustItems = [
-    { icon: '✨', text: 'Anti-Tarnish Guarantee' },
+    { icon: '✨', text: 'Handpicked With Love' },
     { icon: '🌸', text: 'Cute Vibes Only' },
     { icon: '🚀', text: 'Fast Shipping Across India' },
     { icon: '💎', text: '100% Authentic Products' },

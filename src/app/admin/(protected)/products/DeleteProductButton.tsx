@@ -11,7 +11,7 @@ export default function DeleteProductButton({ productId, productName }: { produc
         return (
             <div className="flex items-center gap-1.5 animate-bounce-in">
                 <button
-                    onClick={() => startTransition(() => deleteProduct(productId))}
+                    onClick={() => startTransition(() => deleteProduct(productId, productName))}
                     disabled={isPending}
                     className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                     style={{ background: 'var(--blush-rose-dark)' }}

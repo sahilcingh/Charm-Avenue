@@ -7,19 +7,21 @@ import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import ProductCard from '@/components/ProductCard';
 import AddToCartButton from './AddToCartButton';
-import { PRODUCTS, getProductById, getRelatedProducts, getCategoryBySlug } from '@/lib/products';
+import AdminEditLink from './AdminEditLink';
+import { getAllActiveProducts, getProductBySlug, getRelatedProducts, getCategoryBySlug } from '@/lib/supabase/products-data';
 
-export function generateStaticParams() {
-    return PRODUCTS.map((p) => ({ id: p.id }));
+export async function generateStaticParams() {
+    const products = await getAllActiveProducts();
+    return products.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
     params,
 }: {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-    const { id } = await params;
-    const product = getProductById(id);
+    const { slug } = await params;
+    const product = await getProductBySlug(slug);
     if (!product) return {};
     return {
         title: `${product.name} | Charm Avenue by Nandini`,
@@ -30,14 +32,16 @@ export async function generateMetadata({
 export default async function ProductPage({
     params,
 }: {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
 }) {
-    const { id } = await params;
-    const product = getProductById(id);
+    const { slug } = await params;
+    const product = await getProductBySlug(slug);
     if (!product) notFound();
 
-    const related = getRelatedProducts(product);
-    const category = getCategoryBySlug(product.categorySlug);
+    const [related, category] = await Promise.all([
+        getRelatedProducts(product),
+        getCategoryBySlug(product.categorySlug),
+    ]);
     const discountPct = product.originalPrice
         ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
         : null;
@@ -112,7 +116,9 @@ export default async function ProductPage({
                                 </span>
                             </div>
 
-                            <div className="flex items-center gap-3 mb-6">
+                            <AdminEditLink productId={product.id} />
+
+                            <div className="flex items-center flex-wrap gap-3 mb-6">
                                 <span className="font-elegant-serif font-bold text-3xl" style={{ color: 'var(--blush-rose)' }}>₹{product.price}</span>
                                 {product.originalPrice && (
                                     <>
@@ -129,9 +135,9 @@ export default async function ProductPage({
                             {/* Trust row */}
                             <div className="grid grid-cols-2 gap-3 mt-8">
                                 <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 card-bubble">
-                                    <span className="text-lg">💎</span>
+                                    <span className="text-lg">✨</span>
                                     <p className="text-xs font-bold leading-tight" style={{ color: 'var(--blush-text)' }}>
-                                        Anti-Tarnish
+                                        Quality Checked
                                         <br />
                                         <span className="font-medium" style={{ color: 'var(--blush-muted)' }}>100% Guaranteed</span>
                                     </p>
@@ -154,7 +160,7 @@ export default async function ProductPage({
                             <h2 className="font-elegant-serif text-2xl md:text-3xl tracking-tight mb-6" style={{ color: 'var(--blush-text)' }}>
                                 More from {category?.title ?? product.category}
                             </h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(clamp(9rem,34vw,18rem),1fr))] gap-3 md:gap-4">
                                 {related.map((p) => (
                                     <ProductCard key={p.id} product={p} />
                                 ))}

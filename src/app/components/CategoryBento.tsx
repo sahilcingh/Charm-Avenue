@@ -3,17 +3,23 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
-import { CATEGORIES, type CategorySlug } from '@/lib/products';
+import type { Category } from '@/lib/supabase/product-mapper';
 
-const layoutBySlug: Record<CategorySlug, { colSpan: string; rowSpan: string; minHeight: string }> = {
-    jewellery: { colSpan: 'md:col-span-2', rowSpan: 'md:row-span-2', minHeight: 'min-h-[420px] md:min-h-[500px]' },
-    hair: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: 'min-h-[220px]' },
-    makeup: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: 'min-h-[220px]' },
-    accessories: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: 'min-h-[220px]' },
-    pouches: { colSpan: 'md:col-span-2', rowSpan: 'md:row-span-1', minHeight: 'min-h-[220px]' },
+// Fluid clamp() ranges instead of a breakpoint jump — scales continuously with
+// viewport width rather than snapping once at `md`. Floor/ceiling match the
+// original 420–500px (hair) and flat 220px (everything else) design intent.
+const LARGE_TILE_HEIGHT = 'min-h-[clamp(26.25rem,40vw,31.25rem)]';
+const STANDARD_TILE_HEIGHT = 'min-h-[clamp(12rem,18vw,16rem)]';
+
+const layoutBySlug: Record<string, { colSpan: string; rowSpan: string; minHeight: string }> = {
+    hair: { colSpan: 'md:col-span-2', rowSpan: 'md:row-span-2', minHeight: LARGE_TILE_HEIGHT },
+    accessories: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: STANDARD_TILE_HEIGHT },
+    pouches: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: STANDARD_TILE_HEIGHT },
+    'gifts-novelty': { colSpan: 'md:col-span-2', rowSpan: 'md:row-span-1', minHeight: STANDARD_TILE_HEIGHT },
 };
+const DEFAULT_LAYOUT = { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: STANDARD_TILE_HEIGHT };
 
-export default function CategoryBento() {
+export default function CategoryBento({ categories }: { categories: Category[] }) {
     const sectionRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
@@ -53,15 +59,15 @@ export default function CategoryBento() {
                         </h2>
                     </div>
                     <p className="text-base leading-relaxed max-w-xs" style={{ color: 'var(--blush-muted)' }}>
-                        5 categories. Endless charm. Every piece tells a story.
+                        {categories.length} categories. Endless charm. Every piece tells a story.
                     </p>
                 </div>
             </div>
 
             {/* Bento Grid */}
             <div className="max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-min">
-                {CATEGORIES.map((cat, i) => {
-                    const layout = layoutBySlug[cat.slug];
+                {categories.map((cat, i) => {
+                    const layout = layoutBySlug[cat.slug] ?? DEFAULT_LAYOUT;
                     return (
                         <Link
                             key={cat.slug}

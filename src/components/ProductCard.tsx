@@ -1,11 +1,14 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/lib/cart-context';
 import { useToast } from '@/lib/toast-context';
-import type { Product } from '@/lib/products';
+import { useWishlistToggle } from '@/lib/use-wishlist-toggle';
+import { useAdminMode } from '@/lib/admin-mode-context';
+import type { Product } from '@/lib/supabase/product-mapper';
 
 interface ProductCardProps {
     product: Product;
@@ -18,6 +21,10 @@ export default function ProductCard({ product, transitionDelay = 0, className = 
     const [added, setAdded] = useState(false);
     const { addToCart } = useCart();
     const { showToast } = useToast();
+    const { isInWishlist, toggleWithFeedback } = useWishlistToggle();
+    const { adminModeOn } = useAdminMode();
+    const router = useRouter();
+    const wishlisted = isInWishlist(product.id);
 
     const handleQuickAdd = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -27,9 +34,19 @@ export default function ProductCard({ product, transitionDelay = 0, className = 
         showToast(`${product.name} added to your bag`, { href: '/cart', actionLabel: 'View Bag' });
     };
 
+    const handleToggleWishlist = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toggleWithFeedback(product.id, product.name);
+    };
+
+    const handleEdit = (e: React.MouseEvent) => {
+        e.preventDefault();
+        router.push(`/admin/products/${product.id}`);
+    };
+
     return (
         <Link
-            href={`/product/${product.id}`}
+            href={`/product/${product.slug}`}
             className={`block relative bg-white rounded-3xl overflow-hidden card-bubble transition-all duration-300 hover:-translate-y-1 cursor-pointer ${className}`}
             style={{ transitionDelay: `${transitionDelay}ms` }}
             onMouseEnter={() => setHovered(true)}
@@ -51,6 +68,27 @@ export default function ProductCard({ product, transitionDelay = 0, className = 
                     >
                         {product.tag}
                     </span>
+                )}
+                <button
+                    onClick={handleToggleWishlist}
+                    aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full glass-white flex items-center justify-center z-10 transition-transform hover:scale-110"
+                >
+                    <Icon
+                        name="HeartIcon"
+                        variant={wishlisted ? 'solid' : 'outline'}
+                        size={16}
+                        style={{ color: wishlisted ? 'var(--blush-rose)' : '#FFFFFF' }}
+                    />
+                </button>
+                {adminModeOn && (
+                    <button
+                        onClick={handleEdit}
+                        aria-label={`Edit ${product.name}`}
+                        className="absolute top-12 right-2 w-8 h-8 rounded-full glass-white flex items-center justify-center z-10 transition-transform hover:scale-110"
+                    >
+                        <Icon name="PencilSquareIcon" size={15} style={{ color: '#FFFFFF' }} />
+                    </button>
                 )}
                 {/* Quick add overlay */}
                 <div

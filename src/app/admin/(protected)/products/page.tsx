@@ -39,7 +39,7 @@ export default async function AdminProductsPage() {
             </div>
 
             {!error && list.length > 0 && (
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     {stats.map((stat, i) => (
                         <div
                             key={stat.label}
@@ -83,8 +83,8 @@ export default async function AdminProductsPage() {
             )}
 
             {!error && list.length > 0 && (
-                <div className="bg-white rounded-3xl card-bubble overflow-hidden animate-enter delay-200">
-                    <table className="w-full text-left text-sm">
+                <div className="bg-white rounded-3xl card-bubble overflow-x-auto animate-enter delay-200">
+                    <table className="w-full min-w-[720px] text-left text-sm">
                         <thead>
                             <tr className="border-b" style={{ borderColor: 'var(--blush-border)' }}>
                                 <th className="px-5 py-3 font-semibold" style={{ color: 'var(--blush-muted)' }}></th>

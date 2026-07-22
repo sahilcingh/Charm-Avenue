@@ -1,3 +1,11 @@
+export interface DbProfile {
+    id: string;
+    email: string;
+    name: string | null;
+    is_admin: boolean;
+    created_at: string;
+}
+
 export interface DbCategory {
     slug: string;
     title: string;

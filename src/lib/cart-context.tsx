@@ -1,5 +1,6 @@
 'use client';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createClient } from './supabase/client';
 
 export interface CartLine {
     productId: string;
@@ -9,9 +10,13 @@ export interface CartLine {
 interface CartContextValue {
     lines: CartLine[];
     itemCount: number;
+    /** False until the initial localStorage read completes — an empty `lines` array before
+     *  this flips true means "not loaded yet", not "cart is actually empty". */
+    hydrated: boolean;
     addToCart: (productId: string, quantity?: number) => void;
     removeFromCart: (productId: string) => void;
     setQuantity: (productId: string, quantity: number) => void;
+    adjustQuantity: (productId: string, delta: number) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -36,6 +41,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
     }, [lines, hydrated]);
 
+    // Self-heals the cart against products that were deleted or deactivated after being
+    // added (e.g. by an admin) — without this, itemCount (used by the header badge) would
+    // keep counting phantom lines the cart page itself filters out, so the two disagree.
+    useEffect(() => {
+        if (!hydrated || lines.length === 0) return;
+        let cancelled = false;
+        const supabase = createClient();
+        supabase
+            .from('products')
+            .select('id')
+            .eq('is_active', true)
+            .in('id', lines.map((l) => l.productId))
+            .then(({ data }) => {
+                if (cancelled) return;
+                const validIds = new Set((data ?? []).map((row: { id: string }) => row.id));
+                setLines((prev) => {
+                    const pruned = prev.filter((l) => validIds.has(l.productId));
+                    return pruned.length === prev.length ? prev : pruned;
+                });
+            });
+        return () => {
+            cancelled = true;
+        };
+        // Re-validate only when the set of product ids actually changes, not on every quantity tick.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hydrated, lines.map((l) => l.productId).sort().join(',')]);
+
     const addToCart = useCallback((productId: string, quantity = 1) => {
         setLines((prev) => {
             const existing = prev.find((l) => l.productId === productId);
@@ -59,11 +91,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
     }, []);
 
+    // Computes the new quantity from the CURRENT state inside the updater, rather than
+    // from a value the caller read at render time — a caller doing
+    // `setQuantity(id, line.quantity - 1)` would lose an update if invoked twice before
+    // React re-renders (e.g. two quantity-button clicks batched together).
+    const adjustQuantity = useCallback((productId: string, delta: number) => {
+        setLines((prev) => {
+            const existing = prev.find((l) => l.productId === productId);
+            if (!existing) return prev;
+            const nextQuantity = existing.quantity + delta;
+            if (nextQuantity <= 0) return prev.filter((l) => l.productId !== productId);
+            return prev.map((l) => (l.productId === productId ? { ...l, quantity: nextQuantity } : l));
+        });
+    }, []);
+
     const itemCount = useMemo(() => lines.reduce((sum, l) => sum + l.quantity, 0), [lines]);
 
     const value = useMemo(
-        () => ({ lines, itemCount, addToCart, removeFromCart, setQuantity }),
-        [lines, itemCount, addToCart, removeFromCart, setQuantity]
+        () => ({ lines, itemCount, hydrated, addToCart, removeFromCart, setQuantity, adjustQuantity }),
+        [lines, itemCount, hydrated, addToCart, removeFromCart, setQuantity, adjustQuantity]
     );
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

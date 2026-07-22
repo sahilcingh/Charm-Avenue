@@ -1,21 +1,22 @@
 import { MetadataRoute } from 'next';
-import { CATEGORIES, PRODUCTS } from '@/lib/products';
+import { getCategories, getAllActiveProducts } from '@/lib/supabase/products-data';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const lastModified = new Date();
+    const [categories, products] = await Promise.all([getCategories(), getAllActiveProducts()]);
 
     return [
         { url: `${base}/`, lastModified, priority: 1.0 },
         { url: `${base}/shop`, lastModified, priority: 0.9 },
         { url: `${base}/cart`, lastModified, priority: 0.4 },
-        ...CATEGORIES.map((cat) => ({
+        ...categories.map((cat) => ({
             url: `${base}/shop/${cat.slug}`,
             lastModified,
             priority: 0.8,
         })),
-        ...PRODUCTS.map((product) => ({
-            url: `${base}/product/${product.id}`,
+        ...products.map((product) => ({
+            url: `${base}/product/${product.slug}`,
             lastModified,
             priority: 0.7,
         })),

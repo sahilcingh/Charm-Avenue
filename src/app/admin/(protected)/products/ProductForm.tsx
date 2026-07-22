@@ -98,7 +98,7 @@ export default function ProductForm({ categories, product, action }: ProductForm
     }
 
     return (
-        <div className="grid lg:grid-cols-[1fr_300px] gap-6 items-start">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18.75rem)] gap-6 items-start">
             <form action={action} className="flex flex-col gap-5">
                 <SectionCard icon="📸" title="Product Photo" delay="delay-100">
                     <div
@@ -315,7 +315,7 @@ export default function ProductForm({ categories, product, action }: ProductForm
                     <Icon name="EyeIcon" size={16} style={{ color: 'var(--blush-rose)' }} />
                     <p className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--blush-muted)' }}>Live Preview</p>
                 </div>
-                <div className="bg-white rounded-3xl overflow-hidden card-bubble max-w-[280px]">
+                <div className="bg-white rounded-3xl overflow-hidden card-bubble max-w-[17.5rem]">
                     <div className="relative aspect-square" style={{ background: 'var(--blush-bg)' }}>
                         {preview ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -356,7 +356,7 @@ export default function ProductForm({ categories, product, action }: ProductForm
                         </div>
                     </div>
                 </div>
-                <p className="text-xs mt-3 max-w-[280px]" style={{ color: 'var(--blush-muted)' }}>
+                <p className="text-xs mt-3 max-w-[17.5rem]" style={{ color: 'var(--blush-muted)' }}>
                     This is roughly how the card will look on the Shop page.
                 </p>
             </div>

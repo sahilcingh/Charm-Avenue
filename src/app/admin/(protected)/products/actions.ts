@@ -1,7 +1,7 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/require-admin';
 import { TAG_STYLES, type TagStyleKey } from '@/lib/supabase/types';
 
 function slugify(name: string) {
@@ -50,11 +50,31 @@ function parseForm(formData: FormData): ProductFormValues {
     };
 }
 
-async function uploadImageIfProvided(formData: FormData): Promise<string | null> {
+type AdminSupabaseClient = Awaited<ReturnType<typeof requireAdmin>>['supabase'];
+
+/** Best-effort — a logging failure should never block a legitimate admin action from completing. */
+async function logAdminAction(
+    supabase: AdminSupabaseClient,
+    adminId: string,
+    action: 'create' | 'update' | 'delete',
+    productId: string | null,
+    productName: string
+) {
+    const { error } = await supabase.from('admin_audit_log').insert({
+        admin_id: adminId,
+        action,
+        product_id: productId,
+        product_name: productName,
+    });
+    if (error) {
+        console.error('Failed to write admin audit log entry:', error.message);
+    }
+}
+
+async function uploadImageIfProvided(supabase: AdminSupabaseClient, formData: FormData): Promise<string | null> {
     const file = formData.get('imageFile');
     if (!(file instanceof File) || file.size === 0) return null;
 
-    const supabase = await createClient();
     const ext = file.name.split('.').pop() || 'jpg';
     const path = `${Date.now()}-${slugify(file.name.replace(/\.[^.]+$/, ''))}.${ext}`;
 
@@ -69,10 +89,10 @@ async function uploadImageIfProvided(formData: FormData): Promise<string | null>
 }
 
 export async function createProduct(formData: FormData) {
+    const { supabase, user } = await requireAdmin();
     const values = parseForm(formData);
-    const supabase = await createClient();
 
-    const imageUrl = await uploadImageIfProvided(formData);
+    const imageUrl = await uploadImageIfProvided(supabase, formData);
     if (!imageUrl) {
         throw new Error('Please choose a product photo.');
     }
@@ -86,25 +106,31 @@ export async function createProduct(formData: FormData) {
         slug = `${baseSlug}-${attempt + 2}`;
     }
 
-    const { error } = await supabase.from('products').insert({
-        slug,
-        name: values.name,
-        category_slug: values.categorySlug,
-        price: values.price,
-        original_price: values.originalPrice,
-        image: imageUrl,
-        image_alt: values.imageAlt || values.name,
-        tag: values.tagStyle === 'none' ? null : values.tagLabel || null,
-        tag_bg: tagStyle.tagBg,
-        tag_text: tagStyle.tagText,
-        emoji: values.emoji,
-        description: values.description,
-        rating: values.rating,
-        review_count: values.reviewCount,
-        is_active: values.isActive,
-    });
+    const { data: inserted, error } = await supabase
+        .from('products')
+        .insert({
+            slug,
+            name: values.name,
+            category_slug: values.categorySlug,
+            price: values.price,
+            original_price: values.originalPrice,
+            image: imageUrl,
+            image_alt: values.imageAlt || values.name,
+            tag: values.tagStyle === 'none' ? null : values.tagLabel || null,
+            tag_bg: tagStyle.tagBg,
+            tag_text: tagStyle.tagText,
+            emoji: values.emoji,
+            description: values.description,
+            rating: values.rating,
+            review_count: values.reviewCount,
+            is_active: values.isActive,
+        })
+        .select('id')
+        .single();
 
     if (error) throw new Error(error.message);
+
+    await logAdminAction(supabase, user.id, 'create', inserted?.id ?? null, values.name);
 
     revalidatePath('/admin/products');
     revalidatePath('/shop');
@@ -112,10 +138,10 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(productId: string, formData: FormData) {
+    const { supabase, user } = await requireAdmin();
     const values = parseForm(formData);
-    const supabase = await createClient();
 
-    const imageUrl = await uploadImageIfProvided(formData);
+    const imageUrl = await uploadImageIfProvided(supabase, formData);
     const tagStyle = TAG_STYLES[values.tagStyle];
 
     const update: Record<string, unknown> = {
@@ -138,15 +164,19 @@ export async function updateProduct(productId: string, formData: FormData) {
     const { error } = await supabase.from('products').update(update).eq('id', productId);
     if (error) throw new Error(error.message);
 
+    await logAdminAction(supabase, user.id, 'update', productId, values.name);
+
     revalidatePath('/admin/products');
     revalidatePath('/shop');
     redirect('/admin/products');
 }
 
-export async function deleteProduct(productId: string) {
-    const supabase = await createClient();
+export async function deleteProduct(productId: string, productName: string) {
+    const { supabase, user } = await requireAdmin();
     const { error } = await supabase.from('products').delete().eq('id', productId);
     if (error) throw new Error(error.message);
+
+    await logAdminAction(supabase, user.id, 'delete', productId, productName);
 
     revalidatePath('/admin/products');
     revalidatePath('/shop');
