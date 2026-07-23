@@ -4,7 +4,9 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
 import { createClient } from '@/lib/supabase/server';
-import AccountClient from './AccountClient';
+import type { DbOrder } from '@/lib/supabase/types';
+import AccountSidebar from './AccountSidebar';
+import AccountMain from './AccountMain';
 
 export const metadata: Metadata = {
     title: 'My Account | Charm Avenue by Nandini',
@@ -21,7 +23,12 @@ export default async function AccountPage() {
         redirect('/login?next=/account');
     }
 
-    const { data: profile } = await supabase.from('profiles').select('name, email').eq('id', user.id).single();
+    const { data: profile } = await supabase.from('profiles').select('name, email, phone, address').eq('id', user.id).single();
+    const { data: orders } = await supabase
+        .from('orders')
+        .select('id, status, subtotal, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
     return (
         <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
@@ -36,10 +43,15 @@ export default async function AccountPage() {
                 }
                 subtitle="Manage your name, email and password."
                 breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'My Account' }]}
+                aside={<AccountSidebar name={profile?.name ?? ''} email={user.email ?? ''} />}
             />
             <section className="w-full px-4 md:px-10 pb-20">
-                <div className="max-w-sm mx-auto">
-                    <AccountClient name={profile?.name ?? ''} email={user.email ?? ''} />
+                <div className="max-w-screen-2xl mx-auto">
+                    <AccountMain
+                        phone={profile?.phone ?? ''}
+                        address={profile?.address ?? ''}
+                        orders={(orders ?? []) as Pick<DbOrder, 'id' | 'status' | 'subtotal' | 'created_at'>[]}
+                    />
                 </div>
             </section>
             <Footer />

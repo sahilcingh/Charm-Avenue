@@ -2,6 +2,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import Icon from '@/components/ui/AppIcon';
 
 export default function SignOutButton() {
     const router = useRouter();
@@ -16,10 +17,12 @@ export default function SignOutButton() {
     return (
         <button
             onClick={handleSignOut}
-            className="text-sm font-bold uppercase tracking-wide px-4 py-2 rounded-full transition-opacity hover:opacity-70"
-            style={{ background: 'var(--blush-border)', color: 'var(--blush-text)' }}
+            aria-label="Sign out"
+            title="Sign out"
+            className="w-9 h-9 rounded-full flex items-center justify-center border shrink-0 transition-colors duration-200 hover:bg-[var(--blush-rose-dark)] hover:text-white hover:border-transparent"
+            style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-muted)' }}
         >
-            Sign Out
+            <Icon name="ArrowRightOnRectangleIcon" size={16} />
         </button>
     );
 }

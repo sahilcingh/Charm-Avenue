@@ -23,6 +23,30 @@ describe('buildWhatsAppEnquiryMessage', () => {
         const message = buildWhatsAppEnquiryMessage([]);
         expect(message).toBe("Hi! I'd like to enquire about some products from Charm Avenue.");
     });
+
+    it('never includes delivery details — WhatsApp is product enquiry only, order/delivery info lives in the orders table', () => {
+        const message = buildWhatsAppEnquiryMessage([{ name: 'Panda Lamp', quantity: 1, price: 130 }]);
+        expect(message).not.toContain('Name:');
+        expect(message).not.toContain('Phone:');
+        expect(message).not.toContain('Address:');
+    });
+
+    it('subtracts a combo discount from the grand total and shows it as its own line (Phase 7)', () => {
+        const message = buildWhatsAppEnquiryMessage(
+            [
+                { name: 'Earrings', quantity: 1, price: 200 },
+                { name: 'Necklace', quantity: 1, price: 300 },
+            ],
+            50
+        );
+        expect(message).toContain('Combo discount: -₹50');
+        expect(message).toContain('Total: ₹450');
+    });
+
+    it('omits the discount line entirely when there is no discount (backward compatible)', () => {
+        const message = buildWhatsAppEnquiryMessage([{ name: 'Panda Lamp', quantity: 1, price: 130 }]);
+        expect(message).not.toContain('Combo discount');
+    });
 });
 
 describe('buildWhatsAppUrl', () => {

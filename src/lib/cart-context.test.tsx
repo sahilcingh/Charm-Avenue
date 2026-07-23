@@ -255,4 +255,77 @@ describe('CartProvider / useCart', () => {
         ]);
         expect(result.current.itemCount).toBe(3);
     });
+
+    describe('variant + personalization aware lines (Phase 5)', () => {
+        it('keeps a variant-less add exactly as before (backward compatible)', async () => {
+            const { result } = renderHook(() => useCart(), { wrapper });
+            await waitFor(() => expect(result.current.lines).toEqual([]));
+
+            act(() => result.current.addToCart('p1', 2));
+
+            expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 2 }]);
+        });
+
+        it('treats two different variants of the same product as separate lines, not merged', async () => {
+            const { result } = renderHook(() => useCart(), { wrapper });
+            await waitFor(() => expect(result.current.lines).toEqual([]));
+
+            act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
+            act(() => result.current.addToCart('p1', 1, { variantId: 'blue' }));
+
+            expect(result.current.lines).toEqual([
+                { productId: 'p1', variantId: 'red', quantity: 1 },
+                { productId: 'p1', variantId: 'blue', quantity: 1 },
+            ]);
+            expect(result.current.itemCount).toBe(2);
+        });
+
+        it('merges quantity when the same product + variant is added again', async () => {
+            const { result } = renderHook(() => useCart(), { wrapper });
+            await waitFor(() => expect(result.current.lines).toEqual([]));
+
+            act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
+            act(() => result.current.addToCart('p1', 2, { variantId: 'red' }));
+
+            expect(result.current.lines).toEqual([{ productId: 'p1', variantId: 'red', quantity: 3 }]);
+        });
+
+        it('treats two different personalization texts on the same product as separate lines, not merged (e.g. two different engravings)', async () => {
+            const { result } = renderHook(() => useCart(), { wrapper });
+            await waitFor(() => expect(result.current.lines).toEqual([]));
+
+            act(() => result.current.addToCart('p1', 1, { personalizationText: 'For Priya' }));
+            act(() => result.current.addToCart('p1', 1, { personalizationText: 'For Ananya' }));
+
+            expect(result.current.lines).toEqual([
+                { productId: 'p1', personalizationText: 'For Priya', quantity: 1 },
+                { productId: 'p1', personalizationText: 'For Ananya', quantity: 1 },
+            ]);
+        });
+
+        it('removeFromCart only removes the matching variant, leaving other variants of the same product alone', async () => {
+            const { result } = renderHook(() => useCart(), { wrapper });
+            await waitFor(() => expect(result.current.lines).toEqual([]));
+
+            act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
+            act(() => result.current.addToCart('p1', 1, { variantId: 'blue' }));
+            act(() => result.current.removeFromCart('p1', { variantId: 'red' }));
+
+            expect(result.current.lines).toEqual([{ productId: 'p1', variantId: 'blue', quantity: 1 }]);
+        });
+
+        it('adjustQuantity only adjusts the matching variant', async () => {
+            const { result } = renderHook(() => useCart(), { wrapper });
+            await waitFor(() => expect(result.current.lines).toEqual([]));
+
+            act(() => result.current.addToCart('p1', 5, { variantId: 'red' }));
+            act(() => result.current.addToCart('p1', 5, { variantId: 'blue' }));
+            act(() => result.current.adjustQuantity('p1', -2, { variantId: 'red' }));
+
+            expect(result.current.lines).toEqual([
+                { productId: 'p1', variantId: 'red', quantity: 3 },
+                { productId: 'p1', variantId: 'blue', quantity: 5 },
+            ]);
+        });
+    });
 });

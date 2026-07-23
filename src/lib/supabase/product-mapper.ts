@@ -1,4 +1,4 @@
-import type { DbCategory, DbProduct } from './types';
+import type { DbCategory, DbProduct, ProductStockStatus } from './types';
 
 export interface Category {
     slug: string;
@@ -30,6 +30,23 @@ export interface Product {
     description: string;
     rating: number;
     reviewCount: number;
+    // Phase 5 — checkout needs these to know whether to show a personalization field.
+    personalizationEnabled: boolean;
+    personalizationLabel: string | null;
+    personalizationRequired: boolean;
+    personalizationMaxLength: number | null;
+    // Phase 6 — sale window (gates whether originalPrice/discount badge
+    // displays — see isSaleWindowActive), product-level stock (authoritative
+    // only when the product has no active variants), and free-text details.
+    saleStartsAt: string | null;
+    saleEndsAt: string | null;
+    stockStatus: ProductStockStatus | null;
+    madeToOrderLeadTime: string | null;
+    lowStockThreshold: number | null;
+    stockCount: number | null;
+    dimensions: string | null;
+    material: string | null;
+    careInstructions: string | null;
 }
 
 export function mapCategoryRow(row: DbCategory): Category {
@@ -70,5 +87,18 @@ export function mapProductRow(row: DbProduct, categoryTitle: string | undefined)
         description: row.description,
         rating: row.rating,
         reviewCount: row.review_count,
+        personalizationEnabled: row.personalization_enabled,
+        personalizationLabel: row.personalization_label,
+        personalizationRequired: row.personalization_required,
+        personalizationMaxLength: row.personalization_max_length,
+        saleStartsAt: row.sale_starts_at,
+        saleEndsAt: row.sale_ends_at,
+        stockStatus: row.stock_status,
+        madeToOrderLeadTime: row.made_to_order_lead_time,
+        lowStockThreshold: row.low_stock_threshold,
+        stockCount: row.stock_count,
+        dimensions: row.dimensions,
+        material: row.material,
+        careInstructions: row.care_instructions,
     };
 }

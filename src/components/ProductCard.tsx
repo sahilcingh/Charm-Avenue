@@ -10,6 +10,7 @@ import { useWishlistToggle } from '@/lib/use-wishlist-toggle';
 import { useAdminMode } from '@/lib/admin-mode-context';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import type { Product } from '@/lib/supabase/product-mapper';
+import { isSaleWindowActive } from '@/lib/supabase/sale-window';
 
 interface ProductCardProps {
     product: Product;
@@ -39,6 +40,7 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
     const { adminModeOn } = useAdminMode();
     const router = useRouter();
     const wishlisted = isInWishlist(product.id);
+    const showDiscount = Boolean(product.originalPrice) && isSaleWindowActive(product.saleStartsAt, product.saleEndsAt, new Date());
 
     const handleQuickAdd = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -136,7 +138,7 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
                 <p className="font-bold text-sm leading-tight mb-1.5 truncate" style={{ color: 'var(--blush-text)' }}>{product.name}</p>
                 <div className="flex items-center gap-1.5">
                     <span className="font-elegant-serif font-bold text-base" style={{ color: 'var(--blush-rose)' }}>₹{product.price}</span>
-                    {product.originalPrice && (
+                    {showDiscount && (
                         <span className="text-xs line-through" style={{ color: 'var(--blush-muted)' }}>₹{product.originalPrice}</span>
                     )}
                 </div>

@@ -3,12 +3,10 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import AppImage from '@/components/ui/AppImage';
-import Icon from '@/components/ui/AppIcon';
 import ProductCard from '@/components/ProductCard';
-import AddToCartButton from './AddToCartButton';
-import AdminEditLink from './AdminEditLink';
-import { getAllActiveProducts, getProductBySlug, getRelatedProducts, getCategoryBySlug } from '@/lib/supabase/products-data';
+import ProductDetailInteractive from './ProductDetailInteractive';
+import { getAllActiveProducts, getProductBySlug, getRelatedProducts, getCategoryBySlug, getProductImages, getProductVariants } from '@/lib/supabase/products-data';
+import { resolveGalleryImages } from '@/lib/supabase/product-gallery';
 
 export async function generateStaticParams() {
     const products = await getAllActiveProducts();
@@ -38,13 +36,16 @@ export default async function ProductPage({
     const product = await getProductBySlug(slug);
     if (!product) notFound();
 
-    const [related, category] = await Promise.all([
+    const [related, category, galleryRows, variants] = await Promise.all([
         getRelatedProducts(product),
         getCategoryBySlug(product.categorySlug),
+        getProductImages(product.id),
+        getProductVariants(product.id),
     ]);
-    const discountPct = product.originalPrice
-        ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-        : null;
+    const images = resolveGalleryImages(
+        { url: product.image, alt: product.imageAlt },
+        galleryRows.map((row) => ({ url: row.url, alt: row.alt, sort_order: row.sort_order }))
+    );
 
     return (
         <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
@@ -65,94 +66,36 @@ export default async function ProductPage({
                         <span style={{ color: 'var(--blush-text)' }}>{product.name}</span>
                     </nav>
 
-                    <div className="grid md:grid-cols-2 gap-8 md:gap-14">
-                        {/* Image */}
-                        <div className="relative aspect-square rounded-4xl overflow-hidden card-bubble">
-                            <AppImage
-                                src={product.image}
-                                alt={product.imageAlt}
-                                fill
-                                className="object-cover"
-                                sizes="(max-width: 768px) 100vw, 50vw"
-                                priority
-                            />
-                            {product.tag && (
-                                <span
-                                    className="absolute top-4 left-4 badge-pill shadow-sm"
-                                    style={{ background: product.tagBg, color: product.tagText }}
-                                >
-                                    {product.tag}
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex flex-col">
-                            <Link
-                                href={`/shop/${product.categorySlug}`}
-                                className="text-sm font-bold uppercase tracking-widest mb-2 hover:underline"
-                                style={{ color: 'var(--blush-rose)' }}
-                            >
-                                {product.emoji} {product.category}
-                            </Link>
-                            <h1 className="font-elegant-serif text-3xl md:text-4xl tracking-tight mb-3" style={{ color: 'var(--blush-text)' }}>
-                                {product.name}
-                            </h1>
-
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="flex items-center gap-0.5">
-                                    {Array.from({ length: 5 }).map((_, i) => (
-                                        <Icon
-                                            key={i}
-                                            name="StarIcon"
-                                            size={16}
-                                            variant="solid"
-                                            style={{ color: i < Math.round(product.rating) ? 'var(--blush-rose)' : 'var(--blush-border)' }}
-                                        />
-                                    ))}
-                                </div>
-                                <span className="text-sm font-medium" style={{ color: 'var(--blush-muted)' }}>
-                                    {product.rating} ({product.reviewCount} reviews)
-                                </span>
-                            </div>
-
-                            <AdminEditLink productId={product.id} />
-
-                            <div className="flex items-center flex-wrap gap-3 mb-6">
-                                <span className="font-elegant-serif font-bold text-3xl" style={{ color: 'var(--blush-rose)' }}>₹{product.price}</span>
-                                {product.originalPrice && (
-                                    <>
-                                        <span className="text-lg line-through" style={{ color: 'var(--blush-muted)' }}>₹{product.originalPrice}</span>
-                                        <span className="badge-pill" style={{ background: 'var(--blush-border)', color: 'var(--blush-rose)' }}>{discountPct}% off</span>
-                                    </>
-                                )}
-                            </div>
-
-                            <p className="text-base leading-relaxed mb-8" style={{ color: 'var(--blush-text)', opacity: 0.8 }}>{product.description}</p>
-
-                            <AddToCartButton productId={product.id} productName={product.name} />
-
-                            {/* Trust row */}
-                            <div className="grid grid-cols-2 gap-3 mt-8">
-                                <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 card-bubble">
-                                    <span className="text-lg">✨</span>
-                                    <p className="text-xs font-bold leading-tight" style={{ color: 'var(--blush-text)' }}>
-                                        Quality Checked
-                                        <br />
-                                        <span className="font-medium" style={{ color: 'var(--blush-muted)' }}>100% Guaranteed</span>
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 card-bubble">
-                                    <span className="text-lg">🚀</span>
-                                    <p className="text-xs font-bold leading-tight" style={{ color: 'var(--blush-text)' }}>
-                                        Fast Shipping
-                                        <br />
-                                        <span className="font-medium" style={{ color: 'var(--blush-muted)' }}>Pan India 2–5 days</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ProductDetailInteractive
+                        productId={product.id}
+                        productName={product.name}
+                        categorySlug={product.categorySlug}
+                        categoryTitle={product.category}
+                        emoji={product.emoji}
+                        rating={product.rating}
+                        reviewCount={product.reviewCount}
+                        description={product.description}
+                        price={product.price}
+                        originalPrice={product.originalPrice ?? null}
+                        tag={product.tag}
+                        tagBg={product.tagBg}
+                        tagText={product.tagText}
+                        galleryImages={images}
+                        variants={variants}
+                        personalizationEnabled={product.personalizationEnabled}
+                        personalizationLabel={product.personalizationLabel}
+                        personalizationRequired={product.personalizationRequired}
+                        personalizationMaxLength={product.personalizationMaxLength}
+                        saleStartsAt={product.saleStartsAt}
+                        saleEndsAt={product.saleEndsAt}
+                        stockStatus={product.stockStatus}
+                        madeToOrderLeadTime={product.madeToOrderLeadTime}
+                        lowStockThreshold={product.lowStockThreshold}
+                        stockCount={product.stockCount}
+                        dimensions={product.dimensions}
+                        material={product.material}
+                        careInstructions={product.careInstructions}
+                    />
 
                     {/* Related products */}
                     {related.length > 0 && (

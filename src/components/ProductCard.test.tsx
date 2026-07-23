@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import React from 'react';
 import ProductCard from './ProductCard';
@@ -59,6 +59,19 @@ const product: Product = {
     description: '',
     rating: 4.5,
     reviewCount: 0,
+    personalizationEnabled: false,
+    personalizationLabel: null,
+    personalizationRequired: false,
+    personalizationMaxLength: null,
+    saleStartsAt: null,
+    saleEndsAt: null,
+    stockStatus: null,
+    madeToOrderLeadTime: null,
+    lowStockThreshold: null,
+    stockCount: null,
+    dimensions: null,
+    material: null,
+    careInstructions: null,
 };
 
 function CartProbe() {
@@ -66,13 +79,13 @@ function CartProbe() {
     return <div data-testid="cart-probe">{itemCount}</div>;
 }
 
-function renderCard() {
+function renderCard(overrides: Partial<Product> = {}) {
     return render(
         <ToastProvider>
             <CartProvider>
                 <WishlistProvider>
                     <AdminModeProvider>
-                        <ProductCard product={product} />
+                        <ProductCard product={{ ...product, ...overrides }} />
                         <CartProbe />
                     </AdminModeProvider>
                 </WishlistProvider>
@@ -109,6 +122,13 @@ beforeEach(() => {
     profileIsAdminMock.mockResolvedValue({ data: { is_admin: false } });
 });
 
+// A failed assertion inside a fake-timers test would otherwise skip its own
+// vi.useRealTimers() cleanup and leave every later test's waitFor()/findBy()
+// hanging on fake time — restore real timers unconditionally after each test.
+afterEach(() => {
+    vi.useRealTimers();
+});
+
 describe('ProductCard', () => {
     it('renders the product name, category, and price', () => {
         mockLoggedOut();
@@ -117,6 +137,30 @@ describe('ProductCard', () => {
         expect(screen.getByText('Panda Lamp')).toBeInTheDocument();
         expect(screen.getByText('Gifts & Novelty')).toBeInTheDocument();
         expect(screen.getByText('₹130')).toBeInTheDocument();
+    });
+
+    it('shows the original-price strike-through when there is no sale window at all (matches pre-Phase-6 behavior)', () => {
+        mockLoggedOut();
+        renderCard({ originalPrice: 180 });
+        expect(screen.getByText('₹180')).toBeInTheDocument();
+    });
+
+    it('shows the original-price strike-through while now is inside the sale window', () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-01-15T00:00:00Z'));
+        mockLoggedOut();
+        renderCard({ originalPrice: 180, saleStartsAt: '2026-01-01T00:00:00Z', saleEndsAt: '2026-01-31T00:00:00Z' });
+        expect(screen.getByText('₹180')).toBeInTheDocument();
+        vi.useRealTimers();
+    });
+
+    it('hides the original-price strike-through once the sale window has ended', () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-02-15T00:00:00Z'));
+        mockLoggedOut();
+        renderCard({ originalPrice: 180, saleStartsAt: '2026-01-01T00:00:00Z', saleEndsAt: '2026-01-31T00:00:00Z' });
+        expect(screen.queryByText('₹180')).not.toBeInTheDocument();
+        vi.useRealTimers();
     });
 
     it('links to the product page by slug', () => {

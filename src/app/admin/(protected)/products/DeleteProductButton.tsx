@@ -34,10 +34,7 @@ export default function DeleteProductButton({ productId, productName }: { produc
         <button
             onClick={() => setConfirming(true)}
             aria-label={`Delete ${productName}`}
-            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 hover:text-white"
-            style={{ color: 'var(--blush-muted)' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--blush-rose-dark)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-dark)] hover:text-white"
         >
             <Icon name="TrashIcon" size={15} />
         </button>

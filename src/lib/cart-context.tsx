@@ -4,7 +4,14 @@ import { createClient } from './supabase/client';
 
 export interface CartLine {
     productId: string;
+    variantId?: string;
+    personalizationText?: string;
     quantity: number;
+}
+
+interface LineOptions {
+    variantId?: string;
+    personalizationText?: string;
 }
 
 interface CartContextValue {
@@ -13,14 +20,23 @@ interface CartContextValue {
     /** False until the initial localStorage read completes — an empty `lines` array before
      *  this flips true means "not loaded yet", not "cart is actually empty". */
     hydrated: boolean;
-    addToCart: (productId: string, quantity?: number) => void;
-    removeFromCart: (productId: string) => void;
-    setQuantity: (productId: string, quantity: number) => void;
-    adjustQuantity: (productId: string, delta: number) => void;
+    addToCart: (productId: string, quantity?: number, options?: LineOptions) => void;
+    removeFromCart: (productId: string, options?: LineOptions) => void;
+    setQuantity: (productId: string, quantity: number, options?: LineOptions) => void;
+    adjustQuantity: (productId: string, delta: number, options?: LineOptions) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = 'charm-avenue-cart';
+
+// Two lines are "the same" only if product, variant, AND personalization text all match —
+// a different color/size, or different custom engraving text, is a genuinely distinct line,
+// not a quantity bump on an existing one.
+function matchesLine(line: CartLine, productId: string, options?: LineOptions): boolean {
+    return line.productId === productId
+        && line.variantId === options?.variantId
+        && line.personalizationText === options?.personalizationText;
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
     const [lines, setLines] = useState<CartLine[]>([]);
@@ -73,26 +89,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hydrated, lines.map((l) => l.productId).sort().join(',')]);
 
-    const addToCart = useCallback((productId: string, quantity = 1) => {
+    const addToCart = useCallback((productId: string, quantity = 1, options?: LineOptions) => {
         setLines((prev) => {
-            const existing = prev.find((l) => l.productId === productId);
+            const existing = prev.find((l) => matchesLine(l, productId, options));
             if (existing) {
-                return prev.map((l) =>
-                    l.productId === productId ? { ...l, quantity: l.quantity + quantity } : l
-                );
+                return prev.map((l) => (l === existing ? { ...l, quantity: l.quantity + quantity } : l));
             }
-            return [...prev, { productId, quantity }];
+            return [...prev, { productId, variantId: options?.variantId, personalizationText: options?.personalizationText, quantity }];
         });
     }, []);
 
-    const removeFromCart = useCallback((productId: string) => {
-        setLines((prev) => prev.filter((l) => l.productId !== productId));
+    const removeFromCart = useCallback((productId: string, options?: LineOptions) => {
+        setLines((prev) => prev.filter((l) => !matchesLine(l, productId, options)));
     }, []);
 
-    const setQuantity = useCallback((productId: string, quantity: number) => {
+    const setQuantity = useCallback((productId: string, quantity: number, options?: LineOptions) => {
         setLines((prev) => {
-            if (quantity <= 0) return prev.filter((l) => l.productId !== productId);
-            return prev.map((l) => (l.productId === productId ? { ...l, quantity } : l));
+            if (quantity <= 0) return prev.filter((l) => !matchesLine(l, productId, options));
+            return prev.map((l) => (matchesLine(l, productId, options) ? { ...l, quantity } : l));
         });
     }, []);
 
@@ -100,13 +114,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // from a value the caller read at render time — a caller doing
     // `setQuantity(id, line.quantity - 1)` would lose an update if invoked twice before
     // React re-renders (e.g. two quantity-button clicks batched together).
-    const adjustQuantity = useCallback((productId: string, delta: number) => {
+    const adjustQuantity = useCallback((productId: string, delta: number, options?: LineOptions) => {
         setLines((prev) => {
-            const existing = prev.find((l) => l.productId === productId);
+            const existing = prev.find((l) => matchesLine(l, productId, options));
             if (!existing) return prev;
             const nextQuantity = existing.quantity + delta;
-            if (nextQuantity <= 0) return prev.filter((l) => l.productId !== productId);
-            return prev.map((l) => (l.productId === productId ? { ...l, quantity: nextQuantity } : l));
+            if (nextQuantity <= 0) return prev.filter((l) => l !== existing);
+            return prev.map((l) => (l === existing ? { ...l, quantity: nextQuantity } : l));
         });
     }, []);
 

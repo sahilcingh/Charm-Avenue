@@ -22,11 +22,11 @@ function CartProbe() {
     return <div data-testid="probe">{itemCount}:{JSON.stringify(lines)}</div>;
 }
 
-function renderButton() {
+function renderButton(props: Partial<React.ComponentProps<typeof AddToCartButton>> = {}) {
     return render(
         <ToastProvider>
             <CartProvider>
-                <AddToCartButton productId="p1" productName="Panda Lamp" />
+                <AddToCartButton productId="p1" productName="Panda Lamp" {...props} />
                 <CartProbe />
             </CartProvider>
         </ToastProvider>
@@ -78,5 +78,34 @@ describe('AddToCartButton', () => {
         });
         expect(screen.getByRole('button', { name: 'Add to Bag' })).toBeInTheDocument();
         vi.useRealTimers();
+    });
+
+    it('includes the selected variant id in the cart line when provided', async () => {
+        renderButton({ variantId: 'variant-red' });
+        act(() => screen.getByRole('button', { name: /Add to Bag/i }).click());
+
+        expect(await screen.findByTestId('probe')).toHaveTextContent('1:[{"productId":"p1","variantId":"variant-red","quantity":1}]');
+    });
+
+    it('includes the personalization text in the cart line when provided', async () => {
+        renderButton({ personalizationText: 'For Priya' });
+        act(() => screen.getByRole('button', { name: /Add to Bag/i }).click());
+
+        expect(await screen.findByTestId('probe')).toHaveTextContent('1:[{"productId":"p1","personalizationText":"For Priya","quantity":1}]');
+    });
+
+    it('blocks adding to cart and shows an error when personalization is required but left blank', async () => {
+        renderButton({ personalizationRequired: true, personalizationText: '' });
+        act(() => screen.getByRole('button', { name: /Add to Bag/i }).click());
+
+        expect(await screen.findByText(/please fill in the personalization field/i)).toBeInTheDocument();
+        expect(screen.getByTestId('probe')).toHaveTextContent('0:[]');
+    });
+
+    it('allows adding to cart when personalization is required and filled in', async () => {
+        renderButton({ personalizationRequired: true, personalizationText: 'For Priya' });
+        act(() => screen.getByRole('button', { name: /Add to Bag/i }).click());
+
+        expect(await screen.findByTestId('probe')).toHaveTextContent('1:[{"productId":"p1","personalizationText":"For Priya","quantity":1}]');
     });
 });

@@ -11,6 +11,7 @@ const getUserMock = vi.fn();
 const wishlistSelectEqMock = vi.fn();
 const wishlistInsertMock = vi.fn();
 const wishlistDeleteEqEqMock = vi.fn();
+const combosEqMock = vi.fn();
 
 vi.mock('@/lib/supabase/client', () => ({
     createClient: () => ({
@@ -18,14 +19,19 @@ vi.mock('@/lib/supabase/client', () => ({
             getUser: getUserMock,
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
-        from: (table: string) =>
-            table === 'wishlist_items'
-                ? {
-                      select: () => ({ eq: wishlistSelectEqMock }),
-                      insert: wishlistInsertMock,
-                      delete: () => ({ eq: () => ({ eq: wishlistDeleteEqEqMock }) }),
-                  }
-                : productsFromMock(),
+        from: (table: string) => {
+            if (table === 'wishlist_items') {
+                return {
+                    select: () => ({ eq: wishlistSelectEqMock }),
+                    insert: wishlistInsertMock,
+                    delete: () => ({ eq: () => ({ eq: wishlistDeleteEqEqMock }) }),
+                };
+            }
+            if (table === 'combos') {
+                return { select: () => ({ eq: combosEqMock }) };
+            }
+            return productsFromMock();
+        },
     }),
 }));
 
@@ -98,10 +104,16 @@ beforeEach(() => {
     wishlistSelectEqMock.mockReset();
     wishlistInsertMock.mockReset();
     wishlistDeleteEqEqMock.mockReset();
+    combosEqMock.mockReset();
     mockLoggedOut();
     wishlistInsertMock.mockResolvedValue({ error: null });
     wishlistDeleteEqEqMock.mockResolvedValue({ error: null });
+    combosEqMock.mockResolvedValue({ data: [] });
 });
+
+function mockCombos(rows: { id: string; name: string; discount_percent: number; combo_products: { product_id: string }[] }[]) {
+    combosEqMock.mockResolvedValue({ data: rows });
+}
 
 describe('CartClient', () => {
     it('shows a loading state while the cart still has unresolved lines', () => {
@@ -210,18 +222,12 @@ describe('CartClient', () => {
         expect(screen.getByText('Water Keychains')).toBeInTheDocument();
     });
 
-    it('builds a WhatsApp enquiry link containing the cart contents and total', async () => {
+    it('links Proceed to Checkout to /checkout instead of opening WhatsApp directly (checkout now collects delivery details and records a real order first)', async () => {
         mockProductRows([makeProductRow({ id: 'p1', name: 'Panda Lamp', price: 130 })]);
         renderCartWithLines([{ productId: 'p1', quantity: 2 }]);
 
         await screen.findByText('Panda Lamp');
-        const link = screen.getByRole('link', { name: /Enquire on WhatsApp/i });
-        const href = link.getAttribute('href') ?? '';
-
-        expect(href).toContain('https://wa.me/');
-        expect(decodeURIComponent(href)).toContain('Panda Lamp x2 - ₹260');
-        expect(decodeURIComponent(href)).toContain('Total: ₹260');
-        expect(link).toHaveAttribute('target', '_blank');
+        expect(screen.getByRole('link', { name: /Proceed to Checkout/i })).toHaveAttribute('href', '/checkout');
     });
 
     it('links Continue Shopping to /shop', async () => {
@@ -280,6 +286,37 @@ describe('CartClient', () => {
 
         await waitFor(() => expect(wishlistDeleteEqEqMock).toHaveBeenCalled());
         expect(await screen.findByLabelText('Add to wishlist')).toBeInTheDocument();
+    });
+
+    it('shows a combo discount line and reduces the total when every combo product is in the cart', async () => {
+        mockProductRows([
+            makeProductRow({ id: 'p1', name: 'Earrings', price: 200 }),
+            makeProductRow({ id: 'p2', name: 'Necklace', slug: 'necklace', price: 300 }),
+        ]);
+        mockCombos([
+            { id: 'combo-1', name: 'Earrings + Necklace', discount_percent: 10, combo_products: [{ product_id: 'p1' }, { product_id: 'p2' }] },
+        ]);
+        renderCartWithLines([
+            { productId: 'p1', quantity: 1 },
+            { productId: 'p2', quantity: 1 },
+        ]);
+
+        expect(await screen.findByText('🎁 Earrings + Necklace — 10% off')).toBeInTheDocument();
+        expect(screen.getByText('−₹50')).toBeInTheDocument();
+        // Subtotal 500, discount 50 -> total 450 (subtotal row still shows 500).
+        expect(screen.getByText('₹500')).toBeInTheDocument();
+        expect(screen.getByText('₹450')).toBeInTheDocument();
+    });
+
+    it('does not show a combo discount when only some of its products are in the cart', async () => {
+        mockProductRows([makeProductRow({ id: 'p1', name: 'Earrings', price: 200 })]);
+        mockCombos([
+            { id: 'combo-1', name: 'Earrings + Necklace', discount_percent: 10, combo_products: [{ product_id: 'p1' }, { product_id: 'p2' }] },
+        ]);
+        renderCartWithLines([{ productId: 'p1', quantity: 1 }]);
+
+        await screen.findByText('Earrings');
+        expect(screen.queryByText(/% off/)).not.toBeInTheDocument();
     });
 
     it('removing an item from the cart does not affect its separate wishlist state', async () => {

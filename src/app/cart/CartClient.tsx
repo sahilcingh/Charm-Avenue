@@ -7,17 +7,38 @@ import { useCart } from '@/lib/cart-context';
 import { useWishlistToggle } from '@/lib/use-wishlist-toggle';
 import { createClient } from '@/lib/supabase/client';
 import { mapProductRow, type Product } from '@/lib/supabase/product-mapper';
-import type { DbCategory, DbProduct } from '@/lib/supabase/types';
-import { buildWhatsAppEnquiryMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
-
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '';
+import type { DbCategory, DbProduct, DbProductVariant } from '@/lib/supabase/types';
+import { resolveVariantDisplay, formatVariantLabel } from '@/lib/supabase/product-variants';
+import { resolveComboDiscounts, type ComboDefinition } from '@/lib/supabase/combo-discounts';
 
 type ProductRowWithCategory = DbProduct & { category: Pick<DbCategory, 'title'> | null };
+type ComboRow = { id: string; name: string; discount_percent: number; combo_products: { product_id: string }[] };
 
 export default function CartClient() {
     const { lines, hydrated, adjustQuantity, removeFromCart } = useCart();
     const { isInWishlist, toggleWithFeedback } = useWishlistToggle();
     const [productsById, setProductsById] = useState<Record<string, Product> | null>(null);
+    const [variantsById, setVariantsById] = useState<Record<string, DbProductVariant>>({});
+    const [combos, setCombos] = useState<ComboDefinition[]>([]);
+
+    useEffect(() => {
+        const supabase = createClient();
+        supabase
+            .from('combos')
+            .select('id, name, discount_percent, combo_products(product_id)')
+            .eq('is_active', true)
+            .then(({ data }) => {
+                const rows = (data ?? []) as unknown as ComboRow[];
+                setCombos(
+                    rows.map((row) => ({
+                        id: row.id,
+                        name: row.name,
+                        discountPercent: row.discount_percent,
+                        productIds: row.combo_products.map((cp) => cp.product_id),
+                    }))
+                );
+            });
+    }, []);
 
     useEffect(() => {
         // Wait for the cart to finish reading localStorage before deciding anything —
@@ -33,7 +54,7 @@ export default function CartClient() {
         const supabase = createClient();
         supabase
             .from('products')
-            .select('*, category:categories(title)')
+            .select('*, category:categories!products_category_slug_fkey(title)')
             .in('id', lines.map((l) => l.productId))
             .then(({ data }) => {
                 if (cancelled) return;
@@ -43,12 +64,31 @@ export default function CartClient() {
                 });
                 setProductsById(map);
             });
+
+        const variantIds = lines.map((l) => l.variantId).filter((id): id is string => Boolean(id));
+        if (variantIds.length > 0) {
+            supabase
+                .from('product_variants')
+                .select('*')
+                .in('id', variantIds)
+                .then(({ data }) => {
+                    if (cancelled) return;
+                    const map: Record<string, DbProductVariant> = {};
+                    ((data ?? []) as DbProductVariant[]).forEach((row) => {
+                        map[row.id] = row;
+                    });
+                    setVariantsById(map);
+                });
+        } else {
+            setVariantsById({});
+        }
+
         return () => {
             cancelled = true;
         };
-        // Re-fetch only when the set of product ids in the cart actually changes, not on every quantity tick.
+        // Re-fetch only when the set of product/variant ids in the cart actually changes, not on every quantity tick.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hydrated, lines.map((l) => l.productId).sort().join(',')]);
+    }, [hydrated, lines.map((l) => l.productId).sort().join(','), lines.map((l) => l.variantId ?? '').sort().join(',')]);
 
     if (productsById === null) {
         return (
@@ -61,14 +101,30 @@ export default function CartClient() {
     }
 
     const items = lines
-        .map((line) => ({ line, product: productsById[line.productId] }))
-        .filter((entry): entry is { line: typeof entry.line; product: Product } => Boolean(entry.product));
+        .map((line) => {
+            const product = productsById[line.productId];
+            if (!product) return null;
+            const variant = line.variantId ? variantsById[line.variantId] ?? null : null;
+            const resolved = resolveVariantDisplay(
+                { price: product.price, originalPrice: product.originalPrice ?? null, image: product.image },
+                variant
+            );
+            return { line, product, variant, effectivePrice: resolved.price, effectiveImage: resolved.image };
+        })
+        .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
 
-    const subtotal = items.reduce((sum, { line, product }) => sum + product.price * line.quantity, 0);
-    const whatsappUrl = buildWhatsAppUrl(
-        WHATSAPP_NUMBER,
-        buildWhatsAppEnquiryMessage(items.map(({ line, product }) => ({ name: product.name, quantity: line.quantity, price: product.price })))
+    const subtotal = items.reduce((sum, { line, effectivePrice }) => sum + effectivePrice * line.quantity, 0);
+
+    const priceByProduct = new Map<string, number>();
+    items.forEach(({ product, effectivePrice }) => {
+        if (!priceByProduct.has(product.id)) priceByProduct.set(product.id, effectivePrice);
+    });
+    const comboMatches = resolveComboDiscounts(
+        Array.from(priceByProduct, ([productId, unitPrice]) => ({ productId, unitPrice })),
+        combos
     );
+    const discountTotal = comboMatches.reduce((sum, m) => sum + m.amount, 0);
+    const total = subtotal - discountTotal;
 
     if (items.length === 0) {
         return (
@@ -95,13 +151,19 @@ export default function CartClient() {
             <div className="max-w-screen-2xl mx-auto grid md:grid-cols-3 gap-8">
                 {/* Line items */}
                 <div className="md:col-span-2 flex flex-col gap-4">
-                    {items.map(({ line, product }) => (
-                        <div key={product.id} className="flex gap-4 bg-white rounded-3xl p-4 card-bubble">
+                    {items.map(({ line, product, variant, effectivePrice, effectiveImage }) => {
+                        const lineOptions = { variantId: line.variantId, personalizationText: line.personalizationText };
+                        const variantLabel = variant ? formatVariantLabel(variant) : null;
+                        return (
+                        <div
+                            key={`${product.id}:${line.variantId ?? ''}:${line.personalizationText ?? ''}`}
+                            className="flex gap-4 bg-white rounded-3xl p-4 card-bubble"
+                        >
                             <Link
                                 href={`/product/${product.slug}`}
                                 className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0"
                             >
-                                <AppImage src={product.image} alt={product.imageAlt} fill className="object-cover" sizes="112px" />
+                                <AppImage src={effectiveImage} alt={product.imageAlt} fill className="object-cover" sizes="112px" />
                             </Link>
                             <div className="flex-1 flex flex-col justify-between min-w-0">
                                 <div>
@@ -113,11 +175,19 @@ export default function CartClient() {
                                     >
                                         {product.name}
                                     </Link>
+                                    {variantLabel && (
+                                        <p className="text-xs font-medium mt-0.5" style={{ color: 'var(--blush-muted)' }}>{variantLabel}</p>
+                                    )}
+                                    {line.personalizationText && (
+                                        <p className="text-xs font-medium mt-0.5 italic" style={{ color: 'var(--blush-muted)' }}>
+                                            &ldquo;{line.personalizationText}&rdquo;
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="flex items-center justify-between gap-2 mt-2">
                                     <div className="flex items-center gap-1 rounded-full p-1" style={{ background: 'var(--blush-bg)' }}>
                                         <button
-                                            onClick={() => adjustQuantity(product.id, -1)}
+                                            onClick={() => adjustQuantity(product.id, -1, lineOptions)}
                                             aria-label="Decrease quantity"
                                             className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold hover:opacity-70 transition-opacity"
                                             style={{ color: 'var(--blush-rose)' }}
@@ -126,7 +196,7 @@ export default function CartClient() {
                                         </button>
                                         <span className="w-6 text-center text-sm font-bold" style={{ color: 'var(--blush-text)' }}>{line.quantity}</span>
                                         <button
-                                            onClick={() => adjustQuantity(product.id, 1)}
+                                            onClick={() => adjustQuantity(product.id, 1, lineOptions)}
                                             aria-label="Increase quantity"
                                             className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold hover:opacity-70 transition-opacity"
                                             style={{ color: 'var(--blush-rose)' }}
@@ -135,7 +205,7 @@ export default function CartClient() {
                                         </button>
                                     </div>
                                     <span className="font-elegant-serif font-bold text-base sm:text-lg" style={{ color: 'var(--blush-rose)' }}>
-                                        ₹{product.price * line.quantity}
+                                        ₹{effectivePrice * line.quantity}
                                     </span>
                                 </div>
                             </div>
@@ -153,7 +223,7 @@ export default function CartClient() {
                                     />
                                 </button>
                                 <button
-                                    onClick={() => removeFromCart(product.id)}
+                                    onClick={() => removeFromCart(product.id, lineOptions)}
                                     aria-label="Remove item"
                                     className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
                                     style={{ color: 'var(--blush-muted)' }}
@@ -162,7 +232,8 @@ export default function CartClient() {
                                 </button>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Summary */}
@@ -173,25 +244,29 @@ export default function CartClient() {
                             <span>Subtotal ({items.reduce((n, i) => n + i.line.quantity, 0)} items)</span>
                             <span className="font-bold">₹{subtotal}</span>
                         </div>
+                        {comboMatches.map(({ combo, amount }) => (
+                            <div key={combo.id} className="flex items-center justify-between text-sm mb-2" style={{ color: 'var(--blush-rose)' }}>
+                                <span>🎁 {combo.name} — {combo.discountPercent}% off</span>
+                                <span className="font-bold">−₹{amount}</span>
+                            </div>
+                        ))}
                         <p className="text-xs mb-4" style={{ color: 'var(--blush-muted)' }}>Final pricing & delivery confirmed over WhatsApp.</p>
                         <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--blush-border)' }}>
                             <span className="font-bold" style={{ color: 'var(--blush-text)' }}>Total</span>
-                            <span className="font-elegant-serif font-bold text-xl" style={{ color: 'var(--blush-rose)' }}>₹{subtotal}</span>
+                            <span className="font-elegant-serif font-bold text-xl" style={{ color: 'var(--blush-rose)' }}>₹{total}</span>
                         </div>
-                        <a
-                            href={whatsappUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <Link
+                            href="/checkout"
                             className="mt-6 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
-                            style={{ background: '#25D366', boxShadow: '0 4px 20px rgba(37,211,102,0.35)' }}
+                            style={{ background: 'var(--blush-rose)', boxShadow: '0 4px 20px rgba(232,130,143,0.35)' }}
                         >
-                            <Icon name="ChatBubbleLeftRightIcon" size={18} />
-                            Enquire on WhatsApp
-                        </a>
+                            <Icon name="ShoppingBagIcon" size={18} />
+                            Proceed to Checkout
+                        </Link>
                         <Link
                             href="/shop"
-                            className="mt-3 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
-                            style={{ background: 'var(--blush-rose)', boxShadow: '0 4px 20px rgba(232,130,143,0.35)' }}
+                            className="mt-3 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 hover:scale-[1.02]"
+                            style={{ background: 'var(--blush-border)', color: 'var(--blush-text)' }}
                         >
                             Continue Shopping
                         </Link>
