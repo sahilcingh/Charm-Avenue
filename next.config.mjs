@@ -4,6 +4,15 @@ import { imageHosts } from './image-hosts.config.mjs';
 const nextConfig = {
     productionBrowserSourceMaps: true,
     distDir: process.env.DIST_DIR || '.next',
+    // Default Server Action body limit is 1MB — a single phone-camera photo routinely
+    // exceeds that, which silently failed the admin "save changes" flow in production.
+    // Kept above MAX_PRODUCT_IMAGE_BYTES (src/lib/product-image-validation.ts) so the
+    // client-side check is always the one giving the friendly error, not this ceiling.
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '10mb',
+        },
+    },
     typescript: {
         ignoreBuildErrors: true,
     },
@@ -21,13 +30,6 @@ const nextConfig = {
             dev: dev
         }
     ) {
-        config.module.rules.push({
-            test: /\.(jsx|tsx)$/,
-            exclude: [/node_modules/],
-            use: [{
-                loader: '@dhiwise/component-tagger/nextLoader',
-            }],
-        });
         if (dev) {
             const ignoredPaths = (process.env.WATCH_IGNORED_PATHS || '')
                 .split(',')

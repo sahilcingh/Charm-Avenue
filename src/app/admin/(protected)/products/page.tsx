@@ -17,9 +17,9 @@ export default async function AdminProductsPage() {
     const hiddenCount = list.length - liveCount;
 
     const stats = [
-        { icon: 'ShoppingBagIcon', label: 'Total Products', value: list.length },
-        { icon: 'CheckCircleIcon', label: 'Live on Storefront', value: liveCount },
-        { icon: 'EyeSlashIcon', label: 'Hidden / Draft', value: hiddenCount },
+        { icon: 'ShoppingBagIcon', shortLabel: 'Total', value: list.length },
+        { icon: 'CheckCircleIcon', shortLabel: 'Live', value: liveCount },
+        { icon: 'EyeSlashIcon', shortLabel: 'Hidden', value: hiddenCount },
     ];
 
     return (
@@ -39,19 +39,22 @@ export default async function AdminProductsPage() {
             </div>
 
             {!error && list.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div
+                    className="flex bg-white rounded-2xl mb-6 border animate-enter overflow-hidden"
+                    style={{ borderColor: 'var(--blush-border)' }}
+                >
                     {stats.map((stat, i) => (
                         <div
-                            key={stat.label}
-                            className="bg-white rounded-3xl p-5 card-bubble flex items-center gap-3 animate-enter"
-                            style={{ animationDelay: `${100 + i * 80}ms` }}
+                            key={stat.shortLabel}
+                            className={`flex-1 flex items-center gap-2 px-3 py-2.5 ${i < stats.length - 1 ? 'border-r' : ''}`}
+                            style={{ borderColor: 'var(--blush-border)' }}
                         >
-                            <span className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--blush-bg)' }}>
-                                <Icon name={stat.icon} size={18} style={{ color: 'var(--blush-rose)' }} />
+                            <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--blush-bg)' }}>
+                                <Icon name={stat.icon} size={13} style={{ color: 'var(--blush-rose)' }} />
                             </span>
-                            <div>
-                                <p className="font-elegant-serif font-bold text-xl" style={{ color: 'var(--blush-text)' }}>{stat.value}</p>
-                                <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>{stat.label}</p>
+                            <div className="min-w-0">
+                                <p className="font-elegant-serif font-bold text-base leading-tight" style={{ color: 'var(--blush-text)' }}>{stat.value}</p>
+                                <p className="text-[11px] leading-tight truncate" style={{ color: 'var(--blush-muted)' }}>{stat.shortLabel}</p>
                             </div>
                         </div>
                     ))}
@@ -83,7 +86,56 @@ export default async function AdminProductsPage() {
             )}
 
             {!error && list.length > 0 && (
-                <div className="bg-white rounded-3xl card-bubble overflow-x-auto animate-enter delay-200">
+                <div className="bg-white rounded-2xl border animate-enter delay-200 lg:hidden" style={{ borderColor: 'var(--blush-border)' }}>
+                    {list.map((product, i) => {
+                        const category = categoryBySlug.get(product.category_slug);
+                        return (
+                            <div
+                                key={product.id}
+                                className="flex items-center gap-3 p-3 border-b last:border-0 animate-enter"
+                                style={{ borderColor: 'var(--blush-border)', animationDelay: `${Math.min(i, 8) * 60}ms` }}
+                            >
+                                <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={product.image} alt={product.image_alt} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-semibold truncate text-sm" style={{ color: 'var(--blush-text)' }}>{product.name}</p>
+                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                        <span className="badge-pill text-xs" style={{ background: 'var(--blush-bg)', color: 'var(--blush-rose)' }}>
+                                            {category ? `${category.emoji} ${category.title}` : product.category_slug}
+                                        </span>
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: product.is_active ? '#2E7D32' : 'var(--blush-muted)' }}>
+                                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: product.is_active ? '#2E7D32' : 'var(--blush-muted)' }} />
+                                            {product.is_active ? 'Live' : 'Hidden'}
+                                        </span>
+                                    </div>
+                                    <p className="mt-1">
+                                        <span className="font-elegant-serif font-bold text-sm" style={{ color: 'var(--blush-text)' }}>₹{product.price}</span>
+                                        {product.original_price && (
+                                            <span className="text-xs line-through ml-1.5" style={{ color: 'var(--blush-muted)' }}>₹{product.original_price}</span>
+                                        )}
+                                    </p>
+                                </div>
+                                <div className="flex flex-col items-center gap-1 shrink-0">
+                                    <Link
+                                        href={`/admin/products/${product.id}`}
+                                        aria-label={`Edit ${product.name}`}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-70"
+                                        style={{ color: 'var(--blush-rose)' }}
+                                    >
+                                        <Icon name="PencilSquareIcon" size={15} />
+                                    </Link>
+                                    <DeleteProductButton productId={product.id} productName={product.name} />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {!error && list.length > 0 && (
+                <div className="hidden lg:block bg-white rounded-3xl card-bubble overflow-x-auto animate-enter delay-200">
                     <table className="w-full min-w-[720px] text-left text-sm">
                         <thead>
                             <tr className="border-b" style={{ borderColor: 'var(--blush-border)' }}>

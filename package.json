@@ -7,7 +7,6 @@
             "next",
             "react",
             "react-dom",
-            "@dhiwise/component-tagger",
             "@tailwindcss/typography",
             "recharts"
         ],
@@ -50,7 +49,6 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "@dhiwise/component-tagger": "^1.0.15",
         "@fontsource/syne": "^5.0.0",
         "@heroicons/react": "^2.2.0",
         "@supabase/ssr": "^0.12.3",

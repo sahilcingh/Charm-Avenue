@@ -4,6 +4,7 @@ import { useFormStatus } from 'react-dom';
 import Icon from '@/components/ui/AppIcon';
 import type { DbCategory, DbProduct } from '@/lib/supabase/types';
 import { TAG_STYLES, tagStyleKeyFor, type TagStyleKey } from '@/lib/supabase/types';
+import { validateProductImageFile, MAX_PRODUCT_IMAGE_BYTES } from '@/lib/product-image-validation';
 
 interface ProductFormProps {
     categories: DbCategory[];
@@ -75,6 +76,7 @@ export default function ProductForm({ categories, product, action }: ProductForm
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [preview, setPreview] = useState<string | null>(product?.image ?? null);
     const [dragActive, setDragActive] = useState(false);
+    const [fileError, setFileError] = useState<string | null>(null);
     const [tagStyle, setTagStyle] = useState<TagStyleKey>(tagStyleKeyFor(product?.tag_bg ?? null));
     const [tagLabel, setTagLabel] = useState(product?.tag ?? '');
     const [isActive, setIsActive] = useState(product?.is_active ?? true);
@@ -91,6 +93,15 @@ export default function ProductForm({ categories, product, action }: ProductForm
     function handleFiles(files: FileList | null) {
         const file = files?.[0];
         if (!file) return;
+
+        const error = validateProductImageFile(file);
+        if (error) {
+            setFileError(error);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        setFileError(null);
         setPreview(URL.createObjectURL(file));
         if (fileInputRef.current && files !== fileInputRef.current.files) {
             fileInputRef.current.files = files;
@@ -136,7 +147,9 @@ export default function ProductForm({ categories, product, action }: ProductForm
                             <p className="text-sm font-bold" style={{ color: 'var(--blush-text)' }}>
                                 {preview ? 'Click or drop to replace' : 'Click or drag a photo here'}
                             </p>
-                            <p className="text-xs mt-0.5" style={{ color: 'var(--blush-muted)' }}>PNG or JPG, up to ~5MB</p>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--blush-muted)' }}>
+                                PNG or JPG, up to {MAX_PRODUCT_IMAGE_BYTES / (1024 * 1024)}MB
+                            </p>
                         </div>
                         <input
                             ref={fileInputRef}
@@ -148,6 +161,11 @@ export default function ProductForm({ categories, product, action }: ProductForm
                             className="hidden"
                         />
                     </div>
+                    {fileError && (
+                        <p className="text-xs font-medium" style={{ color: 'var(--blush-rose-dark)' }}>
+                            {fileError}
+                        </p>
+                    )}
                     {product && (
                         <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
                             Leave empty to keep the current photo.
