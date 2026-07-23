@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 };
 
 const contactMethods = [
-    { icon: 'EnvelopeIcon', label: 'Email', value: 'hello@charmavenue.in' },
-    { icon: 'ChatBubbleLeftRightIcon', label: 'WhatsApp', value: '+91 98765 43210' },
+    { icon: 'EnvelopeIcon', label: 'Email', value: 'nandini092006@gmail.com' },
+    { icon: 'ChatBubbleLeftRightIcon', label: 'WhatsApp', value: '+91 89572 98041' },
     { icon: 'ClockIcon', label: 'Support Hours', value: 'Mon–Sat, 10am – 7pm IST' },
 ];
 
