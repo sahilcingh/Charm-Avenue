@@ -22,10 +22,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     }
 
     return (
-        <div className="min-h-screen" style={{ background: 'var(--blush-bg)' }}>
+        <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
             <header className="border-b bg-white" style={{ borderColor: 'var(--blush-border)' }}>
                 <div className="max-w-screen-2xl mx-auto px-4 md:px-8 py-3.5 flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex items-center gap-6 md:gap-8">
+                    <div className="flex items-center gap-6 md:gap-8 min-w-0">
                         <Link href="/admin/products" className="font-script text-2xl shrink-0" style={{ color: 'var(--blush-text)' }}>
                             Charm Avenue <span className="text-sm font-sans font-semibold uppercase tracking-widest align-middle" style={{ color: 'var(--blush-muted)' }}>Admin</span>
                         </Link>
