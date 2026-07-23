@@ -80,26 +80,30 @@ export function getInitial(nameOrEmail: string): string {
 }
 
 export interface ResolveLoginRedirectInput {
+    isAdmin: boolean;
     next?: string | null;
 }
 
 /**
  * Where to send someone right after a successful sign-in on the storefront
- * /login page — the same rule for every account, admin or not. An admin
- * landing on the normal site by default (not a forced trip to the dashboard)
- * is the point: the dashboard stays one click away via the nav, not the
- * post-login destination.
+ * /login page. Admins always go to the dashboard, regardless of `next` — a
+ * customer link can't be used to bounce an admin account somewhere else.
+ * Everyone else lands on the homepage by default, or their originally
+ * requested page if they were bounced from one.
  *
  * `next` must be a same-site relative path. A bare `startsWith('/')` check
  * isn't enough: `//evil.com` also starts with "/" but browsers resolve it as
  * protocol-relative to an external host, so that (and any absolute URL) is
- * rejected in favor of the safe /account default.
+ * rejected in favor of the safe homepage default.
  */
-export function resolveLoginRedirect({ next }: ResolveLoginRedirectInput): string {
+export function resolveLoginRedirect({ isAdmin, next }: ResolveLoginRedirectInput): string {
+    if (isAdmin) {
+        return '/admin/products';
+    }
     if (next && next.startsWith('/') && !next.startsWith('//')) {
         return next;
     }
-    return '/account';
+    return '/';
 }
 
 // Note: Supabase's "User already registered" signup error is deliberately NOT mapped here —

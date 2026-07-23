@@ -38,7 +38,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!hydrated) return;
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+        } catch {
+            // ignore unavailable storage — the cart still works for this session,
+            // it just won't persist across a reload
+        }
     }, [lines, hydrated]);
 
     // Self-heals the cart against products that were deleted or deactivated after being

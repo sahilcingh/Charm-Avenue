@@ -25,7 +25,7 @@ export default function LoginForm() {
 
         setLoading(true);
         const supabase = createClient();
-        const { error } = await supabase.auth.signInWithPassword(form);
+        const { data, error } = await supabase.auth.signInWithPassword(form);
 
         if (error) {
             setLoading(false);
@@ -33,9 +33,14 @@ export default function LoginForm() {
             return;
         }
 
+        let isAdmin = false;
+        if (data.user) {
+            const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', data.user.id).single();
+            isAdmin = profile?.is_admin ?? false;
+        }
         setLoading(false);
 
-        router.push(resolveLoginRedirect({ next: searchParams.get('next') }));
+        router.push(resolveLoginRedirect({ isAdmin, next: searchParams.get('next') }));
         router.refresh();
     };
 

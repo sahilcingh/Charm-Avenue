@@ -20,8 +20,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     } = await supabase.auth.getUser();
 
     if (user) {
+        const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
         const { next } = await searchParams;
-        redirect(resolveLoginRedirect({ next: next ?? null }));
+        redirect(resolveLoginRedirect({ isAdmin: profile?.is_admin ?? false, next: next ?? null }));
     }
 
     return (

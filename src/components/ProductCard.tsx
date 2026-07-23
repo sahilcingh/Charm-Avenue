@@ -8,6 +8,7 @@ import { useCart } from '@/lib/cart-context';
 import { useToast } from '@/lib/toast-context';
 import { useWishlistToggle } from '@/lib/use-wishlist-toggle';
 import { useAdminMode } from '@/lib/admin-mode-context';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import type { Product } from '@/lib/supabase/product-mapper';
 
 interface ProductCardProps {
@@ -16,7 +17,20 @@ interface ProductCardProps {
     className?: string;
 }
 
-export default function ProductCard({ product, transitionDelay = 0, className = '' }: ProductCardProps) {
+export default function ProductCard(props: ProductCardProps) {
+    return (
+        <ErrorBoundary fallback={<ProductCardFallback className={props.className} />}>
+            <ProductCardContent {...props} />
+        </ErrorBoundary>
+    );
+}
+
+/** Keeps the grid from visually collapsing around a single failed card. */
+function ProductCardFallback({ className = '' }: { className?: string }) {
+    return <div className={`bg-white rounded-3xl overflow-hidden card-bubble aspect-square ${className}`} style={{ background: 'var(--blush-bg)' }} />;
+}
+
+function ProductCardContent({ product, transitionDelay = 0, className = '' }: ProductCardProps) {
     const [hovered, setHovered] = useState(false);
     const [added, setAdded] = useState(false);
     const { addToCart } = useCart();

@@ -135,32 +135,36 @@ describe('validateOtp', () => {
 });
 
 describe('resolveLoginRedirect', () => {
-    it('sends anyone to their requested page when next is a normal relative path (admin and non-admin follow the same rule)', () => {
-        expect(resolveLoginRedirect({ next: '/cart' })).toBe('/cart');
+    it('always sends an admin to the dashboard, ignoring any next param', () => {
+        expect(resolveLoginRedirect({ isAdmin: true, next: '/cart' })).toBe('/admin/products');
     });
 
-    it('sends someone bounced from the admin dashboard back to it, since that reflects their own prior request', () => {
-        expect(resolveLoginRedirect({ next: '/admin/products' })).toBe('/admin/products');
+    it('sends an admin to the dashboard when there is no next param', () => {
+        expect(resolveLoginRedirect({ isAdmin: true, next: null })).toBe('/admin/products');
     });
 
-    it('falls back to /account with no next param', () => {
-        expect(resolveLoginRedirect({ next: null })).toBe('/account');
+    it('sends a non-admin to their requested page when next is a normal relative path', () => {
+        expect(resolveLoginRedirect({ isAdmin: false, next: '/cart' })).toBe('/cart');
     });
 
-    it('falls back to /account for an empty next param', () => {
-        expect(resolveLoginRedirect({ next: '' })).toBe('/account');
+    it('falls back to the homepage for a non-admin with no next param', () => {
+        expect(resolveLoginRedirect({ isAdmin: false, next: null })).toBe('/');
+    });
+
+    it('falls back to the homepage for a non-admin with an empty next param', () => {
+        expect(resolveLoginRedirect({ isAdmin: false, next: '' })).toBe('/');
     });
 
     it('rejects a protocol-relative next param as an open-redirect attempt (failure case)', () => {
-        expect(resolveLoginRedirect({ next: '//evil.com' })).toBe('/account');
+        expect(resolveLoginRedirect({ isAdmin: false, next: '//evil.com' })).toBe('/');
     });
 
     it('rejects an absolute-URL next param as an open-redirect attempt', () => {
-        expect(resolveLoginRedirect({ next: 'https://evil.com' })).toBe('/account');
+        expect(resolveLoginRedirect({ isAdmin: false, next: 'https://evil.com' })).toBe('/');
     });
 
     it('rejects a next param that does not start with a slash', () => {
-        expect(resolveLoginRedirect({ next: 'evil.com' })).toBe('/account');
+        expect(resolveLoginRedirect({ isAdmin: false, next: 'evil.com' })).toBe('/');
     });
 });
 

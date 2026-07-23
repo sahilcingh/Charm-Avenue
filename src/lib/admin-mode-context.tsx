@@ -48,7 +48,15 @@ export function AdminModeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     useEffect(() => {
-        setStoredPreference(window.localStorage.getItem(ADMIN_MODE_STORAGE_KEY) === 'true');
+        // Some mobile browsers (Safari private browsing, strict tracking-prevention
+        // settings, sandboxed in-app browsers) throw a SecurityError just from
+        // touching window.localStorage — this must never take the whole app down,
+        // it just means the preference can't persist for that visitor.
+        try {
+            setStoredPreference(window.localStorage.getItem(ADMIN_MODE_STORAGE_KEY) === 'true');
+        } catch {
+            // ignore unavailable storage
+        }
     }, []);
 
     const adminModeOn = resolveAdminModeState({ isAdmin, storedPreference });
@@ -56,7 +64,12 @@ export function AdminModeProvider({ children }: { children: React.ReactNode }) {
     const toggleAdminMode = useCallback(() => {
         setStoredPreference((prev) => {
             const next = !prev;
-            window.localStorage.setItem(ADMIN_MODE_STORAGE_KEY, String(next));
+            try {
+                window.localStorage.setItem(ADMIN_MODE_STORAGE_KEY, String(next));
+            } catch {
+                // ignore unavailable storage — the toggle still works for this session,
+                // it just won't persist across a reload
+            }
             return next;
         });
     }, []);

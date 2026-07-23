@@ -8,6 +8,7 @@ import { useWishlist } from '@/lib/wishlist-context';
 import { useAdminMode } from '@/lib/admin-mode-context';
 import { createClient } from '@/lib/supabase/client';
 import { getInitial } from '@/lib/auth-validation';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const navLinks = [
     { label: 'Home', href: '/' },
@@ -22,6 +23,27 @@ const navLinks = [
 const navLinkDelays = ['delay-100', 'delay-200', 'delay-300', 'delay-400', 'delay-500', 'delay-600'];
 
 export default function Header() {
+    return (
+        <ErrorBoundary fallback={<HeaderFallback />}>
+            <HeaderContent />
+        </ErrorBoundary>
+    );
+}
+
+function HeaderFallback() {
+    return (
+        <header
+            className="fixed top-0 left-0 right-0 z-50 border-b py-4 px-4 text-center"
+            style={{ background: 'var(--blush-bg)', borderColor: 'var(--blush-border)' }}
+        >
+            <Link href="/" className="font-script text-2xl" style={{ color: 'var(--blush-text)' }}>
+                Charm Avenue
+            </Link>
+        </header>
+    );
+}
+
+function HeaderContent() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [accountInitial, setAccountInitial] = useState<string | null>(null);
     const { itemCount } = useCart();

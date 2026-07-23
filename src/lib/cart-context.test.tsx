@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import React from 'react';
 import { CartProvider, useCart } from './cart-context';
@@ -32,6 +32,11 @@ beforeEach(() => {
     window.localStorage.clear();
     inMock.mockReset();
     inMock.mockImplementation((_col: string, ids: string[]) => Promise.resolve({ data: ids.map((id) => ({ id })) }));
+});
+
+afterEach(() => {
+    // Restores any Storage.prototype spies even if a test throws before its own cleanup runs.
+    vi.restoreAllMocks();
 });
 
 describe('CartProvider / useCart', () => {
@@ -199,6 +204,20 @@ describe('CartProvider / useCart', () => {
         const { result } = renderHook(() => useCart(), { wrapper });
 
         await waitFor(() => expect(result.current.lines).toEqual([]));
+    });
+
+    it('does not crash when adding to cart while localStorage.setItem throws (Safari private browsing / storage-blocked mobile browsers — failure case)', async () => {
+        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+            throw new DOMException('The operation is insecure.', 'SecurityError');
+        });
+
+        const { result } = renderHook(() => useCart(), { wrapper });
+        await waitFor(() => expect(result.current.lines).toEqual([]));
+
+        act(() => result.current.addToCart('p1', 2));
+
+        await waitFor(() => expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 2 }]));
+        expect(result.current.itemCount).toBe(2);
     });
 
     it('prunes lines for products that no longer exist/are inactive, so itemCount stays honest (regression case: header badge vs. cart page mismatch)', async () => {
