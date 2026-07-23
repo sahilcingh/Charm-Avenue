@@ -4,7 +4,8 @@ import { useFormStatus } from 'react-dom';
 import Icon from '@/components/ui/AppIcon';
 import type { DbCategory, DbProduct } from '@/lib/supabase/types';
 import { TAG_STYLES, tagStyleKeyFor, type TagStyleKey } from '@/lib/supabase/types';
-import { validateProductImageFile, MAX_PRODUCT_IMAGE_BYTES } from '@/lib/product-image-validation';
+import { validateProductImageFile } from '@/lib/product-image-validation';
+import { compressProductImage } from '@/lib/compress-product-image';
 
 interface ProductFormProps {
     categories: DbCategory[];
@@ -77,6 +78,7 @@ export default function ProductForm({ categories, product, action }: ProductForm
     const [preview, setPreview] = useState<string | null>(product?.image ?? null);
     const [dragActive, setDragActive] = useState(false);
     const [fileError, setFileError] = useState<string | null>(null);
+    const [compressing, setCompressing] = useState(false);
     const [tagStyle, setTagStyle] = useState<TagStyleKey>(tagStyleKeyFor(product?.tag_bg ?? null));
     const [tagLabel, setTagLabel] = useState(product?.tag ?? '');
     const [isActive, setIsActive] = useState(product?.is_active ?? true);
@@ -90,21 +92,29 @@ export default function ProductForm({ categories, product, action }: ProductForm
     const selectedCategory = categories.find((c) => c.slug === categorySlug);
     const activeTagStyle = TAG_STYLES[tagStyle];
 
-    function handleFiles(files: FileList | null) {
+    async function handleFiles(files: FileList | null) {
         const file = files?.[0];
-        if (!file) return;
+        if (!file || compressing) return;
 
-        const error = validateProductImageFile(file);
+        setFileError(null);
+        setCompressing(true);
+        const finalFile = await compressProductImage(file);
+        setCompressing(false);
+
+        // Only ever fires if compression itself failed AND the original was still too
+        // large — the normal path silently compresses down to well under this ceiling.
+        const error = validateProductImageFile(finalFile);
         if (error) {
             setFileError(error);
             if (fileInputRef.current) fileInputRef.current.value = '';
             return;
         }
 
-        setFileError(null);
-        setPreview(URL.createObjectURL(file));
-        if (fileInputRef.current && files !== fileInputRef.current.files) {
-            fileInputRef.current.files = files;
+        setPreview(URL.createObjectURL(finalFile));
+        if (fileInputRef.current) {
+            const dt = new DataTransfer();
+            dt.items.add(finalFile);
+            fileInputRef.current.files = dt.files;
         }
     }
 
@@ -120,14 +130,18 @@ export default function ProductForm({ categories, product, action }: ProductForm
                             setDragActive(false);
                             handleFiles(e.dataTransfer.files);
                         }}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="relative rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-3 py-8 px-4 cursor-pointer transition-all duration-300"
+                        onClick={() => !compressing && fileInputRef.current?.click()}
+                        className={`relative rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-3 py-8 px-4 transition-all duration-300 ${compressing ? 'cursor-wait' : 'cursor-pointer'}`}
                         style={{
                             borderColor: dragActive ? 'var(--blush-rose)' : 'var(--blush-border)',
                             background: dragActive ? 'var(--blush-bg)' : '#FFFFFF',
                         }}
                     >
-                        {preview ? (
+                        {compressing ? (
+                            <span className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'var(--blush-bg)' }}>
+                                <Icon name="ArrowPathIcon" size={22} className="animate-spin" style={{ color: 'var(--blush-rose)' }} />
+                            </span>
+                        ) : preview ? (
                             <div className="relative w-28 h-28 rounded-2xl overflow-hidden shadow-md group">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={preview} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -145,10 +159,10 @@ export default function ProductForm({ categories, product, action }: ProductForm
                         )}
                         <div className="text-center">
                             <p className="text-sm font-bold" style={{ color: 'var(--blush-text)' }}>
-                                {preview ? 'Click or drop to replace' : 'Click or drag a photo here'}
+                                {compressing ? 'Optimizing photo…' : preview ? 'Click or drop to replace' : 'Click or drag a photo here'}
                             </p>
                             <p className="text-xs mt-0.5" style={{ color: 'var(--blush-muted)' }}>
-                                PNG or JPG, up to {MAX_PRODUCT_IMAGE_BYTES / (1024 * 1024)}MB
+                                {compressing ? 'Just a moment' : `PNG or JPG, any size — we'll optimize it automatically`}
                             </p>
                         </div>
                         <input
