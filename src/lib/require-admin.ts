@@ -9,19 +9,23 @@ import { createClient } from '@/lib/supabase/server';
  * of defense for admin-only mutations.
  */
 export async function requireAdmin() {
-    const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) {
-        throw new Error('You must be signed in as an admin to do this.');
-    }
+  if (!user) {
+    throw new Error('You must be signed in as an admin to do this.');
+  }
 
-    const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
-    if (!profile?.is_admin) {
-        throw new Error('You must be an admin to do this.');
-    }
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.is_admin) {
+    throw new Error('You must be an admin to do this.');
+  }
 
-    return { supabase, user };
+  return { supabase, user };
 }

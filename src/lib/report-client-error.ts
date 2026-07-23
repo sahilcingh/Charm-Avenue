@@ -8,26 +8,26 @@
  * second, worse error on top of the one it's trying to report.
  */
 export function reportClientError(error: unknown, context: Record<string, unknown> = {}): void {
-    const message = error instanceof Error ? error.message : String(error);
-    const stack = error instanceof Error ? error.stack : undefined;
+  const message = error instanceof Error ? error.message : String(error);
+  const stack = error instanceof Error ? error.stack : undefined;
 
-    // eslint-disable-next-line no-console
-    console.error('[client error]', message, context);
+  // eslint-disable-next-line no-console
+  console.error('[client error]', message, context);
 
-    if (typeof window === 'undefined' || typeof fetch === 'undefined') return;
+  if (typeof window === 'undefined' || typeof fetch === 'undefined') return;
 
-    fetch('/api/log-error', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            message,
-            stack,
-            context,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-        }),
-        keepalive: true,
-    }).catch(() => {
-        // reporting failed too — nothing more we can safely do client-side
-    });
+  fetch('/api/log-error', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      stack,
+      context,
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+    }),
+    keepalive: true,
+  }).catch(() => {
+    // reporting failed too — nothing more we can safely do client-side
+  });
 }

@@ -1,6 +1,6 @@
 export interface ShouldCheckSessionInput {
-    pathname: string;
-    hasSupabaseCookie: boolean;
+  pathname: string;
+  hasSupabaseCookie: boolean;
 }
 
 /**
@@ -15,9 +15,12 @@ export interface ShouldCheckSessionInput {
  * ever refreshed the session, so a customer's cookie could go stale while
  * browsing `/account` or `/wishlist`.
  */
-export function shouldCheckSession({ pathname, hasSupabaseCookie }: ShouldCheckSessionInput): boolean {
-    if (pathname.startsWith('/admin')) {
-        return true;
-    }
-    return hasSupabaseCookie;
+export function shouldCheckSession({
+  pathname,
+  hasSupabaseCookie,
+}: ShouldCheckSessionInput): boolean {
+  if (pathname.startsWith('/admin')) {
+    return true;
+  }
+  return hasSupabaseCookie;
 }

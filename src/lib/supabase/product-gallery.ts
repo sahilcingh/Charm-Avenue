@@ -1,6 +1,6 @@
 export interface GalleryImage {
-    url: string;
-    alt: string;
+  url: string;
+  alt: string;
 }
 
 /**
@@ -10,9 +10,9 @@ export interface GalleryImage {
  * purely supplementary, ordered by sort_order.
  */
 export function resolveGalleryImages(
-    mainImage: GalleryImage,
-    additionalImages: { url: string; alt: string; sort_order: number }[]
+  mainImage: GalleryImage,
+  additionalImages: { url: string; alt: string; sort_order: number }[]
 ): GalleryImage[] {
-    const sorted = [...additionalImages].sort((a, b) => a.sort_order - b.sort_order);
-    return [mainImage, ...sorted.map((img) => ({ url: img.url, alt: img.alt || mainImage.alt }))];
+  const sorted = [...additionalImages].sort((a, b) => a.sort_order - b.sort_order);
+  return [mainImage, ...sorted.map((img) => ({ url: img.url, alt: img.alt || mainImage.alt }))];
 }

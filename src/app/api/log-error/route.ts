@@ -8,11 +8,11 @@ import { NextRequest, NextResponse } from 'next/server';
  * the log line, not a second error on top of the one being reported.
  */
 export async function POST(request: NextRequest) {
-    try {
-        const body = await request.json();
-        console.error('[client error report]', JSON.stringify(body));
-    } catch {
-        console.error('[client error report] received a malformed report body');
-    }
-    return NextResponse.json({ ok: true });
+  try {
+    const body = await request.json();
+    console.error('[client error report]', JSON.stringify(body));
+  } catch {
+    console.error('[client error report] received a malformed report body');
+  }
+  return NextResponse.json({ ok: true });
 }

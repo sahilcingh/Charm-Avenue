@@ -80,11 +80,12 @@ earlier ones:
 4. `admin-audit-log-migration.sql` — `admin_audit_log` (who did what, when).
 5. `profile-contact-fields-migration.sql` — adds `phone`/`address` to
    `profiles`, for checkout pre-fill.
-6. `orders-migration.sql` — `orders` + `order_items` (checkout requires login;
-   every order belongs to a signed-in customer).
-7. `orders-require-login-migration.sql` — only needed if you ran the original
-   version of `orders-migration.sql` before it required a non-null `user_id`;
-   tightens an existing table to match. Skip this on a fresh project.
+6. `orders-migration.sql` — `orders` + `order_items` (guest-friendly; no
+   login required to place an enquiry — see `orders-guest-enquiry-migration.sql`
+   below, which is the current, final state of this table's constraints).
+7. `orders-require-login-migration.sql` — a historical, now-superseded
+   tightening (checkout briefly required login). Skip this on a fresh
+   project; superseded by `orders-guest-enquiry-migration.sql`.
 8. `orders-admin-dashboard-migration.sql` — only needed if you ran
    `orders-migration.sql` before it added the `updated_at` trigger; keeps
    order rows current when an admin changes status from `/admin/orders`.
@@ -122,12 +123,18 @@ earlier ones:
     discount rule across 2+ independently-sold products, not a bundle
     product) and `discount_total` on `orders` so admins can see how much of
     an order's total came from a combo discount.
+18. `orders-guest-enquiry-migration.sql` — drops the `orders`/`order_items`
+    NOT NULL constraints that required login and a delivery-details form
+    (`user_id`, `guest_name`, `guest_phone`, `guest_address` are now all
+    nullable), and updates the insert policies to allow guest enquiries.
+    Reflects the current checkout flow: cart → WhatsApp directly, no form,
+    no login, no online payment — everything after the WhatsApp message is
+    negotiated in the chat itself.
 
-Also see `.env.example` for every environment variable the app reads,
-including which ones are required vs. which gate an optional feature
-(`SUPABASE_SERVICE_ROLE_KEY`, needed only for the Cashfree payment webhook)
-vs. which are inactive placeholders until a future integration is turned on
-(`CASHFREE_*`).
+Also see `.env.example` for every environment variable the app reads.
+`SUPABASE_SERVICE_ROLE_KEY` is needed for the guest order-confirmation page
+(`/order/[id]`) to look up any order — including a guest's — by its own
+unguessable id, bypassing RLS (there is no session to satisfy it with).
 
 ## 📱 Deployment
 

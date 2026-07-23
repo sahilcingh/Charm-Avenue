@@ -1,7 +1,7 @@
 export interface AdminAccessInput {
-    pathname: string;
-    isLoggedIn: boolean;
-    isAdmin: boolean;
+  pathname: string;
+  isLoggedIn: boolean;
+  isAdmin: boolean;
 }
 
 export type AdminAccessDecision = { action: 'next' } | { action: 'redirect'; redirectTo: string };
@@ -19,15 +19,19 @@ export type AdminAccessDecision = { action: 'next' } | { action: 'redirect'; red
  * admin route — that's the gap that opened up once customers could sign up
  * too, since the old check only asked "is anyone logged in".
  */
-export function decideAdminAccess({ pathname, isLoggedIn, isAdmin }: AdminAccessInput): AdminAccessDecision {
-    if (!pathname.startsWith('/admin')) {
-        return { action: 'next' };
-    }
-    if (!isLoggedIn) {
-        return { action: 'redirect', redirectTo: `/login?next=${encodeURIComponent(pathname)}` };
-    }
-    if (!isAdmin) {
-        return { action: 'redirect', redirectTo: '/' };
-    }
+export function decideAdminAccess({
+  pathname,
+  isLoggedIn,
+  isAdmin,
+}: AdminAccessInput): AdminAccessDecision {
+  if (!pathname.startsWith('/admin')) {
     return { action: 'next' };
+  }
+  if (!isLoggedIn) {
+    return { action: 'redirect', redirectTo: `/login?next=${encodeURIComponent(pathname)}` };
+  }
+  if (!isAdmin) {
+    return { action: 'redirect', redirectTo: '/' };
+  }
+  return { action: 'next' };
 }

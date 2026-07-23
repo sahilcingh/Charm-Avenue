@@ -6,123 +6,140 @@ import Image from 'next/image';
 // On-brand soft pink shimmer shown behind every image while it loads,
 // since remote images need a manually-supplied blur placeholder.
 const SHIMMER_SVG =
-    "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'>" +
-    "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
-    "<stop stop-color='#FBF1EF' offset='0%'/><stop stop-color='#F6D3D6' offset='50%'/>" +
-    "<stop stop-color='#FBF1EF' offset='100%'/></linearGradient></defs>" +
-    "<rect width='64' height='64' fill='url(#g)'/></svg>";
+  "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'>" +
+  "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
+  "<stop stop-color='#FBF1EF' offset='0%'/><stop stop-color='#F6D3D6' offset='50%'/>" +
+  "<stop stop-color='#FBF1EF' offset='100%'/></linearGradient></defs>" +
+  "<rect width='64' height='64' fill='url(#g)'/></svg>";
 const SHIMMER_BLUR_DATA_URL = `data:image/svg+xml,${encodeURIComponent(SHIMMER_SVG)}`;
 
 interface AppImageProps {
-    src: string;
-    alt: string;
-    width?: number;
-    height?: number;
-    className?: string;
-    priority?: boolean;
-    quality?: number;
-    placeholder?: 'blur' | 'empty';
-    blurDataURL?: string;
-    fill?: boolean;
-    sizes?: string;
-    onClick?: () => void;
-    fallbackSrc?: string;
-    loading?: 'lazy' | 'eager';
-    unoptimized?: boolean;
-    [key: string]: any;
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  className?: string;
+  priority?: boolean;
+  quality?: number;
+  placeholder?: 'blur' | 'empty';
+  blurDataURL?: string;
+  fill?: boolean;
+  sizes?: string;
+  onClick?: () => void;
+  fallbackSrc?: string;
+  loading?: 'lazy' | 'eager';
+  unoptimized?: boolean;
+  [key: string]: unknown;
 }
 
 const AppImage = memo(function AppImage({
-    src,
-    alt,
-    width,
-    height,
-    className = '',
-    priority = false,
-    quality = 85,
-    placeholder = 'blur',
-    blurDataURL = SHIMMER_BLUR_DATA_URL,
-    fill = false,
-    sizes,
-    onClick,
-    fallbackSrc = '/assets/images/no_image.png',
-    loading = 'lazy',
-    unoptimized = false,
-    ...props
+  src,
+  alt,
+  width,
+  height,
+  className = '',
+  priority = false,
+  quality = 85,
+  placeholder = 'blur',
+  blurDataURL = SHIMMER_BLUR_DATA_URL,
+  fill = false,
+  sizes,
+  onClick,
+  fallbackSrc = '/assets/images/no_image.png',
+  loading = 'lazy',
+  unoptimized = false,
+  ...props
 }: AppImageProps) {
-    const [imageSrc, setImageSrc] = useState(src);
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasError, setHasError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(src);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
-    const handleError = useCallback(() => {
-        if (!hasError && imageSrc !== fallbackSrc) {
-            setImageSrc(fallbackSrc);
-            setHasError(true);
-        }
-        setIsLoading(false);
-    }, [hasError, imageSrc, fallbackSrc]);
+  const handleError = useCallback(() => {
+    if (!hasError && imageSrc !== fallbackSrc) {
+      setImageSrc(fallbackSrc);
+      setHasError(true);
+    }
+    setIsLoading(false);
+  }, [hasError, imageSrc, fallbackSrc]);
 
-    const handleLoad = useCallback(() => {
-        setIsLoading(false);
-        setHasError(false);
-    }, []);
+  const handleLoad = useCallback(() => {
+    setIsLoading(false);
+    setHasError(false);
+  }, []);
 
-    const imageClassName = useMemo(() => {
-        const classes = [className];
-        if (isLoading) classes.push('bg-[#FBF1EF]');
-        if (onClick) classes.push('cursor-pointer hover:opacity-90 transition-opacity duration-200');
-        return classes.filter(Boolean).join(' ');
-    }, [className, isLoading, onClick]);
+  const imageClassName = useMemo(() => {
+    const classes = [className];
+    if (isLoading) classes.push('bg-[#FBF1EF]');
+    if (onClick) classes.push('cursor-pointer hover:opacity-90 transition-opacity duration-200');
+    return classes.filter(Boolean).join(' ');
+  }, [className, isLoading, onClick]);
 
-    const imageProps = useMemo(() => {
-        const baseProps: any = {
-            src: imageSrc,
-            alt,
-            className: imageClassName,
-            quality,
-            placeholder,
-            unoptimized,
-            onError: handleError,
-            onLoad: handleLoad,
-            onClick,
-        };
+  const imageProps = useMemo(() => {
+    type ImageComponentProps = React.ComponentProps<typeof Image>;
+    const baseProps: Omit<Partial<ImageComponentProps>, 'src' | 'alt'> &
+      Pick<ImageComponentProps, 'src' | 'alt'> = {
+      src: imageSrc,
+      alt,
+      className: imageClassName,
+      quality,
+      placeholder,
+      unoptimized,
+      onError: handleError,
+      onLoad: handleLoad,
+      onClick,
+    };
 
-        if (priority) {
-            baseProps.priority = true;
-        } else {
-            baseProps.loading = loading;
-        }
-
-        if (blurDataURL && placeholder === 'blur') {
-            baseProps.blurDataURL = blurDataURL;
-        }
-
-        return baseProps;
-    }, [imageSrc, alt, imageClassName, quality, placeholder, blurDataURL, unoptimized, priority, loading, handleError, handleLoad, onClick]);
-
-    if (fill) {
-        return (
-            <div className="relative" style={{ width: '100%', height: '100%' }}>
-                <Image
-                    {...imageProps}
-                    fill
-                    sizes={sizes || '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'}
-                    style={{ objectFit: 'cover' }}
-                    {...props}
-                />
-            </div>
-        );
+    if (priority) {
+      baseProps.priority = true;
+    } else {
+      baseProps.loading = loading;
     }
 
+    if (blurDataURL && placeholder === 'blur') {
+      baseProps.blurDataURL = blurDataURL;
+    }
+
+    return baseProps;
+  }, [
+    imageSrc,
+    alt,
+    imageClassName,
+    quality,
+    placeholder,
+    blurDataURL,
+    unoptimized,
+    priority,
+    loading,
+    handleError,
+    handleLoad,
+    onClick,
+  ]);
+
+  if (fill) {
     return (
+      <div className="relative" style={{ width: '100%', height: '100%' }}>
         <Image
-            {...imageProps}
-            width={width || 400}
-            height={height || 300}
-            sizes={sizes}
-            {...props}
+          {...imageProps}
+          alt={alt}
+          fill
+          sizes={sizes || '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'}
+          style={{ objectFit: 'cover' }}
+          {...props}
         />
+      </div>
     );
+  }
+
+  return (
+    <Image
+      {...imageProps}
+      alt={alt}
+      width={width || 400}
+      height={height || 300}
+      sizes={sizes}
+      {...props}
+    />
+  );
 });
 
 AppImage.displayName = 'AppImage';

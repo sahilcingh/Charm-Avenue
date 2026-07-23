@@ -1,13 +1,13 @@
 export interface ComboDefinition {
-    id: string;
-    name: string;
-    discountPercent: number;
-    productIds: string[];
+  id: string;
+  name: string;
+  discountPercent: number;
+  productIds: string[];
 }
 
 export interface ComboDiscountMatch {
-    combo: ComboDefinition;
-    amount: number;
+  combo: ComboDefinition;
+  amount: number;
 }
 
 /**
@@ -21,18 +21,21 @@ export interface ComboDiscountMatch {
  * that product wins.
  */
 export function resolveComboDiscounts(
-    cartLines: { productId: string; unitPrice: number }[],
-    combos: ComboDefinition[]
+  cartLines: { productId: string; unitPrice: number }[],
+  combos: ComboDefinition[]
 ): ComboDiscountMatch[] {
-    const priceByProduct = new Map<string, number>();
-    for (const line of cartLines) {
-        if (!priceByProduct.has(line.productId)) priceByProduct.set(line.productId, line.unitPrice);
-    }
+  const priceByProduct = new Map<string, number>();
+  for (const line of cartLines) {
+    if (!priceByProduct.has(line.productId)) priceByProduct.set(line.productId, line.unitPrice);
+  }
 
-    return combos
-        .filter((combo) => combo.productIds.every((id) => priceByProduct.has(id)))
-        .map((combo) => {
-            const combinedPrice = combo.productIds.reduce((sum, id) => sum + (priceByProduct.get(id) ?? 0), 0);
-            return { combo, amount: Math.round(combinedPrice * (combo.discountPercent / 100)) };
-        });
+  return combos
+    .filter((combo) => combo.productIds.every((id) => priceByProduct.has(id)))
+    .map((combo) => {
+      const combinedPrice = combo.productIds.reduce(
+        (sum, id) => sum + (priceByProduct.get(id) ?? 0),
+        0
+      );
+      return { combo, amount: Math.round(combinedPrice * (combo.discountPercent / 100)) };
+    });
 }

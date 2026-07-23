@@ -8,324 +8,351 @@ const STORAGE_KEY = 'charm-avenue-cart';
 // By default every queried product id is treated as valid/active, so existing
 // tests that don't care about pruning behave exactly as before. Tests that DO
 // care override this with mockValidIds().
-const inMock = vi.fn((_col: string, ids: string[]) => Promise.resolve({ data: ids.map((id) => ({ id })) }));
+const inMock = vi.fn((_col: string, ids: string[]) =>
+  Promise.resolve({ data: ids.map((id) => ({ id })) })
+);
 
 vi.mock('@/lib/supabase/client', () => ({
-    createClient: () => ({
-        from: () => ({
-            select: () => ({
-                eq: () => ({ in: inMock }),
-            }),
-        }),
+  createClient: () => ({
+    from: () => ({
+      select: () => ({
+        eq: () => ({ in: inMock }),
+      }),
     }),
+  }),
 }));
 
 function mockValidIds(ids: string[]) {
-    inMock.mockImplementation(() => Promise.resolve({ data: ids.map((id) => ({ id })) }));
+  inMock.mockImplementation(() => Promise.resolve({ data: ids.map((id) => ({ id })) }));
 }
 
 function wrapper({ children }: { children: React.ReactNode }) {
-    return <CartProvider>{children}</CartProvider>;
+  return <CartProvider>{children}</CartProvider>;
 }
 
 beforeEach(() => {
-    window.localStorage.clear();
-    inMock.mockReset();
-    inMock.mockImplementation((_col: string, ids: string[]) => Promise.resolve({ data: ids.map((id) => ({ id })) }));
+  window.localStorage.clear();
+  inMock.mockReset();
+  inMock.mockImplementation((_col: string, ids: string[]) =>
+    Promise.resolve({ data: ids.map((id) => ({ id })) })
+  );
 });
 
 afterEach(() => {
-    // Restores any Storage.prototype spies even if a test throws before its own cleanup runs.
-    vi.restoreAllMocks();
+  // Restores any Storage.prototype spies even if a test throws before its own cleanup runs.
+  vi.restoreAllMocks();
 });
 
 describe('CartProvider / useCart', () => {
-    it('starts empty', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-        expect(result.current.itemCount).toBe(0);
+  it('starts empty', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+    expect(result.current.itemCount).toBe(0);
+  });
+
+  it('throws when used outside a CartProvider (failure case)', () => {
+    expect(() => renderHook(() => useCart())).toThrow('useCart must be used within a CartProvider');
+  });
+
+  it('adds a new product with quantity 1 by default', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1'));
+
+    expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 1 }]);
+    expect(result.current.itemCount).toBe(1);
+  });
+
+  it('adds a product with an explicit quantity', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 3));
+
+    expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 3 }]);
+  });
+
+  it('increments quantity instead of duplicating the line when adding an existing product', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 2));
+    act(() => result.current.addToCart('p1', 3));
+
+    expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 5 }]);
+  });
+
+  it('sums quantities across multiple distinct lines for itemCount', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 2));
+    act(() => result.current.addToCart('p2', 5));
+
+    expect(result.current.itemCount).toBe(7);
+  });
+
+  it('removes a line entirely via removeFromCart', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1'));
+    act(() => result.current.addToCart('p2'));
+    act(() => result.current.removeFromCart('p1'));
+
+    expect(result.current.lines).toEqual([{ productId: 'p2', quantity: 1 }]);
+  });
+
+  it('removeFromCart on a product not in the cart is a harmless no-op (edge case)', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1'));
+    act(() => result.current.removeFromCart('does-not-exist'));
+
+    expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 1 }]);
+  });
+
+  it('setQuantity sets an absolute quantity for an existing line', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1'));
+    act(() => result.current.setQuantity('p1', 9));
+
+    expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 9 }]);
+  });
+
+  it('setQuantity to zero removes the line', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 3));
+    act(() => result.current.setQuantity('p1', 0));
+
+    expect(result.current.lines).toEqual([]);
+  });
+
+  it('setQuantity to a negative number also removes the line (failure/edge case)', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 3));
+    act(() => result.current.setQuantity('p1', -5));
+
+    expect(result.current.lines).toEqual([]);
+  });
+
+  it('adjustQuantity increments/decrements relative to the CURRENT state, even when called twice before a re-render (concurrency case)', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 5));
+
+    // Two rapid decrements batched into a single act() — simulates two clicks
+    // firing before React has re-rendered between them. A naive
+    // `setQuantity(id, line.quantity - 1)` caller would compute the same
+    // stale target twice and lose one decrement; adjustQuantity must not.
+    act(() => {
+      result.current.adjustQuantity('p1', -1);
+      result.current.adjustQuantity('p1', -1);
     });
 
-    it('throws when used outside a CartProvider (failure case)', () => {
-        expect(() => renderHook(() => useCart())).toThrow('useCart must be used within a CartProvider');
+    expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 3 }]);
+  });
+
+  it('adjustQuantity down to zero removes the line', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 1));
+    act(() => result.current.adjustQuantity('p1', -1));
+
+    expect(result.current.lines).toEqual([]);
+  });
+
+  it('adjustQuantity on a product not in the cart is a no-op (edge case)', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.adjustQuantity('does-not-exist', 1));
+
+    expect(result.current.lines).toEqual([]);
+  });
+
+  it('clearCart empties every line at once', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 2));
+    act(() => result.current.addToCart('p2', 1, { variantId: 'red' }));
+    act(() => result.current.clearCart());
+
+    expect(result.current.lines).toEqual([]);
+    expect(result.current.itemCount).toBe(0);
+  });
+
+  it('clearCart persists the empty cart to localStorage too', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 2));
+    await waitFor(() => expect(window.localStorage.getItem(STORAGE_KEY)).not.toBe('[]'));
+
+    act(() => result.current.clearCart());
+    await waitFor(() => expect(window.localStorage.getItem(STORAGE_KEY)).toBe('[]'));
+  });
+
+  it('persists cart contents to localStorage', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+
+    act(() => result.current.addToCart('p1', 2));
+
+    await waitFor(() => {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      expect(raw).toBe(JSON.stringify([{ productId: 'p1', quantity: 2 }]));
+    });
+  });
+
+  it('hydrates cart contents from localStorage on mount', async () => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([{ productId: 'p9', quantity: 4 }]));
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+
+    await waitFor(() => expect(result.current.lines).toEqual([{ productId: 'p9', quantity: 4 }]));
+    expect(result.current.itemCount).toBe(4);
+  });
+
+  it('starts empty instead of crashing when localStorage holds malformed JSON (failure case)', async () => {
+    window.localStorage.setItem(STORAGE_KEY, '{not valid json');
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+
+    await waitFor(() => expect(result.current.lines).toEqual([]));
+  });
+
+  it('does not crash when adding to cart while localStorage.setItem throws (Safari private browsing / storage-blocked mobile browsers — failure case)', async () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError');
     });
 
-    it('adds a new product with quantity 1 by default', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.lines).toEqual([]));
 
-        act(() => result.current.addToCart('p1'));
+    act(() => result.current.addToCart('p1', 2));
 
-        expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 1 }]);
-        expect(result.current.itemCount).toBe(1);
+    await waitFor(() => expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 2 }]));
+    expect(result.current.itemCount).toBe(2);
+  });
+
+  it('prunes lines for products that no longer exist/are inactive, so itemCount stays honest (regression case: header badge vs. cart page mismatch)', async () => {
+    mockValidIds(['p1']); // p2 is stale — deleted/deactivated since it was added to this cart
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([
+        { productId: 'p1', quantity: 2 },
+        { productId: 'p2', quantity: 3 },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+
+    await waitFor(() => expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 2 }]));
+    expect(result.current.itemCount).toBe(2);
+  });
+
+  it('keeps all lines when every product is still valid (no unnecessary state churn)', async () => {
+    mockValidIds(['p1', 'p2']);
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([
+        { productId: 'p1', quantity: 2 },
+        { productId: 'p2', quantity: 1 },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+
+    await waitFor(() => expect(inMock).toHaveBeenCalled());
+    expect(result.current.lines).toEqual([
+      { productId: 'p1', quantity: 2 },
+      { productId: 'p2', quantity: 1 },
+    ]);
+    expect(result.current.itemCount).toBe(3);
+  });
+
+  describe('variant + personalization aware lines (Phase 5)', () => {
+    it('keeps a variant-less add exactly as before (backward compatible)', async () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      await waitFor(() => expect(result.current.lines).toEqual([]));
+
+      act(() => result.current.addToCart('p1', 2));
+
+      expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 2 }]);
     });
 
-    it('adds a product with an explicit quantity', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
+    it('treats two different variants of the same product as separate lines, not merged', async () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      await waitFor(() => expect(result.current.lines).toEqual([]));
 
-        act(() => result.current.addToCart('p1', 3));
+      act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
+      act(() => result.current.addToCart('p1', 1, { variantId: 'blue' }));
 
-        expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 3 }]);
+      expect(result.current.lines).toEqual([
+        { productId: 'p1', variantId: 'red', quantity: 1 },
+        { productId: 'p1', variantId: 'blue', quantity: 1 },
+      ]);
+      expect(result.current.itemCount).toBe(2);
     });
 
-    it('increments quantity instead of duplicating the line when adding an existing product', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
+    it('merges quantity when the same product + variant is added again', async () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      await waitFor(() => expect(result.current.lines).toEqual([]));
 
-        act(() => result.current.addToCart('p1', 2));
-        act(() => result.current.addToCart('p1', 3));
+      act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
+      act(() => result.current.addToCart('p1', 2, { variantId: 'red' }));
 
-        expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 5 }]);
+      expect(result.current.lines).toEqual([{ productId: 'p1', variantId: 'red', quantity: 3 }]);
     });
 
-    it('sums quantities across multiple distinct lines for itemCount', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
+    it('treats two different personalization texts on the same product as separate lines, not merged (e.g. two different engravings)', async () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      await waitFor(() => expect(result.current.lines).toEqual([]));
 
-        act(() => result.current.addToCart('p1', 2));
-        act(() => result.current.addToCart('p2', 5));
+      act(() => result.current.addToCart('p1', 1, { personalizationText: 'For Priya' }));
+      act(() => result.current.addToCart('p1', 1, { personalizationText: 'For Ananya' }));
 
-        expect(result.current.itemCount).toBe(7);
+      expect(result.current.lines).toEqual([
+        { productId: 'p1', personalizationText: 'For Priya', quantity: 1 },
+        { productId: 'p1', personalizationText: 'For Ananya', quantity: 1 },
+      ]);
     });
 
-    it('removes a line entirely via removeFromCart', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
+    it('removeFromCart only removes the matching variant, leaving other variants of the same product alone', async () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      await waitFor(() => expect(result.current.lines).toEqual([]));
 
-        act(() => result.current.addToCart('p1'));
-        act(() => result.current.addToCart('p2'));
-        act(() => result.current.removeFromCart('p1'));
+      act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
+      act(() => result.current.addToCart('p1', 1, { variantId: 'blue' }));
+      act(() => result.current.removeFromCart('p1', { variantId: 'red' }));
 
-        expect(result.current.lines).toEqual([{ productId: 'p2', quantity: 1 }]);
+      expect(result.current.lines).toEqual([{ productId: 'p1', variantId: 'blue', quantity: 1 }]);
     });
 
-    it('removeFromCart on a product not in the cart is a harmless no-op (edge case)', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
+    it('adjustQuantity only adjusts the matching variant', async () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      await waitFor(() => expect(result.current.lines).toEqual([]));
 
-        act(() => result.current.addToCart('p1'));
-        act(() => result.current.removeFromCart('does-not-exist'));
+      act(() => result.current.addToCart('p1', 5, { variantId: 'red' }));
+      act(() => result.current.addToCart('p1', 5, { variantId: 'blue' }));
+      act(() => result.current.adjustQuantity('p1', -2, { variantId: 'red' }));
 
-        expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 1 }]);
+      expect(result.current.lines).toEqual([
+        { productId: 'p1', variantId: 'red', quantity: 3 },
+        { productId: 'p1', variantId: 'blue', quantity: 5 },
+      ]);
     });
-
-    it('setQuantity sets an absolute quantity for an existing line', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-
-        act(() => result.current.addToCart('p1'));
-        act(() => result.current.setQuantity('p1', 9));
-
-        expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 9 }]);
-    });
-
-    it('setQuantity to zero removes the line', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-
-        act(() => result.current.addToCart('p1', 3));
-        act(() => result.current.setQuantity('p1', 0));
-
-        expect(result.current.lines).toEqual([]);
-    });
-
-    it('setQuantity to a negative number also removes the line (failure/edge case)', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-
-        act(() => result.current.addToCart('p1', 3));
-        act(() => result.current.setQuantity('p1', -5));
-
-        expect(result.current.lines).toEqual([]);
-    });
-
-    it('adjustQuantity increments/decrements relative to the CURRENT state, even when called twice before a re-render (concurrency case)', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-
-        act(() => result.current.addToCart('p1', 5));
-
-        // Two rapid decrements batched into a single act() — simulates two clicks
-        // firing before React has re-rendered between them. A naive
-        // `setQuantity(id, line.quantity - 1)` caller would compute the same
-        // stale target twice and lose one decrement; adjustQuantity must not.
-        act(() => {
-            result.current.adjustQuantity('p1', -1);
-            result.current.adjustQuantity('p1', -1);
-        });
-
-        expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 3 }]);
-    });
-
-    it('adjustQuantity down to zero removes the line', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-
-        act(() => result.current.addToCart('p1', 1));
-        act(() => result.current.adjustQuantity('p1', -1));
-
-        expect(result.current.lines).toEqual([]);
-    });
-
-    it('adjustQuantity on a product not in the cart is a no-op (edge case)', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-
-        act(() => result.current.adjustQuantity('does-not-exist', 1));
-
-        expect(result.current.lines).toEqual([]);
-    });
-
-    it('persists cart contents to localStorage', async () => {
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-
-        act(() => result.current.addToCart('p1', 2));
-
-        await waitFor(() => {
-            const raw = window.localStorage.getItem(STORAGE_KEY);
-            expect(raw).toBe(JSON.stringify([{ productId: 'p1', quantity: 2 }]));
-        });
-    });
-
-    it('hydrates cart contents from localStorage on mount', async () => {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify([{ productId: 'p9', quantity: 4 }]));
-
-        const { result } = renderHook(() => useCart(), { wrapper });
-
-        await waitFor(() => expect(result.current.lines).toEqual([{ productId: 'p9', quantity: 4 }]));
-        expect(result.current.itemCount).toBe(4);
-    });
-
-    it('starts empty instead of crashing when localStorage holds malformed JSON (failure case)', async () => {
-        window.localStorage.setItem(STORAGE_KEY, '{not valid json');
-
-        const { result } = renderHook(() => useCart(), { wrapper });
-
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-    });
-
-    it('does not crash when adding to cart while localStorage.setItem throws (Safari private browsing / storage-blocked mobile browsers — failure case)', async () => {
-        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-            throw new DOMException('The operation is insecure.', 'SecurityError');
-        });
-
-        const { result } = renderHook(() => useCart(), { wrapper });
-        await waitFor(() => expect(result.current.lines).toEqual([]));
-
-        act(() => result.current.addToCart('p1', 2));
-
-        await waitFor(() => expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 2 }]));
-        expect(result.current.itemCount).toBe(2);
-    });
-
-    it('prunes lines for products that no longer exist/are inactive, so itemCount stays honest (regression case: header badge vs. cart page mismatch)', async () => {
-        mockValidIds(['p1']); // p2 is stale — deleted/deactivated since it was added to this cart
-        window.localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify([
-                { productId: 'p1', quantity: 2 },
-                { productId: 'p2', quantity: 3 },
-            ])
-        );
-
-        const { result } = renderHook(() => useCart(), { wrapper });
-
-        await waitFor(() => expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 2 }]));
-        expect(result.current.itemCount).toBe(2);
-    });
-
-    it('keeps all lines when every product is still valid (no unnecessary state churn)', async () => {
-        mockValidIds(['p1', 'p2']);
-        window.localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify([
-                { productId: 'p1', quantity: 2 },
-                { productId: 'p2', quantity: 1 },
-            ])
-        );
-
-        const { result } = renderHook(() => useCart(), { wrapper });
-
-        await waitFor(() => expect(inMock).toHaveBeenCalled());
-        expect(result.current.lines).toEqual([
-            { productId: 'p1', quantity: 2 },
-            { productId: 'p2', quantity: 1 },
-        ]);
-        expect(result.current.itemCount).toBe(3);
-    });
-
-    describe('variant + personalization aware lines (Phase 5)', () => {
-        it('keeps a variant-less add exactly as before (backward compatible)', async () => {
-            const { result } = renderHook(() => useCart(), { wrapper });
-            await waitFor(() => expect(result.current.lines).toEqual([]));
-
-            act(() => result.current.addToCart('p1', 2));
-
-            expect(result.current.lines).toEqual([{ productId: 'p1', quantity: 2 }]);
-        });
-
-        it('treats two different variants of the same product as separate lines, not merged', async () => {
-            const { result } = renderHook(() => useCart(), { wrapper });
-            await waitFor(() => expect(result.current.lines).toEqual([]));
-
-            act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
-            act(() => result.current.addToCart('p1', 1, { variantId: 'blue' }));
-
-            expect(result.current.lines).toEqual([
-                { productId: 'p1', variantId: 'red', quantity: 1 },
-                { productId: 'p1', variantId: 'blue', quantity: 1 },
-            ]);
-            expect(result.current.itemCount).toBe(2);
-        });
-
-        it('merges quantity when the same product + variant is added again', async () => {
-            const { result } = renderHook(() => useCart(), { wrapper });
-            await waitFor(() => expect(result.current.lines).toEqual([]));
-
-            act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
-            act(() => result.current.addToCart('p1', 2, { variantId: 'red' }));
-
-            expect(result.current.lines).toEqual([{ productId: 'p1', variantId: 'red', quantity: 3 }]);
-        });
-
-        it('treats two different personalization texts on the same product as separate lines, not merged (e.g. two different engravings)', async () => {
-            const { result } = renderHook(() => useCart(), { wrapper });
-            await waitFor(() => expect(result.current.lines).toEqual([]));
-
-            act(() => result.current.addToCart('p1', 1, { personalizationText: 'For Priya' }));
-            act(() => result.current.addToCart('p1', 1, { personalizationText: 'For Ananya' }));
-
-            expect(result.current.lines).toEqual([
-                { productId: 'p1', personalizationText: 'For Priya', quantity: 1 },
-                { productId: 'p1', personalizationText: 'For Ananya', quantity: 1 },
-            ]);
-        });
-
-        it('removeFromCart only removes the matching variant, leaving other variants of the same product alone', async () => {
-            const { result } = renderHook(() => useCart(), { wrapper });
-            await waitFor(() => expect(result.current.lines).toEqual([]));
-
-            act(() => result.current.addToCart('p1', 1, { variantId: 'red' }));
-            act(() => result.current.addToCart('p1', 1, { variantId: 'blue' }));
-            act(() => result.current.removeFromCart('p1', { variantId: 'red' }));
-
-            expect(result.current.lines).toEqual([{ productId: 'p1', variantId: 'blue', quantity: 1 }]);
-        });
-
-        it('adjustQuantity only adjusts the matching variant', async () => {
-            const { result } = renderHook(() => useCart(), { wrapper });
-            await waitFor(() => expect(result.current.lines).toEqual([]));
-
-            act(() => result.current.addToCart('p1', 5, { variantId: 'red' }));
-            act(() => result.current.addToCart('p1', 5, { variantId: 'blue' }));
-            act(() => result.current.adjustQuantity('p1', -2, { variantId: 'red' }));
-
-            expect(result.current.lines).toEqual([
-                { productId: 'p1', variantId: 'red', quantity: 3 },
-                { productId: 'p1', variantId: 'blue', quantity: 5 },
-            ]);
-        });
-    });
+  });
 });

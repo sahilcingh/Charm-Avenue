@@ -5,8 +5,12 @@
  * with neither bound set has no window at all, so the discount always shows,
  * matching the pre-Phase-1 behavior every existing product still relies on.
  */
-export function isSaleWindowActive(saleStartsAt: string | null, saleEndsAt: string | null, now: Date): boolean {
-    if (saleStartsAt && now < new Date(saleStartsAt)) return false;
-    if (saleEndsAt && now > new Date(saleEndsAt)) return false;
-    return true;
+export function isSaleWindowActive(
+  saleStartsAt: string | null,
+  saleEndsAt: string | null,
+  now: Date
+): boolean {
+  if (saleStartsAt && now < new Date(saleStartsAt)) return false;
+  if (saleEndsAt && now > new Date(saleEndsAt)) return false;
+  return true;
 }
