@@ -34,6 +34,10 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
 
   const handleSave = () => {
     setError(null);
+    if (color.trim() && !preview) {
+      setError("Please add a photo for this color — it's shown when shoppers select it.");
+      return;
+    }
     const fd = new FormData();
     fd.set('color', color);
     fd.set('size', size);
@@ -66,22 +70,37 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
       className="flex flex-wrap items-end gap-3 p-3 rounded-2xl border"
       style={{ borderColor: 'var(--blush-border)' }}
     >
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        aria-label="Change variant photo"
-        className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border"
-        style={{ borderColor: 'var(--blush-border)', background: 'var(--blush-bg)' }}
-      >
-        {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Icon name="PhotoIcon" size={16} style={{ color: 'var(--blush-border)' }} />
-          </div>
+      <div className="flex flex-col items-center gap-1">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          aria-label="Change variant photo"
+          className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2"
+          style={{
+            borderColor: color.trim() && !preview ? '#A6740A' : 'var(--blush-border)',
+            background: 'var(--blush-bg)',
+          }}
+        >
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={preview} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Icon name="PhotoIcon" size={16} style={{ color: 'var(--blush-border)' }} />
+            </div>
+          )}
+        </button>
+        {color.trim() && !preview && (
+          <span
+            className="text-[9px] font-bold text-center leading-tight"
+            style={{ color: '#A6740A' }}
+          >
+            Photo
+            <br />
+            needed
+          </span>
         )}
-      </button>
+      </div>
       <input
         ref={fileInputRef}
         type="file"

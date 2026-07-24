@@ -7,6 +7,8 @@ import { useCart } from '@/lib/cart-context';
 import { useAdminMode } from '@/lib/admin-mode-context';
 import { createClient } from '@/lib/supabase/client';
 import { getInitial } from '@/lib/auth-validation';
+import { useLiveProductSearch } from '@/lib/use-live-product-search';
+import SearchResultsDropdown from '@/components/SearchResultsDropdown';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const navLinks = [
@@ -56,15 +58,21 @@ function HeaderContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileSearchQuery, setMobileSearchQuery] = useState('');
   const { itemCount } = useCart();
-  const { isAdmin, adminModeOn, toggleAdminMode } = useAdminMode();
+  const { isAdmin } = useAdminMode();
   const pathname = usePathname();
   const router = useRouter();
+  const desktopSearch = useLiveProductSearch(searchQuery);
+  const mobileSearch = useLiveProductSearch(mobileSearchQuery);
 
   function submitSearch(e: React.FormEvent, query: string) {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
     router.push(`/search?q=${encodeURIComponent(q)}`);
+    closeSearch();
+  }
+
+  function closeSearch() {
     setSearchOpen(false);
     setSearchQuery('');
     setMobileSearchQuery('');
@@ -165,31 +173,43 @@ function HeaderContent() {
           {/* Right: icons */}
           <div className="flex items-center gap-3 sm:gap-4 xl:mr-16 2xl:mr-24">
             {searchOpen ? (
-              <form
-                onSubmit={(e) => submitSearch(e, searchQuery)}
-                className="hidden sm:flex items-center gap-1.5"
-              >
-                <input
-                  type="text"
-                  autoFocus
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onBlur={() => {
-                    if (!searchQuery.trim()) setSearchOpen(false);
-                  }}
-                  placeholder="Search products…"
-                  className="w-40 lg:w-56 rounded-full px-4 py-1.5 text-sm border focus:outline-none"
-                  style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
-                />
-                <button
-                  type="submit"
-                  aria-label="Search"
-                  className="w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-70"
-                  style={{ color: 'var(--blush-text)' }}
+              <div className="hidden sm:block relative">
+                <form
+                  onSubmit={(e) => submitSearch(e, searchQuery)}
+                  className="flex items-center gap-1.5"
                 >
-                  <Icon name="MagnifyingGlassIcon" size={19} />
-                </button>
-              </form>
+                  <input
+                    type="text"
+                    autoFocus
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onBlur={() => {
+                      if (!searchQuery.trim()) setSearchOpen(false);
+                    }}
+                    placeholder="Search products…"
+                    className="w-40 lg:w-56 rounded-full px-4 py-1.5 text-sm border focus:outline-none"
+                    style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
+                  />
+                  <button
+                    type="submit"
+                    aria-label="Search"
+                    className="w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-70"
+                    style={{ color: 'var(--blush-text)' }}
+                  >
+                    <Icon name="MagnifyingGlassIcon" size={19} />
+                  </button>
+                </form>
+                {searchQuery.trim() && (
+                  <div className="absolute top-full right-0 mt-2 w-72 z-50">
+                    <SearchResultsDropdown
+                      query={searchQuery.trim()}
+                      results={desktopSearch.results}
+                      loading={desktopSearch.loading}
+                      onNavigate={closeSearch}
+                    />
+                  </div>
+                )}
+              </div>
             ) : (
               <button
                 className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
@@ -201,28 +221,15 @@ function HeaderContent() {
               </button>
             )}
             {isAdmin && (
-              <>
-                <button
-                  onClick={toggleAdminMode}
-                  aria-label={adminModeOn ? 'Turn off Admin Mode' : 'Turn on Admin Mode'}
-                  aria-pressed={adminModeOn}
-                  className="hidden sm:flex w-9 h-5 rounded-full items-center transition-colors duration-200 px-0.5"
-                  style={{ background: adminModeOn ? 'var(--blush-rose)' : 'var(--blush-border)' }}
-                >
-                  <span
-                    className="w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
-                    style={{ transform: adminModeOn ? 'translateX(1rem)' : 'translateX(0)' }}
-                  />
-                </button>
-                <Link
-                  href="/admin/products"
-                  aria-label="Admin Dashboard"
-                  className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
-                  style={{ color: 'var(--blush-text)' }}
-                >
-                  <Icon name="Cog6ToothIcon" size={19} />
-                </Link>
-              </>
+              <Link
+                href="/admin/products"
+                aria-label="Admin Dashboard"
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3.5 py-2 rounded-full transition-colors duration-150 hover:opacity-80"
+                style={{ background: 'var(--blush-border)', color: 'var(--blush-text)' }}
+              >
+                <Icon name="Squares2X2Icon" size={14} />
+                Admin
+              </Link>
             )}
             {accountInitial ? (
               <Link
@@ -291,27 +298,39 @@ function HeaderContent() {
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => submitSearch(e, mobileSearchQuery)}
-              className="flex items-center gap-2 mb-6 animate-enter"
-            >
-              <input
-                type="text"
-                value={mobileSearchQuery}
-                onChange={(e) => setMobileSearchQuery(e.target.value)}
-                placeholder="Search products…"
-                className="flex-1 rounded-full px-4 py-2.5 text-sm border focus:outline-none"
-                style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
-              />
-              <button
-                type="submit"
-                aria-label="Search"
-                className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: 'var(--blush-border)', color: 'var(--blush-text)' }}
+            <div className="mb-6 animate-enter">
+              <form
+                onSubmit={(e) => submitSearch(e, mobileSearchQuery)}
+                className="flex items-center gap-2"
               >
-                <Icon name="MagnifyingGlassIcon" size={18} />
-              </button>
-            </form>
+                <input
+                  type="text"
+                  value={mobileSearchQuery}
+                  onChange={(e) => setMobileSearchQuery(e.target.value)}
+                  placeholder="Search products…"
+                  className="flex-1 rounded-full px-4 py-2.5 text-sm border focus:outline-none"
+                  style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
+                />
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: 'var(--blush-border)', color: 'var(--blush-text)' }}
+                >
+                  <Icon name="MagnifyingGlassIcon" size={18} />
+                </button>
+              </form>
+              {mobileSearchQuery.trim() && (
+                <div className="mt-2">
+                  <SearchResultsDropdown
+                    query={mobileSearchQuery.trim()}
+                    results={mobileSearch.results}
+                    loading={mobileSearch.loading}
+                    onNavigate={closeSearch}
+                  />
+                </div>
+              )}
+            </div>
 
             <nav className="flex flex-col gap-4 flex-1 overflow-y-auto">
               {navLinks.map((link, i) => (
@@ -339,35 +358,14 @@ function HeaderContent() {
                 <Icon name="UserIcon" size={18} /> Account
               </Link>
               {isAdmin && (
-                <>
-                  <Link
-                    href="/admin/products"
-                    className="flex items-center gap-2 text-sm font-semibold"
-                    style={{ color: 'var(--blush-text)' }}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Icon name="Cog6ToothIcon" size={18} /> Admin
-                  </Link>
-                  <button
-                    onClick={toggleAdminMode}
-                    aria-pressed={adminModeOn}
-                    className="flex items-center gap-2 text-sm font-semibold"
-                    style={{ color: 'var(--blush-text)' }}
-                  >
-                    <span
-                      className="w-9 h-5 rounded-full flex items-center px-0.5 transition-colors duration-200"
-                      style={{
-                        background: adminModeOn ? 'var(--blush-rose)' : 'var(--blush-border)',
-                      }}
-                    >
-                      <span
-                        className="w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
-                        style={{ transform: adminModeOn ? 'translateX(1rem)' : 'translateX(0)' }}
-                      />
-                    </span>
-                    Admin Mode
-                  </button>
-                </>
+                <Link
+                  href="/admin/products"
+                  className="flex items-center gap-2 text-sm font-semibold"
+                  style={{ color: 'var(--blush-text)' }}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Icon name="Squares2X2Icon" size={18} /> Admin Dashboard
+                </Link>
               )}
             </div>
 

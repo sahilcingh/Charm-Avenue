@@ -440,6 +440,25 @@ export async function updateVariant(variantId: string, productId: string, formDa
   const { supabase } = await requireAdmin();
 
   const imageUrl = await uploadImageIfProvided(supabase, formData);
+  const color = String(formData.get('color') || '').trim() || null;
+
+  // A color variant is only useful as a storefront swatch if shoppers can actually see what
+  // that color looks like — require a photo (new upload or one already on the row) once a
+  // color is set, rather than silently falling back to the base product's own photo.
+  if (color) {
+    let hasImage = Boolean(imageUrl);
+    if (!hasImage) {
+      const { data: existing } = await supabase
+        .from('product_variants')
+        .select('image')
+        .eq('id', variantId)
+        .single();
+      hasImage = Boolean(existing?.image);
+    }
+    if (!hasImage) {
+      throw new Error("Please add a photo for this color — it's shown when shoppers select it.");
+    }
+  }
 
   const priceOverrideRaw = String(formData.get('priceOverride') || '').trim();
   const originalPriceOverrideRaw = String(formData.get('originalPriceOverride') || '').trim();
@@ -447,7 +466,7 @@ export async function updateVariant(variantId: string, productId: string, formDa
   const stockCountRaw = String(formData.get('stockCount') || '').trim();
 
   const update: Record<string, unknown> = {
-    color: String(formData.get('color') || '').trim() || null,
+    color,
     size: String(formData.get('size') || '').trim() || null,
     sku: String(formData.get('sku') || '').trim() || null,
     price_override: priceOverrideRaw !== '' ? Number(priceOverrideRaw) : null,

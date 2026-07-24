@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mapCategoryRow, mapProductRow } from './product-mapper';
-import type { DbCategory, DbProduct } from './types';
+import type { DbCategory, DbProduct, DbProductVariant } from './types';
 
 const dbCategory: DbCategory = {
   slug: 'jewellery',
@@ -99,6 +99,7 @@ describe('mapProductRow', () => {
       madeToOrderLeadTime: null,
       lowStockThreshold: null,
       stockCount: null,
+      colorVariants: [],
     });
   });
 
@@ -160,5 +161,68 @@ describe('mapProductRow', () => {
     expect(mapped.personalizationLabel).toBe('Add your initials');
     expect(mapped.personalizationRequired).toBe(true);
     expect(mapped.personalizationMaxLength).toBe(20);
+  });
+
+  describe('colorVariants (Phase 7 — card-level swatches)', () => {
+    function makeVariant(overrides: Partial<DbProductVariant> = {}): DbProductVariant {
+      return {
+        id: 'v1',
+        product_id: 'uuid-1',
+        color: 'Pink',
+        size: null,
+        sku: null,
+        price_override: null,
+        original_price_override: null,
+        image: null,
+        stock_status: null,
+        stock_count: null,
+        is_active: true,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        ...overrides,
+      };
+    }
+
+    it('defaults to an empty list when no variant rows are given', () => {
+      expect(mapProductRow(dbProduct, 'Anti-Tarnish Jewellery').colorVariants).toEqual([]);
+    });
+
+    it('maps a variant row with a color into a color variant entry', () => {
+      const variant = makeVariant({
+        id: 'v1',
+        color: 'Pink',
+        image: '/pink.jpg',
+        price_override: 350,
+        original_price_override: 450,
+      });
+      const mapped = mapProductRow(dbProduct, 'Anti-Tarnish Jewellery', [variant]);
+      expect(mapped.colorVariants).toEqual([
+        { id: 'v1', color: 'Pink', image: '/pink.jpg', price: 350, originalPrice: 450 },
+      ]);
+    });
+
+    it('excludes variants with no color set (size-only variants)', () => {
+      const variant = makeVariant({ color: null, size: 'M' });
+      expect(mapProductRow(dbProduct, 'Anti-Tarnish Jewellery', [variant]).colorVariants).toEqual(
+        []
+      );
+    });
+
+    it('excludes inactive variants', () => {
+      const variant = makeVariant({ is_active: false });
+      expect(mapProductRow(dbProduct, 'Anti-Tarnish Jewellery', [variant]).colorVariants).toEqual(
+        []
+      );
+    });
+
+    it('keeps only the first variant per distinct color, regardless of size', () => {
+      const rows = [
+        makeVariant({ id: 'v1', color: 'Pink', size: 'S' }),
+        makeVariant({ id: 'v2', color: 'Pink', size: 'M' }),
+        makeVariant({ id: 'v3', color: 'Blue', size: 'S' }),
+      ];
+      const mapped = mapProductRow(dbProduct, 'Anti-Tarnish Jewellery', rows);
+      expect(mapped.colorVariants.map((c) => c.id)).toEqual(['v1', 'v3']);
+    });
   });
 });

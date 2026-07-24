@@ -2,15 +2,21 @@ import { createPublicClient } from './public-client';
 import { mapCategoryRow, mapProductRow, type Category, type Product } from './product-mapper';
 import type { DbCategory, DbProduct, DbProductImage, DbProductVariant } from './types';
 
-type ProductRowWithCategory = DbProduct & { category: Pick<DbCategory, 'title'> | null };
+type ProductRowWithCategory = DbProduct & {
+  category: Pick<DbCategory, 'title'> | null;
+  product_variants: DbProductVariant[] | null;
+};
 
 // Explicit FK name required since Phase 3 (product_categories) — PostgREST
 // otherwise can't tell whether "categories" means the direct
 // products.category_slug FK or the new many-to-many via product_categories.
-const PRODUCT_SELECT = '*, category:categories!products_category_slug_fkey(title)';
+// product_variants is embedded too — RLS already scopes it to active variants
+// of active products, so listing pages can show color swatches for free.
+const PRODUCT_SELECT =
+  '*, category:categories!products_category_slug_fkey(title), product_variants(*)';
 
 function mapJoinedProductRow(row: ProductRowWithCategory): Product {
-  return mapProductRow(row, row.category?.title);
+  return mapProductRow(row, row.category?.title, row.product_variants ?? []);
 }
 
 export async function getCategories(): Promise<Category[]> {

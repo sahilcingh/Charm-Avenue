@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/Header';
@@ -79,36 +80,39 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <span style={{ color: 'var(--blush-text)' }}>{product.name}</span>
           </nav>
 
-          <ProductDetailInteractive
-            productId={product.id}
-            productName={product.name}
-            categorySlug={product.categorySlug}
-            categoryTitle={product.category}
-            emoji={product.emoji}
-            rating={product.rating}
-            reviewCount={product.reviewCount}
-            description={product.description}
-            price={product.price}
-            originalPrice={product.originalPrice ?? null}
-            tag={product.tag}
-            tagBg={product.tagBg}
-            tagText={product.tagText}
-            galleryImages={images}
-            variants={variants}
-            personalizationEnabled={product.personalizationEnabled}
-            personalizationLabel={product.personalizationLabel}
-            personalizationRequired={product.personalizationRequired}
-            personalizationMaxLength={product.personalizationMaxLength}
-            saleStartsAt={product.saleStartsAt}
-            saleEndsAt={product.saleEndsAt}
-            stockStatus={product.stockStatus}
-            madeToOrderLeadTime={product.madeToOrderLeadTime}
-            lowStockThreshold={product.lowStockThreshold}
-            stockCount={product.stockCount}
-            dimensions={product.dimensions}
-            material={product.material}
-            careInstructions={product.careInstructions}
-          />
+          {/* useSearchParams (for the ?color= swatch deep-link) needs a Suspense boundary to keep this page statically prerenderable */}
+          <Suspense fallback={<div className="grid md:grid-cols-2 gap-8 md:gap-14" />}>
+            <ProductDetailInteractive
+              productId={product.id}
+              productName={product.name}
+              categorySlug={product.categorySlug}
+              categoryTitle={product.category}
+              emoji={product.emoji}
+              rating={product.rating}
+              reviewCount={product.reviewCount}
+              description={product.description}
+              price={product.price}
+              originalPrice={product.originalPrice ?? null}
+              tag={product.tag}
+              tagBg={product.tagBg}
+              tagText={product.tagText}
+              galleryImages={images}
+              variants={variants}
+              personalizationEnabled={product.personalizationEnabled}
+              personalizationLabel={product.personalizationLabel}
+              personalizationRequired={product.personalizationRequired}
+              personalizationMaxLength={product.personalizationMaxLength}
+              saleStartsAt={product.saleStartsAt}
+              saleEndsAt={product.saleEndsAt}
+              stockStatus={product.stockStatus}
+              madeToOrderLeadTime={product.madeToOrderLeadTime}
+              lowStockThreshold={product.lowStockThreshold}
+              stockCount={product.stockCount}
+              dimensions={product.dimensions}
+              material={product.material}
+              careInstructions={product.careInstructions}
+            />
+          </Suspense>
 
           {/* Related products */}
           {related.length > 0 && (

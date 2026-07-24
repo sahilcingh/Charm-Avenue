@@ -1,4 +1,13 @@
-import type { DbCategory, DbProduct, ProductStockStatus } from './types';
+import type { DbCategory, DbProduct, DbProductVariant, ProductStockStatus } from './types';
+
+/** One representative variant per distinct color — enough for a card-level swatch preview (no size axis). */
+export interface ProductColorVariant {
+  id: string;
+  color: string;
+  image: string | null;
+  price: number | null;
+  originalPrice: number | null;
+}
 
 export interface Category {
   slug: string;
@@ -47,6 +56,8 @@ export interface Product {
   dimensions: string | null;
   material: string | null;
   careInstructions: string | null;
+  // Phase 7 — card-level color swatches (see ProductCard); one entry per distinct color.
+  colorVariants: ProductColorVariant[];
 }
 
 export function mapCategoryRow(row: DbCategory): Category {
@@ -64,12 +75,31 @@ export function mapCategoryRow(row: DbCategory): Category {
   };
 }
 
+/** First active variant per distinct color, in row order — mirrors the product detail page's own distinct-color list. */
+function colorVariantsFromRows(rows: DbProductVariant[]): ProductColorVariant[] {
+  const byColor = new Map<string, DbProductVariant>();
+  for (const row of rows) {
+    if (row.color && row.is_active && !byColor.has(row.color)) byColor.set(row.color, row);
+  }
+  return Array.from(byColor.values()).map((row) => ({
+    id: row.id,
+    color: row.color as string,
+    image: row.image,
+    price: row.price_override,
+    originalPrice: row.original_price_override,
+  }));
+}
+
 /**
  * `categoryTitle` comes from a joined `categories` row rather than living on
  * the product row itself — passed in separately so this stays a pure,
  * dependency-free mapper testable without a database.
  */
-export function mapProductRow(row: DbProduct, categoryTitle: string | undefined): Product {
+export function mapProductRow(
+  row: DbProduct,
+  categoryTitle: string | undefined,
+  variantRows: DbProductVariant[] = []
+): Product {
   return {
     id: row.id,
     slug: row.slug,
@@ -100,5 +130,6 @@ export function mapProductRow(row: DbProduct, categoryTitle: string | undefined)
     dimensions: row.dimensions,
     material: row.material,
     careInstructions: row.care_instructions,
+    colorVariants: colorVariantsFromRows(variantRows),
   };
 }

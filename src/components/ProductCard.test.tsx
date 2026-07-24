@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import React from 'react';
 import ProductCard from './ProductCard';
 import { CartProvider, useCart } from '@/lib/cart-context';
 import { ToastProvider } from '@/lib/toast-context';
-import { AdminModeProvider, ADMIN_MODE_STORAGE_KEY } from '@/lib/admin-mode-context';
+import { AdminModeProvider } from '@/lib/admin-mode-context';
 import type { Product } from '@/lib/supabase/product-mapper';
 
 const getUserMock = vi.fn();
@@ -68,6 +69,7 @@ const product: Product = {
   dimensions: null,
   material: null,
   careInstructions: null,
+  colorVariants: [],
 };
 
 function CartProbe() {
@@ -175,6 +177,168 @@ describe('ProductCard', () => {
   });
 });
 
+describe('ProductCard — color swatches', () => {
+  const colorVariants = [
+    { id: 'v1', color: 'Pink', image: '/pink.jpg', price: null, originalPrice: null },
+    { id: 'v2', color: 'Blue', image: '/blue.jpg', price: 150, originalPrice: 200 },
+  ];
+
+  it('renders no swatches when the product has no color variants', () => {
+    mockLoggedOut();
+    renderCard();
+    expect(screen.queryByRole('button', { name: /View Panda Lamp in/i })).not.toBeInTheDocument();
+  });
+
+  it('renders one swatch per color variant', () => {
+    mockLoggedOut();
+    renderCard({ colorVariants });
+    expect(screen.getByRole('button', { name: 'View Panda Lamp in Pink' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'View Panda Lamp in Blue' })).toBeInTheDocument();
+  });
+
+  it('caps visible swatches (reserving one slot for the default photo) and shows a "+N" overflow indicator', () => {
+    mockLoggedOut();
+    const many = Array.from({ length: 7 }, (_, i) => ({
+      id: `v${i}`,
+      color: `Color${i}`,
+      image: null,
+      price: null,
+      originalPrice: null,
+    }));
+    renderCard({ colorVariants: many });
+    expect(screen.getAllByRole('button', { name: /^View Panda Lamp in/ })).toHaveLength(4);
+    expect(screen.getByText('+3')).toBeInTheDocument();
+  });
+
+  it("includes a swatch for the product's own default photo alongside the real variants", () => {
+    mockLoggedOut();
+    renderCard({ colorVariants });
+    const defaultSwatch = screen.getByRole('button', { name: 'View Panda Lamp (default)' });
+    expect(defaultSwatch).toBeInTheDocument();
+    expect(defaultSwatch).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('renders the selected swatch larger than the unselected ones, and updates as selection changes', () => {
+    mockLoggedOut();
+    renderCard({ colorVariants });
+
+    const defaultSwatch = screen.getByRole('button', { name: 'View Panda Lamp (default)' });
+    const pinkSwatch = screen.getByRole('button', { name: 'View Panda Lamp in Pink' });
+    expect(defaultSwatch.className).toContain('scale-125');
+    expect(pinkSwatch.className).toContain('scale-100');
+
+    act(() => pinkSwatch.click());
+
+    expect(defaultSwatch.className).toContain('scale-100');
+    expect(pinkSwatch.className).toContain('scale-125');
+  });
+
+  it('clicking the default swatch after selecting a color reverts the card to the base product', () => {
+    mockLoggedOut();
+    renderCard({ colorVariants, price: 130, originalPrice: undefined });
+
+    act(() => screen.getByRole('button', { name: 'View Panda Lamp in Blue' }).click());
+    expect(screen.getByText('₹150')).toBeInTheDocument();
+
+    act(() => screen.getByRole('button', { name: 'View Panda Lamp (default)' }).click());
+
+    expect(screen.getByText('₹130')).toBeInTheDocument();
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/product/panda-lamp');
+    expect(screen.getByRole('button', { name: 'View Panda Lamp (default)' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+  });
+
+  it('selecting a swatch swaps the displayed image and price without navigating', () => {
+    mockLoggedOut();
+    renderCard({ colorVariants, price: 130, originalPrice: undefined });
+
+    act(() => screen.getByRole('button', { name: 'View Panda Lamp in Blue' }).click());
+
+    expect(screen.getByText('₹150')).toBeInTheDocument();
+    expect(screen.getByText('₹200')).toBeInTheDocument();
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/product/panda-lamp?color=Blue');
+  });
+
+  it('falls back to the base product image/price when the selected variant has no override', () => {
+    mockLoggedOut();
+    renderCard({ colorVariants });
+
+    act(() => screen.getByRole('button', { name: 'View Panda Lamp in Pink' }).click());
+
+    expect(screen.getByText('₹130')).toBeInTheDocument();
+  });
+
+  it('adds the selected variant (not the base product) to the cart via Quick Add', async () => {
+    mockLoggedOut();
+    renderCard({ colorVariants });
+
+    act(() => screen.getByRole('button', { name: 'View Panda Lamp in Blue' }).click());
+    act(() => screen.getByRole('button', { name: /Quick Add/i }).click());
+
+    await waitFor(() => expect(screen.getByTestId('cart-probe')).toHaveTextContent('1'));
+    const stored = JSON.parse(window.localStorage.getItem('charm-avenue-cart') ?? '[]');
+    expect(stored).toEqual([{ productId: 'p1', variantId: 'v2', quantity: 1 }]);
+  });
+
+  it("borders an unselected swatch in the admin's own color name, and switches to the brand rose once selected", () => {
+    mockLoggedOut();
+    renderCard({ colorVariants });
+
+    const blueSwatch = screen.getByRole('button', { name: 'View Panda Lamp in Blue' });
+    expect(blueSwatch).toHaveStyle({ borderColor: 'rgb(0, 0, 255)' });
+
+    act(() => blueSwatch.click());
+    expect(blueSwatch.style.border).toBe('2px solid var(--blush-rose)');
+  });
+
+  it('never resolves a variant color while server rendering, so the first client paint matches the server HTML exactly (failure case: resolving it during SSR would trigger a React hydration mismatch, since jsdom-based color validation is unavailable in Node)', () => {
+    const html = renderToString(
+      <ToastProvider>
+        <CartProvider>
+          <AdminModeProvider>
+            <ProductCard product={{ ...product, colorVariants }} />
+          </AdminModeProvider>
+        </CartProvider>
+      </ToastProvider>
+    );
+
+    expect(html).not.toContain('solid Pink');
+    expect(html).not.toContain('solid Blue');
+    expect(html).toContain('solid #FFFFFF');
+  });
+
+  it('falls back to a neutral border for a color name that is not valid CSS (e.g. "Rose Gold")', () => {
+    mockLoggedOut();
+    renderCard({
+      colorVariants: [
+        { id: 'v3', color: 'Rose Gold', image: '/rg.jpg', price: null, originalPrice: null },
+      ],
+    });
+    expect(screen.getByRole('button', { name: 'View Panda Lamp in Rose Gold' })).toHaveStyle({
+      borderColor: '#FFFFFF',
+    });
+  });
+
+  it('preloads a hidden copy of a variant photo on hover, without rendering one for the currently selected variant', () => {
+    mockLoggedOut();
+    renderCard({ colorVariants });
+
+    const hiddenPreload = () => document.querySelector('[aria-hidden] img[src*="blue.jpg"]');
+    expect(hiddenPreload()).not.toBeInTheDocument();
+
+    act(() => {
+      fireEvent.mouseEnter(screen.getByRole('button', { name: 'View Panda Lamp in Blue' }));
+    });
+    expect(hiddenPreload()).toBeInTheDocument();
+
+    // Once Blue is actually selected it's the visible display, not a hidden preload anymore.
+    act(() => screen.getByRole('button', { name: 'View Panda Lamp in Blue' }).click());
+    expect(hiddenPreload()).not.toBeInTheDocument();
+  });
+});
+
 describe('ProductCard — admin edit controls', () => {
   it('does not render the edit control for a regular (non-admin) user', async () => {
     mockLoggedIn();
@@ -184,25 +348,7 @@ describe('ProductCard — admin edit controls', () => {
     expect(screen.queryByRole('button', { name: /edit panda lamp/i })).not.toBeInTheDocument();
   });
 
-  it('does not render the edit control for a non-admin even with a stale "admin mode on" preference left in localStorage (failure case: a leaked/forged preference must not grant admin UI)', async () => {
-    window.localStorage.setItem(ADMIN_MODE_STORAGE_KEY, 'true');
-    mockLoggedIn();
-    renderCard();
-
-    await waitFor(() => expect(profileIsAdminMock).toHaveBeenCalled());
-    expect(screen.queryByRole('button', { name: /edit panda lamp/i })).not.toBeInTheDocument();
-  });
-
-  it('does not render the edit control for an admin while admin mode is off (the default)', async () => {
-    mockLoggedInAsAdmin();
-    renderCard();
-
-    await waitFor(() => expect(profileIsAdminMock).toHaveBeenCalled());
-    expect(screen.queryByRole('button', { name: /edit panda lamp/i })).not.toBeInTheDocument();
-  });
-
-  it("renders the edit control for an admin with admin mode on, and navigates to that product's edit page when clicked", async () => {
-    window.localStorage.setItem(ADMIN_MODE_STORAGE_KEY, 'true');
+  it("renders the edit control for an admin, and navigates to that product's edit page when clicked", async () => {
     mockLoggedInAsAdmin();
     renderCard();
 

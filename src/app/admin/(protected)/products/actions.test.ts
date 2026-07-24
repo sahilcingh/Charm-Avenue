@@ -32,6 +32,7 @@ const productTagsDeleteEqMock = vi.fn();
 const productVariantsInsertMock = vi.fn();
 const productVariantsUpdateEqMock = vi.fn();
 const productVariantsDeleteEqMock = vi.fn();
+const productVariantsSelectSingleMock = vi.fn();
 
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
@@ -78,6 +79,7 @@ vi.mock('@/lib/supabase/server', () => ({
           update: (values: unknown) => ({
             eq: (col: string, val: unknown) => productVariantsUpdateEqMock(values, col, val),
           }),
+          select: () => ({ eq: () => ({ single: productVariantsSelectSingleMock }) }),
         };
       }
       // 'products'
@@ -145,6 +147,7 @@ beforeEach(() => {
   productVariantsInsertMock.mockReset();
   productVariantsUpdateEqMock.mockReset();
   productVariantsDeleteEqMock.mockReset();
+  productVariantsSelectSingleMock.mockReset();
 
   productsInsertMock.mockReturnValue({
     select: () => ({ single: productsInsertSelectSingleMock }),
@@ -167,6 +170,11 @@ beforeEach(() => {
   productVariantsInsertMock.mockResolvedValue({ error: null });
   productVariantsUpdateEqMock.mockResolvedValue({ error: null });
   productVariantsDeleteEqMock.mockResolvedValue({ error: null });
+  // Default: the row already has a photo — matches most existing tests, which aren't
+  // exercising the "color requires a photo" rule and shouldn't have to think about it.
+  productVariantsSelectSingleMock.mockResolvedValue({
+    data: { image: 'https://example.com/existing.jpg' },
+  });
 });
 
 describe('deleteProduct — admin-only enforcement', () => {
@@ -772,6 +780,65 @@ describe('updateVariant', () => {
     await updateVariant('variant-1', 'product-1', new FormData());
     expect(productVariantsUpdateEqMock).toHaveBeenCalledWith(
       expect.objectContaining({ is_active: true }),
+      'id',
+      'variant-1'
+    );
+  });
+
+  it('rejects setting a color with no new photo and no existing photo on the row', async () => {
+    mockAdmin();
+    productVariantsSelectSingleMock.mockResolvedValue({ data: { image: null } });
+    const fd = new FormData();
+    fd.set('color', 'Red');
+
+    await expect(updateVariant('variant-1', 'product-1', fd)).rejects.toThrow(/photo/i);
+    expect(productVariantsUpdateEqMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts a color with a newly uploaded photo, without needing to check the existing row', async () => {
+    mockAdmin();
+    const fd = new FormData();
+    fd.set('color', 'Red');
+    fd.set('imageFile', new File(['bytes'], 'red.jpg', { type: 'image/jpeg' }));
+
+    await updateVariant('variant-1', 'product-1', fd);
+
+    expect(productVariantsSelectSingleMock).not.toHaveBeenCalled();
+    expect(productVariantsUpdateEqMock).toHaveBeenCalledWith(
+      expect.objectContaining({ color: 'Red', image: 'https://example.com/photo.jpg' }),
+      'id',
+      'variant-1'
+    );
+  });
+
+  it('accepts a color with no new photo when the row already has one saved', async () => {
+    mockAdmin();
+    productVariantsSelectSingleMock.mockResolvedValue({
+      data: { image: 'https://example.com/existing.jpg' },
+    });
+    const fd = new FormData();
+    fd.set('color', 'Red');
+
+    await updateVariant('variant-1', 'product-1', fd);
+
+    expect(productVariantsUpdateEqMock).toHaveBeenCalledWith(
+      expect.objectContaining({ color: 'Red' }),
+      'id',
+      'variant-1'
+    );
+  });
+
+  it('allows clearing a size-only variant back to no color without requiring a photo', async () => {
+    mockAdmin();
+    const fd = new FormData();
+    fd.set('color', '');
+    fd.set('size', 'M');
+
+    await updateVariant('variant-1', 'product-1', fd);
+
+    expect(productVariantsSelectSingleMock).not.toHaveBeenCalled();
+    expect(productVariantsUpdateEqMock).toHaveBeenCalledWith(
+      expect.objectContaining({ color: null, size: 'M' }),
       'id',
       'variant-1'
     );

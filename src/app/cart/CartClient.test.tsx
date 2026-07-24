@@ -12,6 +12,7 @@ const combosEqMock = vi.fn();
 const variantsInMock = vi.fn();
 const pushMock = vi.fn();
 const openMock = vi.fn();
+let fakeTab: { close: ReturnType<typeof vi.fn>; location: { href: string } };
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
@@ -111,6 +112,8 @@ beforeEach(() => {
     orderId: 'order-1',
     whatsappUrl: 'https://wa.me/919999999999?text=hi',
   });
+  fakeTab = { close: vi.fn(), location: { href: '' } };
+  openMock.mockReturnValue(fakeTab);
   vi.stubGlobal('open', openMock);
 });
 
@@ -262,13 +265,8 @@ describe('CartClient', () => {
         0
       )
     );
-    await waitFor(() =>
-      expect(openMock).toHaveBeenCalledWith(
-        'https://wa.me/919999999999?text=hi',
-        '_blank',
-        'noopener,noreferrer'
-      )
-    );
+    expect(openMock).toHaveBeenCalledWith('', '_blank', 'noopener,noreferrer');
+    await waitFor(() => expect(fakeTab.location.href).toBe('https://wa.me/919999999999?text=hi'));
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/order/order-1'));
     await waitFor(() => expect(window.localStorage.getItem(STORAGE_KEY)).toBe('[]'));
   });
@@ -333,7 +331,7 @@ describe('CartClient', () => {
       await screen.findByText('Could not record your enquiry. Please try again.')
     ).toBeInTheDocument();
     expect(pushMock).not.toHaveBeenCalled();
-    expect(openMock).not.toHaveBeenCalled();
+    expect(fakeTab.close).toHaveBeenCalled();
     expect(screen.getByText('Panda Lamp')).toBeInTheDocument();
   });
 

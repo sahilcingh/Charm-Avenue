@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, memo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, memo } from 'react';
 import Image from 'next/image';
 
 // On-brand soft pink shimmer shown behind every image while it loads,
@@ -53,6 +53,16 @@ const AppImage = memo(function AppImage({
   const [imageSrc, setImageSrc] = useState(src);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+
+  // `imageSrc` starts as `src` but then tracks error/loading state independently —
+  // without this, a caller swapping `src` on an already-mounted AppImage (e.g. a
+  // product card previewing a different color variant) would keep showing the
+  // very first image forever, since useState's initializer only runs once.
+  useEffect(() => {
+    setImageSrc(src);
+    setHasError(false);
+    setIsLoading(true);
+  }, [src]);
 
   const handleError = useCallback(() => {
     if (!hasError && imageSrc !== fallbackSrc) {

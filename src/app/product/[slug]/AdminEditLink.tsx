@@ -4,8 +4,8 @@ import Icon from '@/components/ui/AppIcon';
 import { useAdminMode } from '@/lib/admin-mode-context';
 
 export default function AdminEditLink({ productId }: { productId: string }) {
-  const { adminModeOn } = useAdminMode();
-  if (!adminModeOn) return null;
+  const { isAdmin } = useAdminMode();
+  if (!isAdmin) return null;
 
   return (
     <Link

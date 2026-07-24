@@ -1,6 +1,7 @@
 'use client';
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import ProductGallery from './ProductGallery';
 import AddToCartButton from './AddToCartButton';
@@ -72,6 +73,7 @@ export default function ProductDetailInteractive({
   careInstructions,
 }: ProductDetailInteractiveProps) {
   const [personalizationText, setPersonalizationText] = useState('');
+  const searchParams = useSearchParams();
   const colors = useMemo(
     () => Array.from(new Set(variants.map((v) => v.color).filter((c): c is string => Boolean(c)))),
     [variants]
@@ -81,7 +83,13 @@ export default function ProductDetailInteractive({
     [variants]
   );
 
-  const [selectedColor, setSelectedColor] = useState<string | null>(colors[0] ?? null);
+  // A ProductCard swatch can link here with ?color=... to open the detail page already
+  // showing the variant the shopper previewed — falls back to the first color otherwise.
+  const requestedColor = searchParams.get('color');
+  const initialColor = requestedColor && colors.includes(requestedColor) ? requestedColor : null;
+  const [selectedColor, setSelectedColor] = useState<string | null>(
+    initialColor ?? colors[0] ?? null
+  );
   const [selectedSize, setSelectedSize] = useState<string | null>(sizes[0] ?? null);
 
   const selectedVariant =

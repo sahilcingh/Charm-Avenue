@@ -15,6 +15,7 @@ import { validateProductImageFile } from '@/lib/product-image-validation';
 import { compressProductImage } from '@/lib/compress-product-image';
 import AdditionalPhotosManager from './AdditionalPhotosManager';
 import VariantsManager from './VariantsManager';
+import CategoryFormModal from '../categories/CategoryFormModal';
 
 interface ProductFormProps {
   categories: DbCategory[];
@@ -213,8 +214,10 @@ export default function ProductForm({
     new Set(selectedCategorySlugs)
   );
   const [tagSelections, setTagSelections] = useState<Set<string>>(new Set(selectedTagSlugs));
+  const [categoryList, setCategoryList] = useState<DbCategory[]>(categories);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
 
-  const selectedCategory = categories.find((c) => c.slug === categorySlug);
+  const selectedCategory = categoryList.find((c) => c.slug === categorySlug);
   const activeTagStyle = TAG_STYLES[tagStyle];
 
   async function handleFiles(files: FileList | null) {
@@ -411,7 +414,7 @@ export default function ProductForm({
                 <option value="" disabled>
                   Choose a category
                 </option>
-                {categories.map((c) => (
+                {categoryList.map((c) => (
                   <option key={c.slug} value={c.slug}>
                     {c.title}
                   </option>
@@ -471,16 +474,27 @@ export default function ProductForm({
                 <TurnOffLink onClick={() => setCategoriesTagsOpen(false)} />
               </div>
               <div>
-                <label className={labelClass} style={{ color: 'var(--blush-text)' }}>
-                  Also Show In
-                </label>
-                {categories.filter((c) => c.slug !== categorySlug).length === 0 ? (
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className={`${labelClass} mb-0`} style={{ color: 'var(--blush-text)' }}>
+                    Also Show In
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryModalOpen(true)}
+                    className="inline-flex items-center gap-1 text-xs font-semibold hover:opacity-70 transition-opacity"
+                    style={{ color: 'var(--blush-rose)' }}
+                  >
+                    <Icon name="PlusIcon" size={13} />
+                    Add Category
+                  </button>
+                </div>
+                {categoryList.filter((c) => c.slug !== categorySlug).length === 0 ? (
                   <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
                     No other categories exist yet.
                   </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {categories
+                    {categoryList
                       .filter((c) => c.slug !== categorySlug)
                       .map((c) => {
                         const checked = extraCategories.has(c.slug);
@@ -1099,6 +1113,15 @@ export default function ProductForm({
           This is roughly how the card will look on the Shop page.
         </p>
       </div>
+
+      <CategoryFormModal
+        open={categoryModalOpen}
+        onClose={() => setCategoryModalOpen(false)}
+        onSaved={(saved) => {
+          setCategoryList((prev) => [...prev, saved]);
+          setExtraCategories((prev) => new Set(prev).add(saved.slug));
+        }}
+      />
     </div>
   );
 }

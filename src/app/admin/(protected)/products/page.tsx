@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import Icon from '@/components/ui/AppIcon';
 import type { DbCategory, DbProduct } from '@/lib/supabase/types';
 import DeleteProductButton from './DeleteProductButton';
+import AddCategoryButton from './AddCategoryButton';
 
 export default async function AdminProductsPage() {
   const supabase = await createClient();
@@ -60,17 +61,20 @@ export default async function AdminProductsPage() {
         >
           Products
         </h1>
-        <Link
-          href="/admin/products/new"
-          className="px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest text-white flex items-center gap-2 transition-all duration-300 hover:scale-[1.03]"
-          style={{
-            background: 'var(--blush-rose)',
-            boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
-          }}
-        >
-          <Icon name="PlusIcon" size={16} />
-          Add Product
-        </Link>
+        <div className="flex items-center gap-3">
+          <AddCategoryButton />
+          <Link
+            href="/admin/products/new"
+            className="px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest text-white flex items-center gap-2 transition-all duration-300 hover:scale-[1.03]"
+            style={{
+              background: 'var(--blush-rose)',
+              boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
+            }}
+          >
+            <Icon name="PlusIcon" size={16} />
+            Add Product
+          </Link>
+        </div>
       </div>
 
       {!error && list.length > 0 && (

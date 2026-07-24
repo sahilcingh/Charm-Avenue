@@ -194,13 +194,24 @@ export default function CartClient() {
     setContactErrors(fieldErrors);
     if (Object.keys(fieldErrors).length > 0) return;
 
+    // Opened synchronously, still inside the click's call stack — iOS Safari
+    // only allows window.open() as a direct result of a user gesture, and the
+    // createWhatsAppEnquiry() await below would otherwise break that chain and
+    // get the popup silently blocked. We navigate this tab once the URL is ready.
+    const newTab = window.open('', '_blank', 'noopener,noreferrer');
+
     startTransition(async () => {
       const result = await createWhatsAppEnquiry(lineItems, contact, discountTotal);
       if (result.error || !result.orderId || !result.whatsappUrl) {
+        newTab?.close();
         setEnquiryError(result.error ?? 'Something went wrong. Please try again.');
         return;
       }
-      window.open(result.whatsappUrl, '_blank', 'noopener,noreferrer');
+      if (newTab) {
+        newTab.location.href = result.whatsappUrl;
+      } else {
+        window.open(result.whatsappUrl, '_blank', 'noopener,noreferrer');
+      }
       clearCart();
       router.push(`/order/${result.orderId}`);
     });
