@@ -30,7 +30,18 @@ export default async function OrderLookupPage({ params }: { params: Promise<{ id
       'SUPABASE_SERVICE_ROLE_KEY is not configured — order confirmation pages cannot load.'
     );
 
-  const { data: order } = await supabase.from('orders').select('*').eq('id', id).maybeSingle();
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (orderError) {
+    // A real query failure (bad/mismatched service-role key, wrong project, etc.)
+    // looks identical to "no such order" to the visitor otherwise — log it
+    // server-side so a misconfiguration is diagnosable from the deployment's
+    // function logs instead of silently presenting as a 404.
+    console.error('[order/[id]] failed to fetch order', id, ':', orderError.message);
+  }
   if (!order) notFound();
 
   const { data: items } = await supabase.from('order_items').select('*').eq('order_id', id);
