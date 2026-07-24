@@ -4,14 +4,10 @@ import React from 'react';
 import CartClient from './CartClient';
 import { CartProvider } from '@/lib/cart-context';
 import { ToastProvider } from '@/lib/toast-context';
-import { WishlistProvider } from '@/lib/wishlist-context';
 import { createWhatsAppEnquiry } from './actions';
 
 const productsFromMock = vi.fn();
 const getUserMock = vi.fn();
-const wishlistSelectEqMock = vi.fn();
-const wishlistInsertMock = vi.fn();
-const wishlistDeleteEqEqMock = vi.fn();
 const combosEqMock = vi.fn();
 const variantsInMock = vi.fn();
 const pushMock = vi.fn();
@@ -32,13 +28,6 @@ vi.mock('@/lib/supabase/client', () => ({
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
     },
     from: (table: string) => {
-      if (table === 'wishlist_items') {
-        return {
-          select: () => ({ eq: wishlistSelectEqMock }),
-          insert: wishlistInsertMock,
-          delete: () => ({ eq: () => ({ eq: wishlistDeleteEqEqMock }) }),
-        };
-      }
       if (table === 'combos') {
         return { select: () => ({ eq: combosEqMock }) };
       }
@@ -52,11 +41,6 @@ vi.mock('@/lib/supabase/client', () => ({
 
 function mockLoggedOut() {
   getUserMock.mockResolvedValue({ data: { user: null } });
-}
-
-function mockLoggedIn(wishlisted: string[] = []) {
-  getUserMock.mockResolvedValue({ data: { user: { id: 'user-1' } } });
-  wishlistSelectEqMock.mockResolvedValue({ data: wishlisted.map((id) => ({ product_id: id })) });
 }
 
 const STORAGE_KEY = 'charm-avenue-cart';
@@ -105,9 +89,7 @@ function renderCartWithLines(lines: { productId: string; quantity: number }[]) {
   return render(
     <ToastProvider>
       <CartProvider>
-        <WishlistProvider>
-          <CartClient />
-        </WishlistProvider>
+        <CartClient />
       </CartProvider>
     </ToastProvider>
   );
@@ -117,17 +99,12 @@ beforeEach(() => {
   window.localStorage.clear();
   productsFromMock.mockReset();
   getUserMock.mockReset();
-  wishlistSelectEqMock.mockReset();
-  wishlistInsertMock.mockReset();
-  wishlistDeleteEqEqMock.mockReset();
   combosEqMock.mockReset();
   variantsInMock.mockReset();
   pushMock.mockReset();
   openMock.mockReset();
   vi.mocked(createWhatsAppEnquiry).mockReset();
   mockLoggedOut();
-  wishlistInsertMock.mockResolvedValue({ error: null });
-  wishlistDeleteEqEqMock.mockResolvedValue({ error: null });
   combosEqMock.mockResolvedValue({ data: [] });
   variantsInMock.mockResolvedValue({ data: [] });
   vi.mocked(createWhatsAppEnquiry).mockResolvedValue({
@@ -150,7 +127,7 @@ function mockCombos(
 
 function fillContactDetails(name = 'Priya Sharma', phone = '9876543210') {
   fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: name } });
-  fireEvent.change(screen.getByPlaceholderText('98765 43210'), { target: { value: phone } });
+  fireEvent.change(screen.getByPlaceholderText('9876543210'), { target: { value: phone } });
 }
 
 describe('CartClient', () => {
@@ -323,9 +300,7 @@ describe('CartClient', () => {
     render(
       <ToastProvider>
         <CartProvider>
-          <WishlistProvider>
-            <CartClient />
-          </WishlistProvider>
+          <CartClient />
         </CartProvider>
       </ToastProvider>
     );
@@ -374,6 +349,20 @@ describe('CartClient', () => {
     expect(createWhatsAppEnquiry).not.toHaveBeenCalled();
   });
 
+  it('caps the mobile number field at 10 digits and strips non-digit characters as they are typed', async () => {
+    mockProductRows([makeProductRow({ id: 'p1', name: 'Panda Lamp', price: 130 })]);
+    renderCartWithLines([{ productId: 'p1', quantity: 1 }]);
+
+    await screen.findByText('Panda Lamp');
+    const phoneInput = screen.getByPlaceholderText('9876543210') as HTMLInputElement;
+
+    fireEvent.change(phoneInput, { target: { value: '987654321099999' } });
+    expect(phoneInput.value).toBe('9876543210');
+
+    fireEvent.change(phoneInput, { target: { value: '98765-43210 abc' } });
+    expect(phoneInput.value).toBe('9876543210');
+  });
+
   it('sends the enquiry with a blank address when none is entered — address is optional', async () => {
     mockProductRows([makeProductRow({ id: 'p1', name: 'Panda Lamp', price: 130 })]);
     renderCartWithLines([{ productId: 'p1', quantity: 1 }]);
@@ -412,46 +401,6 @@ describe('CartClient', () => {
     const links = screen.getAllByRole('link', { name: 'Panda Lamp' });
     expect(links).toHaveLength(2);
     links.forEach((link) => expect(link).toHaveAttribute('href', '/product/panda-lamp'));
-  });
-
-  it('prompts sign-in instead of saving when a logged-out visitor clicks the wishlist heart on a cart item (edge case)', async () => {
-    mockLoggedOut();
-    mockProductRows([makeProductRow()]);
-    renderCartWithLines([{ productId: 'p1', quantity: 1 }]);
-
-    await screen.findByText('Panda Lamp');
-    act(() => screen.getByLabelText('Add to wishlist').click());
-
-    expect(await screen.findByText('Sign in to save favorites')).toBeInTheDocument();
-    expect(wishlistInsertMock).not.toHaveBeenCalled();
-  });
-
-  it('saves a cart item to the wishlist when a logged-in customer clicks its heart', async () => {
-    mockLoggedIn([]);
-    mockProductRows([makeProductRow()]);
-    renderCartWithLines([{ productId: 'p1', quantity: 1 }]);
-
-    await screen.findByText('Panda Lamp');
-    await waitFor(() => expect(wishlistSelectEqMock).toHaveBeenCalled());
-    act(() => screen.getByLabelText('Add to wishlist').click());
-
-    await waitFor(() =>
-      expect(wishlistInsertMock).toHaveBeenCalledWith({ user_id: 'user-1', product_id: 'p1' })
-    );
-    expect(await screen.findByText('Panda Lamp added to your wishlist')).toBeInTheDocument();
-    expect(await screen.findByLabelText('Remove from wishlist')).toBeInTheDocument();
-  });
-
-  it('removes a cart item from the wishlist when its heart is already saved', async () => {
-    mockLoggedIn(['p1']);
-    mockProductRows([makeProductRow()]);
-    renderCartWithLines([{ productId: 'p1', quantity: 1 }]);
-
-    const heart = await screen.findByLabelText('Remove from wishlist');
-    act(() => heart.click());
-
-    await waitFor(() => expect(wishlistDeleteEqEqMock).toHaveBeenCalled());
-    expect(await screen.findByLabelText('Add to wishlist')).toBeInTheDocument();
   });
 
   it('shows a combo discount line and reduces the total when every combo product is in the cart', async () => {
@@ -493,17 +442,5 @@ describe('CartClient', () => {
 
     await screen.findByText('Earrings');
     expect(screen.queryByText(/% off/)).not.toBeInTheDocument();
-  });
-
-  it('removing an item from the cart does not affect its separate wishlist state', async () => {
-    mockLoggedIn(['p1']);
-    mockProductRows([makeProductRow()]);
-    renderCartWithLines([{ productId: 'p1', quantity: 1 }]);
-
-    await screen.findByLabelText('Remove from wishlist');
-    act(() => screen.getByLabelText('Remove item').click());
-
-    expect(await screen.findByText('Your bag is empty')).toBeInTheDocument();
-    expect(wishlistDeleteEqEqMock).not.toHaveBeenCalled();
   });
 });

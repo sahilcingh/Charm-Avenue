@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/lib/cart-context';
-import { useWishlistToggle } from '@/lib/use-wishlist-toggle';
 import { createClient } from '@/lib/supabase/client';
 import { mapProductRow, type Product } from '@/lib/supabase/product-mapper';
 import type { DbCategory, DbProduct, DbProductVariant } from '@/lib/supabase/types';
@@ -29,7 +28,6 @@ const labelClass = 'text-xs font-bold uppercase tracking-wide mb-1.5 block';
 export default function CartClient() {
   const router = useRouter();
   const { lines, hydrated, adjustQuantity, removeFromCart, clearCart } = useCart();
-  const { isInWishlist, toggleWithFeedback } = useWishlistToggle();
   const [productsById, setProductsById] = useState<Record<string, Product> | null>(null);
   const [variantsById, setVariantsById] = useState<Record<string, DbProductVariant>>({});
   const [combos, setCombos] = useState<ComboDefinition[]>([]);
@@ -333,24 +331,6 @@ export default function CartClient() {
                 </div>
                 <div className="self-start flex flex-col items-center gap-2 shrink-0">
                   <button
-                    onClick={() => toggleWithFeedback(product.id, product.name)}
-                    aria-label={
-                      isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'
-                    }
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
-                  >
-                    <Icon
-                      name="HeartIcon"
-                      variant={isInWishlist(product.id) ? 'solid' : 'outline'}
-                      size={16}
-                      style={{
-                        color: isInWishlist(product.id)
-                          ? 'var(--blush-rose)'
-                          : 'var(--blush-muted)',
-                      }}
-                    />
-                  </button>
-                  <button
                     onClick={() => removeFromCart(product.id, lineOptions)}
                     aria-label="Remove item"
                     className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
@@ -441,11 +421,13 @@ export default function CartClient() {
                 </label>
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   className={inputClass}
                   style={{ color: 'var(--blush-text)' }}
-                  placeholder="98765 43210"
+                  placeholder="9876543210"
                 />
                 {contactErrors.phone && (
                   <p className="text-xs mt-1.5" style={{ color: 'var(--blush-rose-dark)' }}>

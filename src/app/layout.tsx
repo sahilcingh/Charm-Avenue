@@ -3,7 +3,6 @@ import type { Metadata, Viewport } from 'next';
 import { Syne, Plus_Jakarta_Sans, Playfair_Display, Dancing_Script } from 'next/font/google';
 import { CartProvider } from '@/lib/cart-context';
 import { ToastProvider } from '@/lib/toast-context';
-import { WishlistProvider } from '@/lib/wishlist-context';
 import { AdminModeProvider } from '@/lib/admin-mode-context';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import '../styles/tailwind.css';
@@ -67,9 +66,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ErrorBoundary>
           <ToastProvider>
             <CartProvider>
-              <WishlistProvider>
-                <AdminModeProvider>{children}</AdminModeProvider>
-              </WishlistProvider>
+              <AdminModeProvider>{children}</AdminModeProvider>
             </CartProvider>
           </ToastProvider>
         </ErrorBoundary>

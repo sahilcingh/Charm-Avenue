@@ -13,7 +13,7 @@ export interface ShouldCheckSessionInput {
  * being present means their session does need refreshing on every request,
  * not just admin ones — that's the gap this closes: before, only `/admin/*`
  * ever refreshed the session, so a customer's cookie could go stale while
- * browsing `/account` or `/wishlist`.
+ * browsing `/account` or `/cart`.
  */
 export function shouldCheckSession({
   pathname,

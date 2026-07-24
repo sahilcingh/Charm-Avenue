@@ -2,9 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
-import { useWishlist } from '@/lib/wishlist-context';
 import { useAdminMode } from '@/lib/admin-mode-context';
 import { createClient } from '@/lib/supabase/client';
 import { getInitial } from '@/lib/auth-validation';
@@ -53,10 +52,24 @@ function HeaderFallback() {
 function HeaderContent() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountInitial, setAccountInitial] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
   const { itemCount } = useCart();
-  const { count: wishlistCount } = useWishlist();
   const { isAdmin, adminModeOn, toggleAdminMode } = useAdminMode();
   const pathname = usePathname();
+  const router = useRouter();
+
+  function submitSearch(e: React.FormEvent, query: string) {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    router.push(`/search?q=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+    setSearchQuery('');
+    setMobileSearchQuery('');
+    setMenuOpen(false);
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -151,13 +164,42 @@ function HeaderContent() {
 
           {/* Right: icons */}
           <div className="flex items-center gap-3 sm:gap-4 xl:mr-16 2xl:mr-24">
-            <button
-              className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
-              style={{ color: 'var(--blush-text)' }}
-              aria-label="Search"
-            >
-              <Icon name="MagnifyingGlassIcon" size={19} />
-            </button>
+            {searchOpen ? (
+              <form
+                onSubmit={(e) => submitSearch(e, searchQuery)}
+                className="hidden sm:flex items-center gap-1.5"
+              >
+                <input
+                  type="text"
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onBlur={() => {
+                    if (!searchQuery.trim()) setSearchOpen(false);
+                  }}
+                  placeholder="Search products…"
+                  className="w-40 lg:w-56 rounded-full px-4 py-1.5 text-sm border focus:outline-none"
+                  style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
+                />
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className="w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--blush-text)' }}
+                >
+                  <Icon name="MagnifyingGlassIcon" size={19} />
+                </button>
+              </form>
+            ) : (
+              <button
+                className="hidden sm:flex w-9 h-9 items-center justify-center transition-opacity hover:opacity-70"
+                style={{ color: 'var(--blush-text)' }}
+                aria-label="Search"
+                onClick={() => setSearchOpen(true)}
+              >
+                <Icon name="MagnifyingGlassIcon" size={19} />
+              </button>
+            )}
             {isAdmin && (
               <>
                 <button
@@ -201,20 +243,6 @@ function HeaderContent() {
                 <Icon name="UserIcon" size={19} />
               </Link>
             )}
-            <Link
-              href="/wishlist"
-              className="relative w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-70"
-              style={{ color: 'var(--blush-text)' }}
-              aria-label="Wishlist"
-            >
-              <Icon name="HeartIcon" size={19} />
-              <span
-                className="absolute -top-1 -right-1 min-w-[1rem] h-[1rem] px-1 rounded-full text-white text-[0.5625rem] font-bold flex items-center justify-center"
-                style={{ background: 'var(--blush-rose)' }}
-              >
-                {wishlistCount}
-              </span>
-            </Link>
             <Link
               href="/cart"
               aria-label="View cart"
@@ -263,6 +291,28 @@ function HeaderContent() {
               </button>
             </div>
 
+            <form
+              onSubmit={(e) => submitSearch(e, mobileSearchQuery)}
+              className="flex items-center gap-2 mb-6 animate-enter"
+            >
+              <input
+                type="text"
+                value={mobileSearchQuery}
+                onChange={(e) => setMobileSearchQuery(e.target.value)}
+                placeholder="Search products…"
+                className="flex-1 rounded-full px-4 py-2.5 text-sm border focus:outline-none"
+                style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
+              />
+              <button
+                type="submit"
+                aria-label="Search"
+                className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                style={{ background: 'var(--blush-border)', color: 'var(--blush-text)' }}
+              >
+                <Icon name="MagnifyingGlassIcon" size={18} />
+              </button>
+            </form>
+
             <nav className="flex flex-col gap-4 flex-1 overflow-y-auto">
               {navLinks.map((link, i) => (
                 <Link
@@ -287,14 +337,6 @@ function HeaderContent() {
                 onClick={() => setMenuOpen(false)}
               >
                 <Icon name="UserIcon" size={18} /> Account
-              </Link>
-              <Link
-                href="/wishlist"
-                className="flex items-center gap-2 text-sm font-semibold"
-                style={{ color: 'var(--blush-text)' }}
-                onClick={() => setMenuOpen(false)}
-              >
-                <Icon name="HeartIcon" size={18} /> Wishlist
               </Link>
               {isAdmin && (
                 <>

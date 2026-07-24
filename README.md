@@ -130,6 +130,11 @@ earlier ones:
     Reflects the current checkout flow: cart → WhatsApp directly, no form,
     no login, no online payment — everything after the WhatsApp message is
     negotiated in the chat itself.
+19. `product-images-sort-order-bigint-migration.sql` — widens
+    `product_images.sort_order` from `integer` to `bigint`. It stores
+    `Date.now()` (a millisecond timestamp, ~1.78 trillion as of 2026), which
+    overflowed the 32-bit `integer` column (max ~2.1 billion) and made every
+    "Add another photo" attempt fail.
 
 Also see `.env.example` for every environment variable the app reads.
 `SUPABASE_SERVICE_ROLE_KEY` is needed for the guest order-confirmation page

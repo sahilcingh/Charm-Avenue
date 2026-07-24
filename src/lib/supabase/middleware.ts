@@ -11,7 +11,7 @@ import { shouldCheckSession } from '@/lib/session-refresh';
  * doesn't need. A logged-in customer's session gets refreshed on every route,
  * not just /admin — it previously only refreshed on admin routes, so a
  * customer's session could silently go stale while browsing /account or
- * /wishlist.
+ * /cart.
  */
 export async function updateSession(request: NextRequest) {
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');

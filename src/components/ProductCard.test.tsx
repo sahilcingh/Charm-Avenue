@@ -4,14 +4,10 @@ import React from 'react';
 import ProductCard from './ProductCard';
 import { CartProvider, useCart } from '@/lib/cart-context';
 import { ToastProvider } from '@/lib/toast-context';
-import { WishlistProvider } from '@/lib/wishlist-context';
 import { AdminModeProvider, ADMIN_MODE_STORAGE_KEY } from '@/lib/admin-mode-context';
 import type { Product } from '@/lib/supabase/product-mapper';
 
 const getUserMock = vi.fn();
-const insertMock = vi.fn();
-const deleteEqEqMock = vi.fn();
-const selectEqMock = vi.fn();
 const pushMock = vi.fn();
 const profileIsAdminMock = vi.fn();
 
@@ -26,10 +22,9 @@ vi.mock('@/lib/supabase/client', () => ({
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
     },
     // CartProvider's self-pruning validity check queries 'products' — treat every
-    // queried id as valid/active so it never interferes with wishlist-focused tests.
+    // queried id as valid/active so it never interferes with these tests.
     // AdminModeProvider queries 'profiles' for is_admin — defaults to non-admin
-    // (see beforeEach) so the wishlist-focused tests are unaffected; the admin-only
-    // tests below override it per-case.
+    // (see beforeEach); the admin-only tests below override it per-case.
     from: (table: string) => {
       if (table === 'products') {
         return {
@@ -41,14 +36,8 @@ vi.mock('@/lib/supabase/client', () => ({
           }),
         };
       }
-      if (table === 'profiles') {
-        return { select: () => ({ eq: () => ({ single: profileIsAdminMock }) }) };
-      }
-      return {
-        select: () => ({ eq: selectEqMock }),
-        insert: insertMock,
-        delete: () => ({ eq: () => ({ eq: deleteEqEqMock }) }),
-      };
+      // 'profiles'
+      return { select: () => ({ eq: () => ({ single: profileIsAdminMock }) }) };
     },
   }),
 }));
@@ -90,12 +79,10 @@ function renderCard(overrides: Partial<Product> = {}) {
   return render(
     <ToastProvider>
       <CartProvider>
-        <WishlistProvider>
-          <AdminModeProvider>
-            <ProductCard product={{ ...product, ...overrides }} />
-            <CartProbe />
-          </AdminModeProvider>
-        </WishlistProvider>
+        <AdminModeProvider>
+          <ProductCard product={{ ...product, ...overrides }} />
+          <CartProbe />
+        </AdminModeProvider>
       </CartProvider>
     </ToastProvider>
   );
@@ -105,27 +92,20 @@ function mockLoggedOut() {
   getUserMock.mockResolvedValue({ data: { user: null } });
 }
 
-function mockLoggedIn(wishlisted: string[] = []) {
+function mockLoggedIn() {
   getUserMock.mockResolvedValue({ data: { user: { id: 'user-1' } } });
-  selectEqMock.mockResolvedValue({ data: wishlisted.map((id) => ({ product_id: id })) });
 }
 
 function mockLoggedInAsAdmin() {
   getUserMock.mockResolvedValue({ data: { user: { id: 'admin-1' } } });
-  selectEqMock.mockResolvedValue({ data: [] });
   profileIsAdminMock.mockResolvedValue({ data: { is_admin: true } });
 }
 
 beforeEach(() => {
   window.localStorage.clear();
   getUserMock.mockReset();
-  insertMock.mockReset();
-  deleteEqEqMock.mockReset();
-  selectEqMock.mockReset();
   pushMock.mockReset();
   profileIsAdminMock.mockReset();
-  insertMock.mockResolvedValue({ error: null });
-  deleteEqEqMock.mockResolvedValue({ error: null });
   profileIsAdminMock.mockResolvedValue({ data: { is_admin: false } });
 });
 
@@ -193,72 +173,23 @@ describe('ProductCard', () => {
     expect(await screen.findByTestId('cart-probe')).toHaveTextContent('1');
     expect(await screen.findByText('Panda Lamp added to your bag')).toBeInTheDocument();
   });
-
-  it('prompts sign-in instead of saving when a logged-out visitor clicks the wishlist heart (edge case)', async () => {
-    mockLoggedOut();
-    renderCard();
-
-    act(() => screen.getByRole('button', { name: 'Add to wishlist' }).click());
-
-    expect(await screen.findByText('Sign in to save favorites')).toBeInTheDocument();
-    expect(insertMock).not.toHaveBeenCalled();
-  });
-
-  it('saves the product to the wishlist when a logged-in customer clicks the heart', async () => {
-    mockLoggedIn([]);
-    renderCard();
-
-    await waitFor(() => expect(selectEqMock).toHaveBeenCalled());
-    act(() => screen.getByRole('button', { name: 'Add to wishlist' }).click());
-
-    await waitFor(() =>
-      expect(insertMock).toHaveBeenCalledWith({ user_id: 'user-1', product_id: 'p1' })
-    );
-    expect(await screen.findByText('Panda Lamp added to your wishlist')).toBeInTheDocument();
-    expect(await screen.findByRole('button', { name: 'Remove from wishlist' })).toBeInTheDocument();
-  });
-
-  it('removes the product from the wishlist when clicking an already-saved heart, without a toast (matches cart remove convention)', async () => {
-    mockLoggedIn(['p1']);
-    renderCard();
-
-    const button = await screen.findByRole('button', { name: 'Remove from wishlist' });
-    act(() => button.click());
-
-    await waitFor(() => expect(deleteEqEqMock).toHaveBeenCalled());
-    expect(await screen.findByRole('button', { name: 'Add to wishlist' })).toBeInTheDocument();
-  });
-
-  it('shows an error toast and leaves the heart state unchanged if the wishlist write fails (failure case)', async () => {
-    mockLoggedIn([]);
-    insertMock.mockResolvedValue({ error: { message: 'network error' } });
-    renderCard();
-
-    await waitFor(() => expect(selectEqMock).toHaveBeenCalled());
-    act(() => screen.getByRole('button', { name: 'Add to wishlist' }).click());
-
-    expect(
-      await screen.findByText('Could not update your wishlist. Please try again.')
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Add to wishlist' })).toBeInTheDocument();
-  });
 });
 
 describe('ProductCard — admin edit controls', () => {
   it('does not render the edit control for a regular (non-admin) user', async () => {
-    mockLoggedIn([]);
+    mockLoggedIn();
     renderCard();
 
-    await waitFor(() => expect(selectEqMock).toHaveBeenCalled());
+    await waitFor(() => expect(profileIsAdminMock).toHaveBeenCalled());
     expect(screen.queryByRole('button', { name: /edit panda lamp/i })).not.toBeInTheDocument();
   });
 
   it('does not render the edit control for a non-admin even with a stale "admin mode on" preference left in localStorage (failure case: a leaked/forged preference must not grant admin UI)', async () => {
     window.localStorage.setItem(ADMIN_MODE_STORAGE_KEY, 'true');
-    mockLoggedIn([]);
+    mockLoggedIn();
     renderCard();
 
-    await waitFor(() => expect(selectEqMock).toHaveBeenCalled());
+    await waitFor(() => expect(profileIsAdminMock).toHaveBeenCalled());
     expect(screen.queryByRole('button', { name: /edit panda lamp/i })).not.toBeInTheDocument();
   });
 

@@ -6,7 +6,6 @@ import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/lib/cart-context';
 import { useToast } from '@/lib/toast-context';
-import { useWishlistToggle } from '@/lib/use-wishlist-toggle';
 import { useAdminMode } from '@/lib/admin-mode-context';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import type { Product } from '@/lib/supabase/product-mapper';
@@ -41,10 +40,8 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   const [added, setAdded] = useState(false);
   const { addToCart } = useCart();
   const { showToast } = useToast();
-  const { isInWishlist, toggleWithFeedback } = useWishlistToggle();
   const { adminModeOn } = useAdminMode();
   const router = useRouter();
-  const wishlisted = isInWishlist(product.id);
   const showDiscount =
     Boolean(product.originalPrice) &&
     isSaleWindowActive(product.saleStartsAt, product.saleEndsAt, new Date());
@@ -55,11 +52,6 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
     setAdded(true);
     setTimeout(() => setAdded(false), 1200);
     showToast(`${product.name} added to your bag`, { href: '/cart', actionLabel: 'View Bag' });
-  };
-
-  const handleToggleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    toggleWithFeedback(product.id, product.name);
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -92,23 +84,11 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
             {product.tag}
           </span>
         )}
-        <button
-          onClick={handleToggleWishlist}
-          aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full glass-white flex items-center justify-center z-10 transition-transform hover:scale-110"
-        >
-          <Icon
-            name="HeartIcon"
-            variant={wishlisted ? 'solid' : 'outline'}
-            size={16}
-            style={{ color: wishlisted ? 'var(--blush-rose)' : '#FFFFFF' }}
-          />
-        </button>
         {adminModeOn && (
           <button
             onClick={handleEdit}
             aria-label={`Edit ${product.name}`}
-            className="absolute top-12 right-2 w-8 h-8 rounded-full glass-white flex items-center justify-center z-10 transition-transform hover:scale-110"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full glass-white flex items-center justify-center z-10 transition-transform hover:scale-110"
           >
             <Icon name="PencilSquareIcon" size={15} style={{ color: '#FFFFFF' }} />
           </button>
