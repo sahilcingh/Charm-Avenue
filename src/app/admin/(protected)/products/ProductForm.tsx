@@ -46,7 +46,10 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
       type="submit"
       disabled={pending}
       className={`w-full sm:w-auto px-10 py-4 rounded-full font-bold text-sm uppercase tracking-widest text-white flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.03] disabled:opacity-60 disabled:hover:scale-100 ${pending ? '' : 'animate-pulse-glow'}`}
-      style={{ background: 'var(--blush-rose)', boxShadow: '0 6px 24px rgba(232,130,143,0.4)' }}
+      style={{
+        background: 'var(--blush-rose-button)',
+        boxShadow: '0 6px 24px rgba(232,130,143,0.4)',
+      }}
     >
       {pending ? (
         <>
@@ -259,7 +262,28 @@ export default function ProductForm({
               setDragActive(false);
               handleFiles(e.dataTransfer.files);
             }}
-            onClick={() => !compressing && fileInputRef.current?.click()}
+            onClick={(e) => {
+              // A programmatic fileInputRef.current.click() (below, and from the keyboard
+              // handler) dispatches a real click event that bubbles right back up to this same
+              // div — without this guard it would re-enter this handler and open the picker a
+              // second time.
+              if (e.target === fileInputRef.current) return;
+              if (!compressing) fileInputRef.current?.click();
+            }}
+            onKeyDown={(e) => {
+              if (compressing) return;
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={
+              preview
+                ? 'Click or drop to replace the product photo'
+                : 'Click or drag a photo here to upload'
+            }
             className={`relative rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-3 py-8 px-4 transition-all duration-300 ${compressing ? 'cursor-wait' : 'cursor-pointer'}`}
             style={{
               borderColor: dragActive ? 'var(--blush-rose)' : 'var(--blush-border)',

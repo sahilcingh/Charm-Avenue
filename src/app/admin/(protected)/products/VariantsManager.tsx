@@ -224,7 +224,7 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
             disabled={isPending}
             aria-label="Save variant"
             className="w-8 h-8 rounded-full flex items-center justify-center text-white disabled:opacity-60"
-            style={{ background: 'var(--blush-rose)' }}
+            style={{ background: 'var(--blush-rose-button)' }}
           >
             <Icon name="CheckIcon" size={14} />
           </button>

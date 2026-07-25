@@ -145,7 +145,7 @@ export default function InstagramCarousel({ products }: { products: Product[] })
                 <button
                   onClick={(e) => handleAddToBag(e, item)}
                   className="text-white px-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-colors shadow-lg"
-                  style={{ background: 'var(--blush-rose)' }}
+                  style={{ background: 'var(--blush-rose-button)' }}
                   onMouseEnter={(e) => {
                     const btn = e.currentTarget as HTMLButtonElement;
                     btn.style.background = '#FFFFFF';

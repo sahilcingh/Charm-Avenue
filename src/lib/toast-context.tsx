@@ -42,7 +42,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           >
             <span
               className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-              style={{ background: 'var(--blush-rose)' }}
+              style={{ background: 'var(--blush-rose-button)' }}
             >
               <Icon name="CheckIcon" size={14} className="text-white" />
             </span>

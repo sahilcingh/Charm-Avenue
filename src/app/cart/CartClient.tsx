@@ -244,7 +244,7 @@ export default function CartClient() {
             href="/shop"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
             style={{
-              background: 'var(--blush-rose)',
+              background: 'var(--blush-rose-button)',
               boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
             }}
           >
@@ -493,7 +493,10 @@ export default function CartClient() {
               onClick={handleEnquiry}
               disabled={isPending}
               className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
-              style={{ background: '#25D366', boxShadow: '0 4px 20px rgba(37,211,102,0.35)' }}
+              style={{
+                background: 'var(--whatsapp-green-button)',
+                boxShadow: '0 4px 20px rgba(37,211,102,0.35)',
+              }}
             >
               <Icon name="ChatBubbleLeftRightIcon" size={18} />
               {isPending ? 'Sending your enquiry…' : 'Enquire on WhatsApp'}

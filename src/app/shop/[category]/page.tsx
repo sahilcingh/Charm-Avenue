@@ -68,7 +68,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
                 className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300"
                 style={
                   c.slug === cat.slug
-                    ? { background: 'var(--blush-rose)', color: '#FFFFFF' }
+                    ? { background: 'var(--blush-rose-button)', color: '#FFFFFF' }
                     : {
                         background: '#FFFFFF',
                         color: 'var(--blush-text)',

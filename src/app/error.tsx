@@ -28,7 +28,7 @@ export default function Error({
       <button
         onClick={reset}
         className="px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-transform hover:scale-105"
-        style={{ background: 'var(--blush-rose)' }}
+        style={{ background: 'var(--blush-rose-button)' }}
       >
         Try Again
       </button>

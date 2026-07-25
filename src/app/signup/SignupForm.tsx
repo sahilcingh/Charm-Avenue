@@ -118,6 +118,21 @@ export default function SignupForm() {
             We&apos;ve sent a 6-digit code to <strong>{form.email}</strong>. Enter it below to
             finish creating your account.
           </p>
+          {/* Shown for every signup attempt that reaches this step, not just ones where the
+              email turned out to already be registered — showing it conditionally would leak
+              exactly the account-existence signal the identical-looking OTP step is meant to
+              hide. A genuine new signup can just ignore this and enter their real code below. */}
+          <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
+            Already have an account with this email?{' '}
+            <Link
+              href="/login"
+              className="font-bold hover:underline"
+              style={{ color: 'var(--blush-rose)' }}
+            >
+              Sign in
+            </Link>{' '}
+            instead.
+          </p>
         </div>
 
         <div className="text-left">
@@ -150,7 +165,7 @@ export default function SignupForm() {
           disabled={verifying}
           className="px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
           style={{
-            background: 'var(--blush-rose)',
+            background: 'var(--blush-rose-button)',
             boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
           }}
         >
@@ -270,7 +285,10 @@ export default function SignupForm() {
         type="submit"
         disabled={loading}
         className="mt-2 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
-        style={{ background: 'var(--blush-rose)', boxShadow: '0 4px 20px rgba(232,130,143,0.35)' }}
+        style={{
+          background: 'var(--blush-rose-button)',
+          boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
+        }}
       >
         {loading ? 'Creating account…' : 'Create Account'}
       </button>

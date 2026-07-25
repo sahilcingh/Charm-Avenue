@@ -10,6 +10,7 @@ import type { DbProductVariant, ProductStockStatus } from '@/lib/supabase/types'
 import type { GalleryImage } from '@/lib/supabase/product-gallery';
 import { resolveVariantDisplay, STOCK_STATUS_LABELS } from '@/lib/supabase/product-variants';
 import { isSaleWindowActive } from '@/lib/supabase/sale-window';
+import { isPlaceholderText } from '@/lib/placeholder-text';
 
 interface ProductDetailInteractiveProps {
   productId: string;
@@ -141,14 +142,34 @@ export default function ProductDetailInteractive({
       ? Math.round(((resolved.originalPrice - resolved.price) / resolved.originalPrice) * 100)
       : null;
 
-  // The variant's own photo becomes the gallery hero when set — everything else in the
-  // gallery (the main photo plus any additional ones) stays available as thumbnails.
-  const displayImages: GalleryImage[] = selectedVariant?.image
-    ? [
-        { url: selectedVariant.image, alt: galleryImages[0]?.alt ?? productName },
-        ...galleryImages.filter((img) => img.url !== selectedVariant.image),
-      ]
-    : galleryImages;
+  // The variant's own photo becomes the gallery hero when set. Every OTHER color's own photo is
+  // also included as a thumbnail (tagged with its color) so a shopper can browse every option's
+  // look directly in the gallery, not just whichever one happens to be selected right now —
+  // clicking one of these also switches the active color (see onSelectColor below), keeping the
+  // gallery, the color pill, and the price/stock always in agreement.
+  const heroImage: GalleryImage = selectedVariant?.image
+    ? {
+        url: selectedVariant.image,
+        alt: galleryImages[0]?.alt ?? productName,
+        color: selectedColor ?? undefined,
+      }
+    : (galleryImages[0] ?? { url: '', alt: productName });
+
+  const colorPhotos: GalleryImage[] = colors.flatMap((c) => {
+    const variant = variants.find((v) => v.color === c && v.image);
+    return variant
+      ? [{ url: variant.image as string, alt: `${productName} — ${c}`, color: c }]
+      : [];
+  });
+
+  const seenImageUrls = new Set([heroImage.url]);
+  const otherImages = [...colorPhotos, ...galleryImages].filter((img) => {
+    if (seenImageUrls.has(img.url)) return false;
+    seenImageUrls.add(img.url);
+    return true;
+  });
+
+  const displayImages: GalleryImage[] = [heroImage, ...otherImages];
 
   // A specific variant's stock is fully authoritative while one is selected (no fallback to
   // the product's own stock fields) — but the "Default" option is deliberately the base
@@ -165,7 +186,17 @@ export default function ProductDetailInteractive({
 
   return (
     <div className="grid md:grid-cols-2 gap-8 md:gap-14">
-      <ProductGallery images={displayImages} tag={tag} tagBg={tagBg} tagText={tagText} />
+      {/* Keyed on the selected variant so switching color/size remounts the gallery fresh —
+          otherwise its internal "which thumbnail is active" state survived the swap, leaving the
+          ring pointing at a position that no longer matched the new variant's own photo array. */}
+      <ProductGallery
+        key={selectedVariant?.id ?? 'default'}
+        images={displayImages}
+        tag={tag}
+        tagBg={tagBg}
+        tagText={tagText}
+        onSelectColor={handleSelectColor}
+      />
 
       <div className="flex flex-col">
         <Link
@@ -350,12 +381,14 @@ export default function ProductDetailInteractive({
           )}
         </div>
 
-        <p
-          className="text-base leading-relaxed mb-8"
-          style={{ color: 'var(--blush-text)', opacity: 0.8 }}
-        >
-          {description}
-        </p>
+        {!isPlaceholderText(description) && (
+          <p
+            className="text-base leading-relaxed mb-8"
+            style={{ color: 'var(--blush-text)', opacity: 0.8 }}
+          >
+            {description}
+          </p>
+        )}
 
         {(dimensions || material || careInstructions) && (
           <div className="flex flex-col gap-1.5 mb-8 rounded-2xl bg-white p-4 card-bubble">

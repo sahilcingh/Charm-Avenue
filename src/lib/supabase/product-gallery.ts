@@ -1,6 +1,9 @@
 export interface GalleryImage {
   url: string;
   alt: string;
+  /** Set when this thumbnail is a specific color variant's own photo — selecting it should also
+   *  switch the page's active color, not just change which thumbnail is highlighted. */
+  color?: string;
 }
 
 /**

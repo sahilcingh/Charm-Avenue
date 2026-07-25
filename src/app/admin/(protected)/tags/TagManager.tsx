@@ -43,7 +43,7 @@ function TagRow({ tag }: { tag: DbTag }) {
             disabled={isPending}
             aria-label="Save"
             className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 disabled:opacity-60"
-            style={{ background: 'var(--blush-rose)' }}
+            style={{ background: 'var(--blush-rose-button)' }}
           >
             <Icon name="CheckIcon" size={14} />
           </button>
@@ -80,7 +80,7 @@ function TagRow({ tag }: { tag: DbTag }) {
           <button
             onClick={() => setEditing(true)}
             aria-label={`Rename ${tag.label}`}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose)] hover:text-white"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-button)] hover:text-white"
           >
             <Icon name="PencilSquareIcon" size={15} />
           </button>
@@ -161,7 +161,7 @@ export default function TagManager({ tags }: { tags: DbTag[] }) {
             type="submit"
             disabled={isPending || !newLabel.trim()}
             className="px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest text-white shrink-0 disabled:opacity-60"
-            style={{ background: 'var(--blush-rose)' }}
+            style={{ background: 'var(--blush-rose-button)' }}
           >
             {isPending ? 'Adding…' : 'Add'}
           </button>

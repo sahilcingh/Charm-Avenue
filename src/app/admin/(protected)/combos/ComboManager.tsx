@@ -169,7 +169,7 @@ function ComboRow({
               onClick={handleSave}
               disabled={isPending}
               className="px-5 py-2 rounded-full font-bold text-xs uppercase tracking-widest text-white disabled:opacity-60"
-              style={{ background: 'var(--blush-rose)' }}
+              style={{ background: 'var(--blush-rose-button)' }}
             >
               {isPending ? 'Saving…' : 'Save'}
             </button>
@@ -238,7 +238,7 @@ function ComboRow({
             <button
               onClick={() => setEditing(true)}
               aria-label={`Edit ${combo.name}`}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose)] hover:text-white"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-button)] hover:text-white"
             >
               <Icon name="PencilSquareIcon" size={15} />
             </button>
@@ -387,7 +387,7 @@ export default function ComboManager({
           type="submit"
           disabled={isPending || !name.trim() || selected.size < 2}
           className="self-start px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest text-white disabled:opacity-60"
-          style={{ background: 'var(--blush-rose)' }}
+          style={{ background: 'var(--blush-rose-button)' }}
         >
           {isPending ? 'Adding…' : 'Add Combo'}
         </button>

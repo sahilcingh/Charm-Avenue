@@ -92,7 +92,10 @@ export default function HeroSection() {
         <Link
           href="/shop"
           className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm uppercase tracking-widest text-white transition-transform duration-300 hover:scale-105"
-          style={{ background: 'var(--blush-rose)', boxShadow: '0 6px 20px rgba(221,139,148,0.4)' }}
+          style={{
+            background: 'var(--blush-rose-button)',
+            boxShadow: '0 6px 20px rgba(221,139,148,0.4)',
+          }}
         >
           Shop Now
           <Icon name="ArrowRightIcon" size={16} />

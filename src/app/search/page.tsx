@@ -48,7 +48,7 @@ export default async function SearchPage({
                 href="/shop"
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
                 style={{
-                  background: 'var(--blush-rose)',
+                  background: 'var(--blush-rose-button)',
                   boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
                 }}
               >

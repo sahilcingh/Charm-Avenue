@@ -202,6 +202,106 @@ describe('ProductDetailInteractive — switching back to the Default (pre-varian
   });
 });
 
+describe('ProductDetailInteractive — placeholder description text', () => {
+  it(
+    'hides the description entirely when it is a literal placeholder like "N/A" instead of ' +
+      'rendering it verbatim (failure case: catalog rows with no real copy yet stored the ' +
+      'string "N/A", which rendered as unlabeled placeholder text right on the product page)',
+    () => {
+      searchParamsValue = new URLSearchParams();
+      renderDetail([], { description: 'N/A' });
+      expect(screen.queryByText('N/A')).not.toBeInTheDocument();
+    }
+  );
+
+  it('still shows a real description as normal', () => {
+    searchParamsValue = new URLSearchParams();
+    renderDetail([], { description: 'Soft and good for hairs.' });
+    expect(screen.getByText('Soft and good for hairs.')).toBeInTheDocument();
+  });
+});
+
+describe('ProductDetailInteractive — gallery reset on variant switch', () => {
+  it(
+    "resets the gallery back to the new variant's own photo when switching color, instead of " +
+      "leaving a stale thumbnail highlighted from the previous variant's photo array (failure " +
+      'case: the gallery kept its own internal "active thumbnail" state across a color switch, ' +
+      'so the ring could end up marking a position that no longer matched what was on screen)',
+    () => {
+      searchParamsValue = new URLSearchParams('color=Pink');
+      renderDetail(
+        [
+          makeVariant({ id: 'v1', color: 'Pink', image: '/pink.jpg' }),
+          makeVariant({ id: 'v2', color: 'Blue', image: '/blue.jpg' }),
+        ],
+        {
+          galleryImages: [
+            { url: '/base.jpg', alt: 'Panda Lamp' },
+            { url: '/base-2.jpg', alt: 'Panda Lamp' },
+          ],
+        }
+      );
+
+      // Gallery = [pink.jpg (hero), blue.jpg (Blue's own photo), base.jpg, base-2.jpg].
+      act(() => screen.getByRole('button', { name: 'Show photo 4' }).click());
+      expect(screen.getAllByAltText('Panda Lamp')[0]).toHaveAttribute(
+        'src',
+        expect.stringContaining('base-2.jpg')
+      );
+
+      // Switch to Blue: gallery becomes [blue.jpg, base.jpg, base-2.jpg] — must reset to index 0.
+      act(() => screen.getByRole('button', { name: 'Blue' }).click());
+      const hero = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+      expect(hero.src).toContain('blue.jpg');
+    }
+  );
+
+  it(
+    "includes every color variant's own photo as a gallery thumbnail, not just the currently " +
+      'selected one plus a single generic group shot (failure case reported live: a product with ' +
+      "6 real colors only ever showed 2 gallery thumbnails — the selected color's photo and the " +
+      "base product's one shared photo — so there was no way to preview any other color's photo " +
+      'without using the color pills)',
+    () => {
+      searchParamsValue = new URLSearchParams('color=Black');
+      renderDetail(
+        [
+          makeVariant({ id: 'v1', color: 'Black', image: '/black.jpg' }),
+          makeVariant({ id: 'v2', color: 'White', image: '/white.jpg' }),
+          makeVariant({ id: 'v3', color: 'Brown', image: '/brown.jpg' }),
+        ],
+        { galleryImages: [{ url: '/group-shot.jpg', alt: 'Panda Lamp' }] }
+      );
+
+      expect(screen.getByRole('button', { name: 'Show Black' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Show White' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Show Brown' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Show photo 4' })).toBeInTheDocument();
+    }
+  );
+
+  it(
+    "clicking another color's gallery thumbnail switches the active color (and its price), " +
+      'keeping the gallery, the color pill, and the price/stock in agreement — rather than only ' +
+      'changing which thumbnail is highlighted while the rest of the page still shows the ' +
+      'previously selected color',
+    () => {
+      searchParamsValue = new URLSearchParams('color=Black');
+      renderDetail([
+        makeVariant({ id: 'v1', color: 'Black', image: '/black.jpg', price_override: 100 }),
+        makeVariant({ id: 'v2', color: 'White', image: '/white.jpg', price_override: 150 }),
+      ]);
+
+      act(() => screen.getByRole('button', { name: 'Show White' }).click());
+
+      expect(getColorLabel().textContent).toBe('Color: White');
+      expect(screen.getByText('₹150')).toBeInTheDocument();
+      const hero = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+      expect(hero.src).toContain('white.jpg');
+    }
+  );
+});
+
 describe('ProductDetailInteractive — color+size cross-filtering (no invalid combos)', () => {
   // Red/S, Red/M, Blue/S exist — Blue/M does not.
   const crossAxisVariants = [

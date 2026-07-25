@@ -13,6 +13,61 @@ const SHIMMER_SVG =
   "<rect width='64' height='64' fill='url(#g)'/></svg>";
 const SHIMMER_BLUR_DATA_URL = `data:image/svg+xml,${encodeURIComponent(SHIMMER_SVG)}`;
 
+// The sentinel used across the catalog for "no photo yet" (and the default `fallbackSrc` below
+// for a real photo that failed to load). Rendered as a real <Image>, the actual PNG at this path
+// is a generic gray/blue "broken image" icon that reads as "the site is broken" rather than
+// "photo coming soon" — this on-brand placeholder replaces it instead of ever fetching it.
+const PLACEHOLDER_SENTINEL = '/assets/images/no_image.png';
+
+function OnBrandPlaceholder({
+  alt,
+  fill,
+  className,
+}: {
+  alt: string;
+  fill: boolean;
+  className: string;
+}) {
+  return (
+    <div
+      role="img"
+      aria-label={alt || 'No photo yet'}
+      className={`flex items-center justify-center ${fill ? 'absolute inset-0' : ''} ${className}`}
+      style={{
+        background: 'var(--blush-bg, #FBF1EF)',
+        width: fill ? undefined : '100%',
+        height: fill ? undefined : '100%',
+      }}
+    >
+      <svg
+        width="38%"
+        height="38%"
+        viewBox="0 0 48 48"
+        fill="none"
+        style={{ maxWidth: 64, maxHeight: 64 }}
+      >
+        <rect
+          x="4"
+          y="8"
+          width="40"
+          height="32"
+          rx="8"
+          stroke="var(--blush-rose, #E8828F)"
+          strokeWidth="2.5"
+        />
+        <circle cx="16" cy="19" r="4" fill="var(--blush-rose, #E8828F)" />
+        <path
+          d="M8 33l10-9 7 6 6-6 9 9"
+          stroke="var(--blush-rose, #E8828F)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
 interface AppImageProps {
   src: string;
   alt: string;
@@ -124,6 +179,18 @@ const AppImage = memo(function AppImage({
     handleLoad,
     onClick,
   ]);
+
+  if (imageSrc === PLACEHOLDER_SENTINEL) {
+    return fill ? (
+      <div className="relative" style={{ width: '100%', height: '100%' }}>
+        <OnBrandPlaceholder alt={alt} fill className={className} />
+      </div>
+    ) : (
+      <div style={{ width: width || 400, height: height || 300 }}>
+        <OnBrandPlaceholder alt={alt} fill={false} className={className} />
+      </div>
+    );
+  }
 
   if (fill) {
     return (

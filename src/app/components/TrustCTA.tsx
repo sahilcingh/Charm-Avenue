@@ -53,7 +53,10 @@ export default function TrustCTA() {
       style={{ background: 'var(--blush-bg)' }}
     >
       {/* Ticker strip */}
-      <div className="w-full py-3.5 overflow-hidden" style={{ background: 'var(--blush-rose)' }}>
+      <div
+        className="w-full py-3.5 overflow-hidden"
+        style={{ background: 'var(--blush-rose-button)' }}
+      >
         <div
           className="flex whitespace-nowrap"
           style={{ animation: 'marqueeScroll 30s linear infinite' }}

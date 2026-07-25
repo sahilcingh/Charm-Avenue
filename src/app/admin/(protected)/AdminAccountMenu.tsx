@@ -39,7 +39,7 @@ export default function AdminAccountMenu({ email }: { email: string | null }) {
         aria-expanded={open}
         aria-haspopup="menu"
         className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-        style={{ background: 'var(--blush-rose)' }}
+        style={{ background: 'var(--blush-rose-button)' }}
         title={email ?? undefined}
       >
         {(email ?? '?').charAt(0).toUpperCase()}

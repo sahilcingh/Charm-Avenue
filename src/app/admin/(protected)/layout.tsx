@@ -60,7 +60,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             />
             <div
               className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-xs font-bold text-white shrink-0"
-              style={{ background: 'var(--blush-rose)' }}
+              style={{ background: 'var(--blush-rose-button)' }}
               title={user.email ?? undefined}
             >
               {(user.email ?? '?').charAt(0).toUpperCase()}

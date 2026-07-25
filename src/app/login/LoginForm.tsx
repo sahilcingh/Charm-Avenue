@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useAdminMode } from '@/lib/admin-mode-context';
 import {
   validateLoginForm,
   friendlyAuthError,
@@ -13,10 +14,12 @@ import {
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshIsAdmin } = useAdminMode();
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,16 +41,14 @@ export default function LoginForm() {
       return;
     }
 
-    let isAdmin = false;
-    if (data.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', data.user.id)
-        .single();
-      isAdmin = profile?.is_admin ?? false;
-    }
-    setLoading(false);
+    // Deliberately never resets `loading`/`redirecting` back to an idle state from here on — the
+    // page is navigating away regardless, and reverting the button to a normal, clickable "Sign
+    // In" while that's still in flight is exactly the confusing, looks-finished-but-isn't state
+    // this was fixed for. Reuses AdminModeProvider's own admin check (shared with its
+    // onAuthStateChange listener, which a fresh sign-in also triggers) instead of running a
+    // second, separate `profiles` lookup for the same thing.
+    setRedirecting(true);
+    const isAdmin = data.user ? await refreshIsAdmin() : false;
 
     router.push(resolveLoginRedirect({ isAdmin, next: searchParams.get('next') }));
     router.refresh();
@@ -111,9 +112,12 @@ export default function LoginForm() {
         type="submit"
         disabled={loading}
         className="mt-2 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
-        style={{ background: 'var(--blush-rose)', boxShadow: '0 4px 20px rgba(232,130,143,0.35)' }}
+        style={{
+          background: 'var(--blush-rose-button)',
+          boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
+        }}
       >
-        {loading ? 'Signing in…' : 'Sign In'}
+        {redirecting ? 'Redirecting…' : loading ? 'Signing in…' : 'Sign In'}
       </button>
 
       <p className="text-center text-sm" style={{ color: 'var(--blush-muted)' }}>

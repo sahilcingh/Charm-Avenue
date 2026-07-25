@@ -158,7 +158,7 @@ export default function AboutPage() {
             href="/shop"
             className="inline-flex items-center gap-2 px-10 py-4 rounded-full font-bold text-base uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
             style={{
-              background: 'var(--blush-rose)',
+              background: 'var(--blush-rose-button)',
               boxShadow: '0 4px 20px rgba(232,130,143,0.4)',
             }}
           >

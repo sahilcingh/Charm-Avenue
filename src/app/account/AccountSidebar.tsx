@@ -44,7 +44,7 @@ export default function AccountSidebar({ name, email }: { name: string; email: s
       <div className="bg-white rounded-3xl p-6 card-bubble flex items-center gap-4">
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold shrink-0"
-          style={{ background: 'var(--blush-rose)' }}
+          style={{ background: 'var(--blush-rose-button)' }}
         >
           {(name || email || '?').charAt(0).toUpperCase()}
         </div>
@@ -66,7 +66,7 @@ export default function AccountSidebar({ name, email }: { name: string; email: s
                 disabled={isPending}
                 aria-label="Save name"
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 disabled:opacity-60"
-                style={{ background: 'var(--blush-rose)' }}
+                style={{ background: 'var(--blush-rose-button)' }}
               >
                 <Icon name="CheckIcon" size={14} />
               </button>

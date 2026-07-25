@@ -85,7 +85,10 @@ export default function ContactForm() {
       <button
         type="submit"
         className="mt-2 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] self-start"
-        style={{ background: 'var(--blush-rose)', boxShadow: '0 4px 20px rgba(232,130,143,0.35)' }}
+        style={{
+          background: 'var(--blush-rose-button)',
+          boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
+        }}
       >
         Send Message
       </button>

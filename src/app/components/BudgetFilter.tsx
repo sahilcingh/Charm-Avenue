@@ -36,7 +36,7 @@ export default function BudgetFilter({ products }: { products: Product[] }) {
           <div>
             <span
               className="badge-pill text-white mb-3 inline-flex"
-              style={{ background: 'var(--blush-rose)' }}
+              style={{ background: 'var(--blush-rose-button)' }}
             >
               <span>🏷️</span> Budget Friendly
             </span>

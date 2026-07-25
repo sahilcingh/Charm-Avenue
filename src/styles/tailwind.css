@@ -28,6 +28,13 @@
   --blush-text: #1e1712;
   --blush-muted: #9c6d74;
   --blush-border: #ebd9d5;
+  /* --blush-rose is a soft pastel — white text on it only reaches ~2.6:1 contrast, well under
+     WCAG AA's 4.5:1 for normal text. These two are the same brand hues darkened just enough to
+     pass, used specifically as button FILLS behind white text (Add to Bag, Sign In, Enquire on
+     WhatsApp, etc.) — --blush-rose itself is untouched everywhere else (borders, rings, links,
+     decorative accents), where this contrast requirement doesn't apply the same way. */
+  --blush-rose-button: #c62439;
+  --whatsapp-green-button: #1b7e48;
 }
 
 @layer base {

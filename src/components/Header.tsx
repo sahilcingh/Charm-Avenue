@@ -215,7 +215,7 @@ function HeaderContent() {
                 href="/account"
                 aria-label="My Account"
                 className="hidden sm:flex w-9 h-9 items-center justify-center rounded-full text-xs font-bold text-white transition-opacity hover:opacity-80"
-                style={{ background: 'var(--blush-rose)' }}
+                style={{ background: 'var(--blush-rose-button)' }}
               >
                 {accountInitial}
               </Link>
@@ -238,7 +238,7 @@ function HeaderContent() {
               <Icon name="ShoppingBagIcon" size={19} />
               <span
                 className="absolute -top-1 -right-1 min-w-[1rem] h-[1rem] px-1 rounded-full text-white text-[0.5625rem] font-bold flex items-center justify-center"
-                style={{ background: 'var(--blush-rose)' }}
+                style={{ background: 'var(--blush-rose-button)' }}
               >
                 {itemCount}
               </span>
@@ -351,7 +351,7 @@ function HeaderContent() {
             <Link
               href="/shop"
               className="w-full text-white py-4 rounded-full font-semibold text-base uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 animate-enter delay-800"
-              style={{ background: 'var(--blush-rose)' }}
+              style={{ background: 'var(--blush-rose-button)' }}
               onClick={() => setMenuOpen(false)}
             >
               Shop Now

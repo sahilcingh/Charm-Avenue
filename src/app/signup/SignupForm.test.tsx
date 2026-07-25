@@ -168,4 +168,20 @@ describe('SignupForm', () => {
     );
     expect(showToastMock).toHaveBeenCalledWith('A new code is on its way.');
   });
+
+  it(
+    'shows an immediate, visible "sign in instead" link on the OTP step for every signup attempt ' +
+      '(not just failed ones — that would leak which emails are already registered), so someone ' +
+      "who already has an account and mistakenly tried to sign up again isn't stuck waiting " +
+      'forever for a code that will never arrive (failure case: the only way out used to be a ' +
+      'small "Sign in" link elsewhere in the page footer, easy to miss)',
+    async () => {
+      const user = userEvent.setup();
+      await fillFormAndReachOtpStep(user);
+
+      const signInLink = screen.getByRole('link', { name: 'Sign in' });
+      expect(signInLink).toBeInTheDocument();
+      expect(signInLink).toHaveAttribute('href', '/login');
+    }
+  );
 });

@@ -67,7 +67,7 @@ export default async function AdminProductsPage() {
             href="/admin/products/new"
             className="px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest text-white flex items-center gap-2 transition-all duration-300 hover:scale-[1.03]"
             style={{
-              background: 'var(--blush-rose)',
+              background: 'var(--blush-rose-button)',
               boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
             }}
           >
@@ -233,7 +233,7 @@ export default async function AdminProductsPage() {
                   <Link
                     href={`/admin/products/${product.id}`}
                     aria-label={`Edit ${product.name}`}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose)] hover:text-white"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-button)] hover:text-white"
                   >
                     <Icon name="PencilSquareIcon" size={15} />
                   </Link>
@@ -376,7 +376,7 @@ export default async function AdminProductsPage() {
                         <Link
                           href={`/admin/products/${product.id}`}
                           aria-label={`Edit ${product.name}`}
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose)] hover:text-white"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-button)] hover:text-white"
                         >
                           <Icon name="PencilSquareIcon" size={15} />
                         </Link>

@@ -174,7 +174,7 @@ export default function AccountMain({
             disabled={savingContact}
             className="mt-1 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100 self-start"
             style={{
-              background: 'var(--blush-rose)',
+              background: 'var(--blush-rose-button)',
               boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
             }}
           >
@@ -231,7 +231,7 @@ export default function AccountMain({
             disabled={savingPassword}
             className="mt-1 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100 self-start"
             style={{
-              background: 'var(--blush-rose)',
+              background: 'var(--blush-rose-button)',
               boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
             }}
           >

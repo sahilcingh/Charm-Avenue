@@ -294,7 +294,7 @@ export default function CategoryFormModal({
             disabled={isPending}
             className="px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white flex items-center justify-center gap-2 disabled:opacity-60"
             style={{
-              background: 'var(--blush-rose)',
+              background: 'var(--blush-rose-button)',
               boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
             }}
           >
