@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import { useAdminMode } from '@/lib/admin-mode-context';
-import { createClient } from '@/lib/supabase/client';
 import { getInitial } from '@/lib/auth-validation';
 import { useLiveProductSearch } from '@/lib/use-live-product-search';
 import SearchResultsDropdown from '@/components/SearchResultsDropdown';
@@ -53,12 +52,12 @@ function HeaderFallback() {
 
 function HeaderContent() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [accountInitial, setAccountInitial] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileSearchQuery, setMobileSearchQuery] = useState('');
   const { itemCount } = useCart();
-  const { isAdmin } = useAdminMode();
+  const { isAdmin, user } = useAdminMode();
+  const accountInitial = user ? getInitial(user.user_metadata?.name || user.email || '') : null;
   const pathname = usePathname();
   const router = useRouter();
   const desktopSearch = useLiveProductSearch(searchQuery);
@@ -78,26 +77,6 @@ function HeaderContent() {
     setMobileSearchQuery('');
     setMenuOpen(false);
   }
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    const applyUser = (user: { user_metadata?: { name?: string }; email?: string } | null) => {
-      if (!user) {
-        setAccountInitial(null);
-        return;
-      }
-      setAccountInitial(getInitial(user.user_metadata?.name || user.email || ''));
-    };
-
-    supabase.auth.getUser().then(({ data }) => applyUser(data.user));
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      applyUser(session?.user ?? null);
-    });
-
-    return () => listener.subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (menuOpen) {

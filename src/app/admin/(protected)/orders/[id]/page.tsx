@@ -14,10 +14,14 @@ export default async function AdminOrderDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: order } = await supabase.from('orders').select('*').eq('id', id).maybeSingle();
+  // order_items only keys on the id route param, not on the order row itself, so both queries
+  // can run together instead of paying for two sequential round-trips on every order view.
+  const [{ data: order }, { data: items }] = await Promise.all([
+    supabase.from('orders').select('*').eq('id', id).maybeSingle(),
+    supabase.from('order_items').select('*').eq('order_id', id),
+  ]);
   if (!order) notFound();
 
-  const { data: items } = await supabase.from('order_items').select('*').eq('order_id', id);
   const orderItems = (items ?? []) as DbOrderItem[];
 
   return (

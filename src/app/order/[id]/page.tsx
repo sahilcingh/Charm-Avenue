@@ -30,11 +30,13 @@ export default async function OrderLookupPage({ params }: { params: Promise<{ id
       'SUPABASE_SERVICE_ROLE_KEY is not configured — order confirmation pages cannot load.'
     );
 
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
+  // order_items only keys on the id route param, not on anything from the orders row, so it's
+  // safe to fetch alongside it rather than waiting on it first — a 404's items query is wasted,
+  // but that's cheaper than making every real order confirmation pay for two round-trips.
+  const [{ data: order, error: orderError }, { data: items }] = await Promise.all([
+    supabase.from('orders').select('*').eq('id', id).maybeSingle(),
+    supabase.from('order_items').select('*').eq('order_id', id),
+  ]);
   if (orderError) {
     // A real query failure (bad/mismatched service-role key, wrong project, etc.)
     // looks identical to "no such order" to the visitor otherwise — log it
@@ -44,7 +46,6 @@ export default async function OrderLookupPage({ params }: { params: Promise<{ id
   }
   if (!order) notFound();
 
-  const { data: items } = await supabase.from('order_items').select('*').eq('order_id', id);
   const orderRow = order as DbOrder;
   const orderItems = (items ?? []) as DbOrderItem[];
   const status = ORDER_STATUS_LABELS[orderRow.status];

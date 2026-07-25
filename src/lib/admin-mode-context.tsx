@@ -2,27 +2,42 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from './supabase/client';
 
+interface AuthUser {
+  id: string;
+  email?: string;
+  user_metadata?: { name?: string };
+}
+
 interface IsAdminContextValue {
   isAdmin: boolean;
+  user: AuthUser | null;
 }
 
 const IsAdminContext = createContext<IsAdminContextValue | null>(null);
 
+/**
+ * The single client-side "who is logged in" check for the whole app — Header used to run its
+ * own separate auth.getUser()/onAuthStateChange pair just to get the account initial, duplicating
+ * the exact same round-trip this provider already makes. Every consumer (Header's account icon,
+ * the admin button, ProductCard's edit affordance) now reads off this one subscription instead.
+ */
 export function AdminModeProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
 
-    const applyUser = async (user: { id: string } | null) => {
-      if (!user) {
+    const applyUser = async (nextUser: AuthUser | null) => {
+      setUser(nextUser);
+      if (!nextUser) {
         setIsAdmin(false);
         return;
       }
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_admin')
-        .eq('id', user.id)
+        .eq('id', nextUser.id)
         .single();
       setIsAdmin(profile?.is_admin ?? false);
     };
@@ -36,7 +51,7 @@ export function AdminModeProvider({ children }: { children: React.ReactNode }) {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  return <IsAdminContext.Provider value={{ isAdmin }}>{children}</IsAdminContext.Provider>;
+  return <IsAdminContext.Provider value={{ isAdmin, user }}>{children}</IsAdminContext.Provider>;
 }
 
 export function useAdminMode() {

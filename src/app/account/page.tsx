@@ -23,16 +23,14 @@ export default async function AccountPage() {
     redirect('/login?next=/account');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('name, email, phone, address')
-    .eq('id', user.id)
-    .single();
-  const { data: orders } = await supabase
-    .from('orders')
-    .select('id, status, subtotal, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+  const [{ data: profile }, { data: orders }] = await Promise.all([
+    supabase.from('profiles').select('name, email, phone, address').eq('id', user.id).single(),
+    supabase
+      .from('orders')
+      .select('id, status, subtotal, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+  ]);
 
   return (
     <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>

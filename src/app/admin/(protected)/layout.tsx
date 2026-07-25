@@ -7,6 +7,13 @@ import SignOutButton from './SignOutButton';
 import AdminNav from './AdminNav';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // Every /admin/* request already passed through middleware's decideAdminAccess (getUser() +
+  // a profiles.is_admin check), which redirects anyone who isn't a logged-in admin before this
+  // layout ever runs — repeating that same profile lookup here just added a second full
+  // round-trip to every admin page load for no additional protection. Server Actions still do
+  // their own independent requireAdmin() check (see src/lib/require-admin.ts), since those can
+  // be invoked from routes middleware's /admin path-matcher never sees — that's a different
+  // attack surface than "did this page render," which is all this layout is gating.
   const supabase = await createClient();
   const {
     data: { user },
@@ -14,15 +21,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!user) {
     redirect('/login?next=/admin/products');
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-  if (!profile?.is_admin) {
-    redirect('/');
   }
 
   return (
