@@ -176,4 +176,29 @@ describe('ProductGallery', () => {
       expect(thumbWrapper?.className).toContain('snap-item');
     }
   );
+
+  it(
+    "carries min-w-0 on the gallery's own root and on the scroll row itself (failure case, " +
+      'confirmed live on a real mobile viewport: this component is a direct CSS Grid item on the ' +
+      'product page, and grid/flex items default to min-width:auto — without min-w-0 at both ' +
+      "levels, the row's full unscrolled content width (496px) silently stretched past the " +
+      'viewport instead of being clipped and scrolled internally, which cut off page content ' +
+      '(e.g. the Add to Bag button) off the right edge and left nothing for a swipe to actually ' +
+      "scroll — jsdom can't measure real layout/overflow, so this only checks the class is " +
+      'present; the actual scroll behavior was verified against a live browser)',
+    () => {
+      const { container } = render(
+        <ProductGallery
+          images={[
+            { url: '/photo-1.jpg', alt: 'Photo 1' },
+            { url: '/photo-2.jpg', alt: 'Photo 2' },
+          ]}
+          activeIndex={0}
+        />
+      );
+      expect(container.firstElementChild?.className).toContain('min-w-0');
+      const row = container.querySelector('.overflow-x-auto');
+      expect(row?.className).toContain('min-w-0');
+    }
+  );
 });

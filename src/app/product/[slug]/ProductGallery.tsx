@@ -35,7 +35,15 @@ export default function ProductGallery({
   const active = images[activeIndex] ?? images[0];
 
   return (
-    <div className="flex flex-col gap-3">
+    // min-w-0 is load-bearing: this is a direct CSS Grid item (ProductDetailInteractive's
+    // `grid md:grid-cols-2`), and grid items default to min-width:auto — meaning without this,
+    // the thumbnail row's full intrinsic content width (every thumbnail side by side, unscrolled)
+    // was allowed to bubble up and stretch the grid track itself past the viewport, instead of
+    // being contained and scrolled by this row's own overflow-x-auto. That silently widened the
+    // whole page a little past the screen edge (clipping "Add to Bag" and everything else off
+    // the right side) while leaving nothing real for a swipe to scroll, since mobile browsers
+    // don't pan a page that's only slightly overflowed this way — it just reads as "stuck."
+    <div className="flex flex-col gap-3 min-w-0">
       <div className="relative aspect-square rounded-4xl overflow-hidden card-bubble">
         <AppImage
           src={active.url}
@@ -65,7 +73,7 @@ export default function ProductGallery({
         // vertical scroll — without it, a swipe that started with any vertical drift could get
         // captured by the page instead of scrolling this row.
         <div
-          className="flex gap-2 overflow-x-auto no-scrollbar snap-scroll py-1"
+          className="flex gap-2 overflow-x-auto no-scrollbar snap-scroll py-1 min-w-0"
           style={{ touchAction: 'pan-x' }}
         >
           {images.map((img, i) => (
