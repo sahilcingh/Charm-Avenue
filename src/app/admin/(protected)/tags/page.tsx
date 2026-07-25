@@ -11,7 +11,7 @@ export default async function AdminTagsPage() {
 
   return (
     <div>
-      <div className="mb-8 animate-enter">
+      <div className="mb-8">
         <h1
           className="font-elegant-serif text-3xl md:text-[2.25rem]"
           style={{ color: 'var(--blush-text)' }}

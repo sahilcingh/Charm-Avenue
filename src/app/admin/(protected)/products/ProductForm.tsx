@@ -67,17 +67,15 @@ function SectionCard({
   icon,
   title,
   subtitle,
-  delay,
   children,
 }: {
   icon: string;
   title: string;
   subtitle?: string;
-  delay: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className={`bg-white rounded-3xl p-6 md:p-7 card-bubble animate-enter ${delay}`}>
+    <div className="bg-white rounded-3xl p-6 md:p-7 card-bubble">
       <div className="flex items-center gap-2.5 mb-5">
         <span
           className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-base"
@@ -249,7 +247,7 @@ export default function ProductForm({
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18.75rem)] gap-6 items-start">
       <form action={action} className="flex flex-col gap-5">
-        <SectionCard icon="📸" title="Product Photo" delay="delay-100">
+        <SectionCard icon="📸" title="Product Photo">
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -356,7 +354,6 @@ export default function ProductForm({
           icon="🎨"
           title="Variants"
           subtitle="Optional — color/size options, each with its own price, stock, and photo"
-          delay="delay-100"
         >
           {product ? (
             <VariantsManager productId={product.id} variants={variants} />
@@ -371,7 +368,6 @@ export default function ProductForm({
           icon="🖼️"
           title="Additional Photos"
           subtitle="Optional — shown after the main photo on the product page"
-          delay="delay-100"
         >
           {product ? (
             <AdditionalPhotosManager productId={product.id} images={images} />
@@ -382,7 +378,7 @@ export default function ProductForm({
           )}
         </SectionCard>
 
-        <SectionCard icon="📝" title="Details" delay="delay-200">
+        <SectionCard icon="📝" title="Details">
           <div>
             <label className={labelClass} style={{ color: 'var(--blush-text)' }}>
               Product Name
@@ -454,7 +450,6 @@ export default function ProductForm({
           icon="🏷️"
           title="Categories & Tags"
           subtitle="Optional — show in more places, or label with tags"
-          delay="delay-200"
         >
           {!categoriesTagsOpen ? (
             <AddSectionButton
@@ -579,7 +574,7 @@ export default function ProductForm({
           )}
         </SectionCard>
 
-        <SectionCard icon="💰" title="Pricing" delay="delay-300">
+        <SectionCard icon="💰" title="Pricing">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass} style={{ color: 'var(--blush-text)' }}>
@@ -674,7 +669,7 @@ export default function ProductForm({
           )}
         </SectionCard>
 
-        <SectionCard icon="🏷️" title="Badge & Rating" delay="delay-400">
+        <SectionCard icon="🏷️" title="Badge & Rating">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass} style={{ color: 'var(--blush-text)' }}>
@@ -748,7 +743,6 @@ export default function ProductForm({
           icon="📦"
           title="Stock & Availability"
           subtitle="Optional — separate from Visibility below"
-          delay="delay-500"
         >
           {!trackStock ? (
             <AddSectionButton
@@ -851,7 +845,6 @@ export default function ProductForm({
           icon="✍️"
           title="Personalization"
           subtitle="Optional — let shoppers add custom text at checkout"
-          delay="delay-600"
         >
           <label className="flex items-center justify-between cursor-pointer">
             <div>
@@ -939,7 +932,6 @@ export default function ProductForm({
           icon="📐"
           title="More Details"
           subtitle="Optional — dimensions, material, care"
-          delay="delay-700"
         >
           {!moreDetailsOpen ? (
             <AddSectionButton
@@ -1004,7 +996,7 @@ export default function ProductForm({
           )}
         </SectionCard>
 
-        <SectionCard icon="👁️" title="Visibility" delay="delay-800">
+        <SectionCard icon="👁️" title="Visibility">
           <label className="flex items-center justify-between cursor-pointer">
             <div>
               <p className="text-sm font-bold" style={{ color: 'var(--blush-text)' }}>
@@ -1033,13 +1025,13 @@ export default function ProductForm({
           </label>
         </SectionCard>
 
-        <div className="animate-enter delay-800">
+        <div>
           <SubmitButton isEdit={Boolean(product)} />
         </div>
       </form>
 
       {/* Live preview */}
-      <div className="animate-enter delay-300 lg:sticky lg:top-24">
+      <div className="lg:sticky lg:top-24">
         <div className="flex items-center gap-2 mb-3">
           <Icon name="EyeIcon" size={16} style={{ color: 'var(--blush-rose)' }} />
           <p

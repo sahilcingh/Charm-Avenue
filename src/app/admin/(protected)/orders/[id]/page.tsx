@@ -30,14 +30,14 @@ export default async function AdminOrderDetailPage({
       <AutoRefresh />
       <Link
         href="/admin/orders"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 hover:opacity-70 transition-opacity animate-enter"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 hover:opacity-70 transition-opacity"
         style={{ color: 'var(--blush-rose)' }}
       >
         <Icon name="ArrowLeftIcon" size={14} />
         Back to Orders
       </Link>
 
-      <div className="bg-white rounded-3xl p-6 md:p-8 card-bubble flex flex-col gap-6 animate-enter delay-200">
+      <div className="bg-white rounded-3xl p-6 md:p-8 card-bubble flex flex-col gap-6">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <h1 className="font-elegant-serif text-2xl" style={{ color: 'var(--blush-text)' }}>

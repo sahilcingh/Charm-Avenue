@@ -206,7 +206,7 @@ export default function CategoryManager({ categories, productsByCategory }: Cate
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 animate-enter">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <h1
           className="font-elegant-serif text-3xl md:text-[2.25rem]"
           style={{ color: 'var(--blush-text)' }}

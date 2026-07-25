@@ -54,7 +54,7 @@ export default async function AdminProductsPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 animate-enter">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <h1
           className="font-elegant-serif text-3xl md:text-[2.25rem]"
           style={{ color: 'var(--blush-text)' }}
@@ -78,7 +78,7 @@ export default async function AdminProductsPage() {
       </div>
 
       {!error && list.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8 animate-enter">
+        <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8">
           {stats.map((stat) => (
             <div
               key={stat.key}
@@ -117,7 +117,7 @@ export default async function AdminProductsPage() {
       )}
 
       {error && (
-        <div className="bg-white rounded-3xl p-8 card-bubble flex items-start gap-4 animate-enter">
+        <div className="bg-white rounded-3xl p-8 card-bubble flex items-start gap-4">
           <span
             className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
             style={{ background: 'var(--blush-bg)' }}
@@ -136,7 +136,7 @@ export default async function AdminProductsPage() {
       )}
 
       {!error && list.length === 0 && (
-        <div className="bg-white rounded-3xl p-14 card-bubble text-center animate-enter">
+        <div className="bg-white rounded-3xl p-14 card-bubble text-center">
           <span
             className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
             style={{ background: 'var(--blush-bg)' }}
@@ -154,18 +154,17 @@ export default async function AdminProductsPage() {
 
       {!error && list.length > 0 && (
         <div
-          className="bg-white rounded-2xl border animate-enter delay-200 lg:hidden"
+          className="bg-white rounded-2xl border lg:hidden"
           style={{ borderColor: 'var(--blush-border)' }}
         >
-          {list.map((product, i) => {
+          {list.map((product) => {
             const category = categoryBySlug.get(product.category_slug);
             return (
               <div
                 key={product.id}
-                className="flex items-center gap-3 p-4 border-b last:border-0 transition-colors duration-150 hover:bg-[var(--blush-bg)] animate-enter"
+                className="flex items-center gap-3 p-4 border-b last:border-0 transition-colors duration-150 hover:bg-[var(--blush-bg)]"
                 style={{
                   borderColor: 'var(--blush-border)',
-                  animationDelay: `${Math.min(i, 8) * 60}ms`,
                 }}
               >
                 <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0">
@@ -258,7 +257,7 @@ export default async function AdminProductsPage() {
 
       {!error && list.length > 0 && (
         <div
-          className="hidden lg:block bg-white rounded-3xl border overflow-x-auto animate-enter delay-200"
+          className="hidden lg:block bg-white rounded-3xl border overflow-x-auto"
           style={{ borderColor: 'var(--blush-border)' }}
         >
           <table className="w-full min-w-[760px] text-left text-sm">
@@ -298,15 +297,14 @@ export default async function AdminProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((product, i) => {
+              {list.map((product) => {
                 const category = categoryBySlug.get(product.category_slug);
                 return (
                   <tr
                     key={product.id}
-                    className="group border-t transition-colors duration-150 hover:bg-[var(--blush-bg)] animate-enter"
+                    className="group border-t transition-colors duration-150 hover:bg-[var(--blush-bg)]"
                     style={{
                       borderColor: 'var(--blush-border)',
-                      animationDelay: `${Math.min(i, 8) * 60}ms`,
                     }}
                   >
                     <td className="pl-5 pr-2 py-4">

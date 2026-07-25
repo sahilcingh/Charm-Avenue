@@ -94,7 +94,7 @@ export default async function AdminOrdersPage({
     <div>
       {/* Picks up new WhatsApp enquiries and status changes without a manual reload. */}
       <AutoRefresh />
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 animate-enter">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <h1
           className="font-elegant-serif text-3xl md:text-[2.25rem]"
           style={{ color: 'var(--blush-text)' }}
@@ -104,7 +104,7 @@ export default async function AdminOrdersPage({
       </div>
 
       {!error && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8 animate-enter">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
           {stats.map((stat) => (
             <div
               key={stat.key}
@@ -143,7 +143,7 @@ export default async function AdminOrdersPage({
       )}
 
       <nav
-        className="flex items-center flex-wrap gap-6 mb-8 animate-enter"
+        className="flex items-center flex-wrap gap-6 mb-8"
         style={{ borderBottom: '1px solid var(--blush-border)' }}
       >
         {STATUS_FILTERS.map((f) => {
@@ -166,7 +166,7 @@ export default async function AdminOrdersPage({
       </nav>
 
       {error && (
-        <div className="bg-white rounded-3xl p-8 card-bubble flex items-start gap-4 animate-enter">
+        <div className="bg-white rounded-3xl p-8 card-bubble flex items-start gap-4">
           <span
             className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
             style={{ background: 'var(--blush-bg)' }}
@@ -184,7 +184,7 @@ export default async function AdminOrdersPage({
       )}
 
       {!error && list.length === 0 && (
-        <div className="bg-white rounded-3xl p-14 card-bubble text-center animate-enter">
+        <div className="bg-white rounded-3xl p-14 card-bubble text-center">
           <span
             className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
             style={{ background: 'var(--blush-bg)' }}
@@ -202,16 +202,15 @@ export default async function AdminOrdersPage({
 
       {!error && list.length > 0 && (
         <div
-          className="bg-white rounded-2xl border animate-enter delay-200 lg:hidden"
+          className="bg-white rounded-2xl border lg:hidden"
           style={{ borderColor: 'var(--blush-border)' }}
         >
-          {list.map((order, i) => (
+          {list.map((order) => (
             <div
               key={order.id}
-              className="flex flex-col gap-3 p-4 border-b last:border-0 transition-colors duration-150 hover:bg-[var(--blush-bg)] animate-enter"
+              className="flex flex-col gap-3 p-4 border-b last:border-0 transition-colors duration-150 hover:bg-[var(--blush-bg)]"
               style={{
                 borderColor: 'var(--blush-border)',
-                animationDelay: `${Math.min(i, 8) * 60}ms`,
               }}
             >
               <div className="flex items-center justify-between gap-2">
@@ -272,7 +271,7 @@ export default async function AdminOrdersPage({
 
       {!error && list.length > 0 && (
         <div
-          className="hidden lg:block bg-white rounded-3xl border overflow-x-auto animate-enter delay-200"
+          className="hidden lg:block bg-white rounded-3xl border overflow-x-auto"
           style={{ borderColor: 'var(--blush-border)' }}
         >
           <table className="w-full min-w-[820px] text-left text-sm">
@@ -317,13 +316,12 @@ export default async function AdminOrdersPage({
               </tr>
             </thead>
             <tbody>
-              {list.map((order, i) => (
+              {list.map((order) => (
                 <tr
                   key={order.id}
-                  className="border-t transition-colors duration-150 hover:bg-[var(--blush-bg)] animate-enter"
+                  className="border-t transition-colors duration-150 hover:bg-[var(--blush-bg)]"
                   style={{
                     borderColor: 'var(--blush-border)',
-                    animationDelay: `${Math.min(i, 8) * 60}ms`,
                   }}
                 >
                   <td className="px-5 py-4">
@@ -386,7 +384,7 @@ export default async function AdminOrdersPage({
 
       {!error && all.length > 0 && all.length < 5 && (
         <div
-          className="mt-4 rounded-2xl border p-4 md:p-5 flex items-center gap-3 animate-enter"
+          className="mt-4 rounded-2xl border p-4 md:p-5 flex items-center gap-3"
           style={{ borderColor: 'var(--blush-border)', background: 'var(--blush-bg)' }}
         >
           <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
