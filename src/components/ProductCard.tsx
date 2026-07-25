@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AppImage from '@/components/ui/AppImage';
@@ -44,6 +44,8 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   const [added, setAdded] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductColorVariant | null>(null);
   const [preloadedVariantIds, setPreloadedVariantIds] = useState<Set<string>>(new Set());
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const overflowRef = useRef<HTMLDivElement>(null);
   // resolveCssColor needs a real DOM to validate a color name, which doesn't exist during
   // server rendering — resolving it immediately would render a different border server-side
   // vs. client-side and trigger a hydration mismatch. Stay on the neutral fallback for the
@@ -51,6 +53,18 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   // right after mount, once client and server are already in agreement.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!overflowOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
+        setOverflowOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [overflowOpen]);
+
   const { addToCart } = useCart();
   const { showToast } = useToast();
   const { isAdmin } = useAdminMode();
@@ -91,6 +105,7 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
     e.preventDefault();
     e.stopPropagation();
     setSelectedVariant(variant);
+    setOverflowOpen(false);
   };
 
   /** Warms the browser's (and Next's image-optimizer) cache for a variant's photo before it's
@@ -106,10 +121,17 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
     e.preventDefault();
     e.stopPropagation();
     setSelectedVariant(null);
+    setOverflowOpen(false);
+  };
+
+  const handleToggleOverflow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOverflowOpen((v) => !v);
   };
 
   const visibleColorVariants = product.colorVariants.slice(0, MAX_VISIBLE_SWATCHES - 1);
-  const hiddenSwatchCount = product.colorVariants.length - visibleColorVariants.length;
+  const hiddenColorVariants = product.colorVariants.slice(MAX_VISIBLE_SWATCHES - 1);
 
   return (
     <Link
@@ -207,13 +229,59 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
                 </button>
               );
             })}
-            {hiddenSwatchCount > 0 && (
-              <span
-                className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[0.5625rem] font-bold shadow-sm"
-                style={{ background: '#FFFFFF', color: 'var(--blush-text)' }}
-              >
-                +{hiddenSwatchCount}
-              </span>
+            {hiddenColorVariants.length > 0 && (
+              <div className="relative" ref={overflowRef}>
+                <button
+                  onClick={handleToggleOverflow}
+                  aria-label={`Show ${hiddenColorVariants.length} more colors for ${product.name}`}
+                  aria-expanded={overflowOpen}
+                  className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[0.5625rem] font-bold shadow-sm transition-transform hover:scale-110"
+                  style={{ background: '#FFFFFF', color: 'var(--blush-text)' }}
+                >
+                  +{hiddenColorVariants.length}
+                </button>
+                {overflowOpen && (
+                  <div
+                    role="menu"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    className="absolute bottom-full left-0 mb-2 w-36 rounded-2xl border bg-white p-1.5 shadow-lg z-20 flex flex-col gap-0.5"
+                    style={{ borderColor: 'var(--blush-border)' }}
+                  >
+                    {hiddenColorVariants.map((variant) => (
+                      <button
+                        key={variant.id}
+                        role="menuitem"
+                        onClick={(e) => handleSelectVariant(e, variant)}
+                        onMouseEnter={() => handlePreloadVariant(variant.id)}
+                        className="flex items-center gap-2 px-1.5 py-1.5 rounded-xl text-left transition-colors duration-150 hover:bg-[var(--blush-bg)]"
+                      >
+                        <span
+                          className="w-5 h-5 rounded-full overflow-hidden shrink-0"
+                          style={{
+                            border: `2px solid ${mounted ? resolveCssColor(variant.color, '#FFFFFF') : '#FFFFFF'}`,
+                          }}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={variant.image ?? product.image}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        </span>
+                        <span
+                          className="text-xs font-semibold truncate"
+                          style={{ color: 'var(--blush-text)' }}
+                        >
+                          {variant.color}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}

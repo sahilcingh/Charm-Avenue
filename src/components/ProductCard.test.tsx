@@ -210,6 +210,66 @@ describe('ProductCard — color swatches', () => {
     expect(screen.getByText('+3')).toBeInTheDocument();
   });
 
+  describe('"+N" overflow popover', () => {
+    const many = Array.from({ length: 7 }, (_, i) => ({
+      id: `v${i}`,
+      color: `Color${i}`,
+      image: null,
+      price: null,
+      originalPrice: null,
+    }));
+
+    it('opens a popover listing the hidden colors instead of navigating (failure case: previously this was a plain span, so any tap on it just opened the product page)', () => {
+      mockLoggedOut();
+      renderCard({ colorVariants: many });
+
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      act(() => screen.getByRole('button', { name: /Show 3 more colors/i }).click());
+
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Color4' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Color5' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Color6' })).toBeInTheDocument();
+    });
+
+    it('selecting a color from the popover selects that variant and closes the popover', () => {
+      mockLoggedOut();
+      renderCard({ colorVariants: many });
+
+      act(() => screen.getByRole('button', { name: /Show 3 more colors/i }).click());
+      act(() => screen.getByRole('menuitem', { name: 'Color5' }).click());
+
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(screen.getByRole('link')).toHaveAttribute('href', '/product/panda-lamp?color=Color5');
+    });
+
+    it('closes the popover when clicking outside of it', () => {
+      mockLoggedOut();
+      renderCard({ colorVariants: many });
+
+      act(() => screen.getByRole('button', { name: /Show 3 more colors/i }).click());
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+
+      act(() => {
+        document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      });
+
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
+    it('toggles closed when the "+N" button is clicked again', () => {
+      mockLoggedOut();
+      renderCard({ colorVariants: many });
+
+      const trigger = screen.getByRole('button', { name: /Show 3 more colors/i });
+      act(() => trigger.click());
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+
+      act(() => trigger.click());
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+  });
+
   it("includes a swatch for the product's own default photo alongside the real variants", () => {
     mockLoggedOut();
     renderCard({ colorVariants });
