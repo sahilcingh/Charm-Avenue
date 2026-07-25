@@ -149,10 +149,11 @@ export default function ProductDetailInteractive({
       ? Math.round(((resolved.originalPrice - resolved.price) / resolved.originalPrice) * 100)
       : null;
 
-  // Every color's own photo gets a thumbnail (tagged with its color) so a shopper can browse
-  // every option's look directly in the gallery, not just whichever one happens to be selected
-  // right now. This list is built in a FIXED order (base photo, then each color in the same
-  // order as the color pills) and never reorders itself around the current selection — only
+  // Every color gets its own thumbnail (tagged with its color, and always present even when
+  // that color has no dedicated photo of its own — it falls back to the base photo) so a
+  // shopper can browse and pick any option directly in the gallery, with no separate color-pill
+  // list needed. This list is built in a FIXED order (base/"Default" photo, then each color in
+  // the same order every time) and never reorders itself around the current selection — only
   // `activeGalleryIndex` below changes, moving the highlight/hero to the right spot in place
   // (previously, the selected variant's photo was always spliced to the front of the array,
   // which visually yanked whichever thumbnail you'd just clicked to the first position instead
@@ -160,23 +161,30 @@ export default function ProductDetailInteractive({
   const baseImage: GalleryImage = {
     ...(galleryImages[0] ?? { url: '', alt: productName }),
     label: colors.length > 0 ? 'Default' : undefined,
+    isDefaultOption: colors.length > 0,
   };
-  const colorPhotos: GalleryImage[] = colors.flatMap((c) => {
+  // Color thumbnails are never deduped against the base photo or each other by URL — a color
+  // with no photo of its own intentionally reuses the base image, but still needs its own
+  // clickable, labeled thumbnail so every color stays selectable without a separate pill list.
+  const colorPhotos: GalleryImage[] = colors.map((c) => {
     const variant = variants.find((v) => v.color === c && v.image);
-    return variant
-      ? [{ url: variant.image as string, alt: `${productName} — ${c}`, color: c, label: c }]
-      : [];
+    return {
+      url: variant?.image ?? baseImage.url,
+      alt: variant?.image ? `${productName} — ${c}` : baseImage.alt,
+      color: c,
+      label: c,
+    };
   });
 
-  const seenImageUrls = new Set([baseImage.url]);
-  const extraImages = [...colorPhotos, ...galleryImages].filter((img) => {
-    if (seenImageUrls.has(img.url)) return false;
-    seenImageUrls.add(img.url);
+  const seenExtraUrls = new Set([baseImage.url]);
+  const extraGalleryPhotos = galleryImages.filter((img) => {
+    if (seenExtraUrls.has(img.url)) return false;
+    seenExtraUrls.add(img.url);
     return true;
   });
 
   const displayImages: GalleryImage[] =
-    colors.length > 0 ? [baseImage, ...extraImages] : galleryImages;
+    colors.length > 0 ? [baseImage, ...colorPhotos, ...extraGalleryPhotos] : galleryImages;
 
   const colorDrivenIndex =
     selectedColor === null
@@ -207,6 +215,7 @@ export default function ProductDetailInteractive({
         activeIndex={activeGalleryIndex}
         onSelectIndex={setManualGalleryIndex}
         onSelectColor={handleSelectColor}
+        onSelectDefault={() => handleSelectColor(null)}
         tag={tag}
         tagBg={tagBg}
         tagText={tagText}
@@ -251,55 +260,16 @@ export default function ProductDetailInteractive({
         {(colors.length > 0 || sizes.length > 0) && (
           <div className="flex flex-col gap-3 mb-5">
             {colors.length > 0 && (
-              <div>
-                <p
-                  className="text-xs font-bold uppercase tracking-wide mb-1.5"
-                  style={{ color: 'var(--blush-muted)' }}
-                >
-                  Color:{' '}
-                  <span style={{ color: 'var(--blush-text)' }}>{selectedColor ?? 'Default'}</span>
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {/* Lets a shopper who arrived here via a color-specific link (e.g. a
-                      ProductCard swatch) switch back to how this product looked before any
-                      color variants existed — mirrors the same "default" option on the card. */}
-                  <button
-                    type="button"
-                    onClick={() => handleSelectColor(null)}
-                    className="px-3.5 py-2 rounded-full text-xs font-semibold border transition-colors"
-                    style={
-                      selectedColor === null
-                        ? {
-                            borderColor: 'var(--blush-rose)',
-                            background: 'var(--blush-bg)',
-                            color: 'var(--blush-text)',
-                          }
-                        : { borderColor: 'var(--blush-border)', color: 'var(--blush-muted)' }
-                    }
-                  >
-                    Default
-                  </button>
-                  {colors.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => handleSelectColor(c)}
-                      className="px-3.5 py-2 rounded-full text-xs font-semibold border transition-colors"
-                      style={
-                        c === selectedColor
-                          ? {
-                              borderColor: 'var(--blush-rose)',
-                              background: 'var(--blush-bg)',
-                              color: 'var(--blush-text)',
-                            }
-                          : { borderColor: 'var(--blush-border)', color: 'var(--blush-muted)' }
-                      }
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              // The color pill list used to duplicate what's now shown directly under each
+              // gallery thumbnail (see ProductGallery) — selecting a color happens there now;
+              // this just confirms the current selection in text.
+              <p
+                className="text-xs font-bold uppercase tracking-wide"
+                style={{ color: 'var(--blush-muted)' }}
+              >
+                Color:{' '}
+                <span style={{ color: 'var(--blush-text)' }}>{selectedColor ?? 'Default'}</span>
+              </p>
             )}
             {availableSizes.length > 0 && (
               <div>

@@ -129,6 +129,33 @@ describe('ProductGallery', () => {
   });
 
   it(
+    'calls onSelectDefault (not onSelectColor or onSelectIndex) when the isDefaultOption ' +
+      "thumbnail is clicked, so the page's selected color clears entirely — this is the only " +
+      'thumbnail with no `color` tag that should not be treated as a plain extra photo',
+    () => {
+      const onSelectDefault = vi.fn();
+      const onSelectColor = vi.fn();
+      const onSelectIndex = vi.fn();
+      render(
+        <ProductGallery
+          images={[
+            { url: '/base.jpg', alt: 'Product', label: 'Default', isDefaultOption: true },
+            { url: '/black.jpg', alt: 'Product — Black', color: 'Black', label: 'Black' },
+          ]}
+          activeIndex={1}
+          onSelectDefault={onSelectDefault}
+          onSelectColor={onSelectColor}
+          onSelectIndex={onSelectIndex}
+        />
+      );
+      act(() => screen.getByRole('button', { name: 'Show Default' }).click());
+      expect(onSelectDefault).toHaveBeenCalledTimes(1);
+      expect(onSelectColor).not.toHaveBeenCalled();
+      expect(onSelectIndex).not.toHaveBeenCalled();
+    }
+  );
+
+  it(
     'makes the thumbnail row swipeable on touch devices the same way other horizontal scrollers ' +
       'in the app already work (failure case reported live: the row felt "static" and would not ' +
       'slide to reveal more thumbnails on a phone — it was missing the same scroll-snap/touch-' +

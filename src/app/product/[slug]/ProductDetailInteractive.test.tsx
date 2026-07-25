@@ -166,7 +166,7 @@ describe('ProductDetailInteractive — switching back to the Default (pre-varian
       makeVariant({ id: 'v1', color: 'Pink' }),
       makeVariant({ id: 'v2', color: 'Blue' }),
     ]);
-    expect(screen.getByRole('button', { name: 'Default' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show Default' })).toBeInTheDocument();
   });
 
   it("landing via a color-specific link (e.g. a ProductCard swatch) still lets the shopper switch to Default afterwards — this is the bug that was reported: arriving on a variant's page left no way back to the base product's own details", () => {
@@ -177,7 +177,7 @@ describe('ProductDetailInteractive — switching back to the Default (pre-varian
     ]);
     expect(getColorLabel().textContent).toBe('Color: Blue');
 
-    act(() => screen.getByRole('button', { name: 'Default' }).click());
+    act(() => screen.getByRole('button', { name: 'Show Default' }).click());
 
     expect(getColorLabel().textContent).toBe('Color: Default');
     expect(screen.getByText('₹130')).toBeInTheDocument();
@@ -196,7 +196,7 @@ describe('ProductDetailInteractive — switching back to the Default (pre-varian
     );
     expect(screen.getByText('Out of Stock')).toBeInTheDocument();
 
-    act(() => screen.getByRole('button', { name: 'Default' }).click());
+    act(() => screen.getByRole('button', { name: 'Show Default' }).click());
 
     expect(screen.getByText('In Stock')).toBeInTheDocument();
   });
@@ -251,7 +251,7 @@ describe('ProductDetailInteractive — gallery reset on variant switch', () => {
 
       // Switch to Blue via the color pill — the highlight/hero must follow Blue's own thumbnail
       // wherever it sits in the (unchanged) order, not reset to index 0.
-      act(() => screen.getByRole('button', { name: 'Blue' }).click());
+      act(() => screen.getByRole('button', { name: 'Show Blue' }).click());
       const hero = screen.getByTestId('gallery-hero-image') as HTMLImageElement;
       expect(hero.src).toContain('blue.jpg');
     }
@@ -277,7 +277,7 @@ describe('ProductDetailInteractive — gallery reset on variant switch', () => {
       expect(screen.getByRole('button', { name: 'Show Black' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Show White' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Show Brown' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Show photo 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Show Default' })).toBeInTheDocument();
     }
   );
 
@@ -298,7 +298,7 @@ describe('ProductDetailInteractive — gallery reset on variant switch', () => {
         .getAllByRole('button')
         .filter((b) => /^Show /.test(b.getAttribute('aria-label') ?? ''))
         .map((b) => b.getAttribute('aria-label'));
-      expect(orderBefore).toEqual(['Show photo 1', 'Show Red bow', 'Show Black bow']);
+      expect(orderBefore).toEqual(['Show Default', 'Show Red bow', 'Show Black bow']);
 
       act(() => screen.getByRole('button', { name: 'Show Red bow' }).click());
 
@@ -339,11 +339,31 @@ describe('ProductDetailInteractive — gallery reset on variant switch', () => {
       makeVariant({ id: 'v2', color: 'Black bow', image: '/black-bow.jpg' }),
     ]);
 
-    // "Default"/"Red bow"/"Black bow" also each appear as a color-pill <button> and in the
-    // "Color: X" line lower on the page — the gallery's own captions carry a stable test id.
+    // "Default"/"Red bow"/"Black bow" also appear in the "Color: X" line lower on the page —
+    // the gallery's own captions carry a stable test id to avoid ambiguity.
     const labels = screen.getAllByTestId('gallery-thumb-label').map((el) => el.textContent);
     expect(labels).toEqual(['Default', 'Red bow', 'Black bow']);
   });
+
+  it(
+    'keeps a color selectable via its own labeled gallery thumbnail even when that color has no ' +
+      'dedicated photo of its own (falls back to the base photo) — there is no separate pill ' +
+      'list to fall back on anymore, so every color must stay reachable through the gallery alone',
+    () => {
+      searchParamsValue = new URLSearchParams('color=Pink');
+      renderDetail([
+        makeVariant({ id: 'v1', color: 'Pink', image: '/pink.jpg' }),
+        makeVariant({ id: 'v2', color: 'Blue', image: null }),
+      ]);
+
+      const blueThumb = screen.getByRole('button', { name: 'Show Blue' });
+      expect(blueThumb).toBeInTheDocument();
+
+      act(() => blueThumb.click());
+
+      expect(getColorLabel().textContent).toBe('Color: Blue');
+    }
+  );
 });
 
 describe('ProductDetailInteractive — color+size cross-filtering (no invalid combos)', () => {
@@ -361,7 +381,7 @@ describe('ProductDetailInteractive — color+size cross-filtering (no invalid co
     expect(screen.getByRole('button', { name: 'S' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'M' })).toBeInTheDocument();
 
-    act(() => screen.getByRole('button', { name: 'Blue' }).click());
+    act(() => screen.getByRole('button', { name: 'Show Blue' }).click());
 
     expect(screen.getByRole('button', { name: 'S' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'M' })).not.toBeInTheDocument();
@@ -374,7 +394,7 @@ describe('ProductDetailInteractive — color+size cross-filtering (no invalid co
     act(() => screen.getByRole('button', { name: 'M' }).click());
     expect(getSizeLabel().textContent).toBe('Size: M');
 
-    act(() => screen.getByRole('button', { name: 'Blue' }).click());
+    act(() => screen.getByRole('button', { name: 'Show Blue' }).click());
 
     // Blue/M doesn't exist — the size selection must move to Blue's real size (S),
     // not stay on the now-invalid "M" and silently resolve to the base product.

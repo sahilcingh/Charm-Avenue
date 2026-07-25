@@ -8,6 +8,10 @@ export interface GalleryImage {
    *  from `color` since not every labeled thumbnail should trigger a color switch when clicked
    *  (a plain extra product photo can carry no label at all). */
   label?: string;
+  /** True for the single "back to the base/default photo" thumbnail — clicking it clears the
+   *  selected color entirely, unlike a color-tagged thumbnail (switches to that color) or a
+   *  plain extra photo (just previews it locally). */
+  isDefaultOption?: boolean;
 }
 
 /**

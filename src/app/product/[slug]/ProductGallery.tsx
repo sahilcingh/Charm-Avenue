@@ -9,12 +9,14 @@ interface ProductGalleryProps {
    *  stable while only the highlight moves, instead of the gallery reordering itself around
    *  whichever variant happens to be selected. */
   activeIndex: number;
-  /** Called when a thumbnail with no `color` tag is clicked (a plain extra product photo) —
-   *  just previews that photo without touching the selected color. */
+  /** Called when a plain thumbnail (no `color` tag, not the default option) is clicked — just
+   *  previews that photo without touching the selected color. */
   onSelectIndex?: (index: number) => void;
   /** Called (instead of onSelectIndex) when a color-tagged thumbnail is clicked, so the page's
    *  active color — and its price/stock — switches along with the photo. */
   onSelectColor?: (color: string) => void;
+  /** Called when the `isDefaultOption` thumbnail is clicked, clearing the selected color. */
+  onSelectDefault?: () => void;
   tag?: string;
   tagBg?: string;
   tagText?: string;
@@ -25,6 +27,7 @@ export default function ProductGallery({
   activeIndex,
   onSelectIndex,
   onSelectColor,
+  onSelectDefault,
   tag,
   tagBg,
   tagText,
@@ -57,18 +60,26 @@ export default function ProductGallery({
         // render fully — without it, this row's implied overflow-y:auto (a side effect of
         // overflow-x-auto) clipped the top/bottom of the ring instead of showing a full circle.
         // snap-scroll/snap-item are the same scroll-snap + touch-momentum classes already relied
-        // on for the homepage's Instagram carousel — without them this row didn't reliably
-        // respond to a swipe on a phone to reveal thumbnails past the fold.
-        <div className="flex gap-2 overflow-x-auto no-scrollbar snap-scroll py-1">
+        // on for the homepage's Instagram carousel; touchAction: 'pan-x' explicitly tells the
+        // browser this row owns horizontal panning so a swipe here isn't ceded to the page's own
+        // vertical scroll — without it, a swipe that started with any vertical drift could get
+        // captured by the page instead of scrolling this row.
+        <div
+          className="flex gap-2 overflow-x-auto no-scrollbar snap-scroll py-1"
+          style={{ touchAction: 'pan-x' }}
+        >
           {images.map((img, i) => (
             <div key={img.url + i} className="flex flex-col items-center gap-1 shrink-0 snap-item">
               <button
                 type="button"
                 onClick={() => {
                   if (img.color) onSelectColor?.(img.color);
+                  else if (img.isDefaultOption) onSelectDefault?.();
                   else onSelectIndex?.(i);
                 }}
-                aria-label={img.color ? `Show ${img.color}` : `Show photo ${i + 1}`}
+                aria-label={
+                  img.label || img.color ? `Show ${img.label ?? img.color}` : `Show photo ${i + 1}`
+                }
                 className="relative w-16 h-16 rounded-2xl overflow-hidden transition-shadow duration-200"
                 style={
                   // Only the selected thumbnail gets an explicit ring — forcing a transparent
