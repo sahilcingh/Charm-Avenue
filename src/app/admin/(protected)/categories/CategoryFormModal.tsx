@@ -1,5 +1,6 @@
 'use client';
 import React, { useRef, useState, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import Icon from '@/components/ui/AppIcon';
 import type { DbCategory } from '@/lib/supabase/types';
 import { TAG_STYLES, tagStyleKeyFor, type TagStyleKey } from '@/lib/supabase/types';
@@ -81,7 +82,12 @@ export default function CategoryFormModal({
     });
   }
 
-  return (
+  // Portaled straight to <body> — this modal can be triggered from deep inside pages that use
+  // the site's `.animate-enter` entrance animation, which leaves a permanent `transform` on the
+  // element via `animation-fill-mode: forwards`. Any transformed ancestor becomes a containing
+  // block for `position: fixed` descendants, so without the portal this would render pinned to
+  // that ancestor's box instead of covering the actual viewport.
+  return createPortal(
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4 overflow-y-auto"
       style={{ background: 'rgba(30,23,18,0.5)' }}
@@ -305,6 +311,7 @@ export default function CategoryFormModal({
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

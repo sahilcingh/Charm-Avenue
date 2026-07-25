@@ -194,11 +194,16 @@ export default function CartClient() {
     setContactErrors(fieldErrors);
     if (Object.keys(fieldErrors).length > 0) return;
 
-    // Opened synchronously, still inside the click's call stack — iOS Safari
-    // only allows window.open() as a direct result of a user gesture, and the
-    // createWhatsAppEnquiry() await below would otherwise break that chain and
-    // get the popup silently blocked. We navigate this tab once the URL is ready.
-    const newTab = window.open('', '_blank', 'noopener,noreferrer');
+    // Opened synchronously, still inside the click's call stack — mobile
+    // browsers only allow window.open() as a direct result of a user gesture,
+    // and the createWhatsAppEnquiry() await below would otherwise break that
+    // chain and get the popup silently blocked. We navigate this tab once the
+    // URL is ready. Deliberately omits the 'noopener' feature here — passing it
+    // makes window.open() return null (severing our only handle to redirect
+    // the tab later); severing window.opener manually below gets the same
+    // reverse-tabnabbing protection without losing the reference.
+    const newTab = window.open('', '_blank');
+    if (newTab) newTab.opener = null;
 
     startTransition(async () => {
       const result = await createWhatsAppEnquiry(lineItems, contact, discountTotal);

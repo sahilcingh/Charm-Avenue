@@ -265,7 +265,7 @@ describe('CartClient', () => {
         0
       )
     );
-    expect(openMock).toHaveBeenCalledWith('', '_blank', 'noopener,noreferrer');
+    expect(openMock).toHaveBeenCalledWith('', '_blank');
     await waitFor(() => expect(fakeTab.location.href).toBe('https://wa.me/919999999999?text=hi'));
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/order/order-1'));
     await waitFor(() => expect(window.localStorage.getItem(STORAGE_KEY)).toBe('[]'));
