@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import React from 'react';
 import ProductDetailInteractive from './ProductDetailInteractive';
 import { CartProvider } from '@/lib/cart-context';
@@ -133,5 +133,64 @@ describe('ProductDetailInteractive — initial color from ?color=', () => {
     searchParamsValue = new URLSearchParams('color=Blue');
     renderDetail([]);
     expect(screen.queryByText(/^Color:/)).not.toBeInTheDocument();
+  });
+
+  it(
+    'honors an explicit ?color=default from a ProductCard link over auto-selecting the first ' +
+      'variant (the bug: a card showing Default linked here with no ?color= at all, which this ' +
+      'page read as "no preference" and silently picked the first variant instead)',
+    () => {
+      searchParamsValue = new URLSearchParams('color=default');
+      renderDetail([
+        makeVariant({ id: 'v1', color: 'Pink', image: '/pink.jpg' }),
+        makeVariant({ id: 'v2', color: 'Blue', image: '/blue.jpg' }),
+      ]);
+      expect(getColorLabel().textContent).toBe('Color: Default');
+      const heroImage = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+      expect(heroImage.src).toContain('base.jpg');
+    }
+  );
+});
+
+describe('ProductDetailInteractive — switching back to the Default (pre-variant) option', () => {
+  it('offers a Default option alongside the real colors', () => {
+    searchParamsValue = new URLSearchParams();
+    renderDetail([
+      makeVariant({ id: 'v1', color: 'Pink' }),
+      makeVariant({ id: 'v2', color: 'Blue' }),
+    ]);
+    expect(screen.getByRole('button', { name: 'Default' })).toBeInTheDocument();
+  });
+
+  it("landing via a color-specific link (e.g. a ProductCard swatch) still lets the shopper switch to Default afterwards — this is the bug that was reported: arriving on a variant's page left no way back to the base product's own details", () => {
+    searchParamsValue = new URLSearchParams('color=Blue');
+    renderDetail([
+      makeVariant({ id: 'v1', color: 'Pink', image: '/pink.jpg' }),
+      makeVariant({ id: 'v2', color: 'Blue', image: '/blue.jpg', price_override: 150 }),
+    ]);
+    expect(getColorLabel().textContent).toBe('Color: Blue');
+
+    act(() => screen.getByRole('button', { name: 'Default' }).click());
+
+    expect(getColorLabel().textContent).toBe('Color: Default');
+    expect(screen.getByText('₹130')).toBeInTheDocument();
+    const heroImage = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+    expect(heroImage.src).toContain('base.jpg');
+  });
+
+  it("falls back to the base product's own stock status when Default is selected on a product that has variants", () => {
+    searchParamsValue = new URLSearchParams('color=Blue');
+    renderDetail(
+      [
+        makeVariant({ id: 'v1', color: 'Pink' }),
+        makeVariant({ id: 'v2', color: 'Blue', stock_status: 'out_of_stock' }),
+      ],
+      { stockStatus: 'in_stock', stockCount: 12 }
+    );
+    expect(screen.getByText('Out of Stock')).toBeInTheDocument();
+
+    act(() => screen.getByRole('button', { name: 'Default' }).click());
+
+    expect(screen.getByText('In Stock')).toBeInTheDocument();
   });
 });

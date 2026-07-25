@@ -62,9 +62,17 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   const showDiscount =
     Boolean(displayOriginalPrice) &&
     isSaleWindowActive(product.saleStartsAt, product.saleEndsAt, new Date());
-  const href = selectedVariant
-    ? `/product/${product.slug}?color=${encodeURIComponent(selectedVariant.color)}`
-    : `/product/${product.slug}`;
+  const hasColorVariants = product.colorVariants.length > 0;
+  // A plain, no-query link is ambiguous once variants exist — the product page's own
+  // fallback (no ?color= at all) auto-selects its first variant, which would silently
+  // override "Default" being selected here. Once this product has any variants, the link
+  // always states its current selection explicitly, using the "default" sentinel for the
+  // base product so the two pages can never disagree about what's currently shown.
+  const href = !hasColorVariants
+    ? `/product/${product.slug}`
+    : selectedVariant
+      ? `/product/${product.slug}?color=${encodeURIComponent(selectedVariant.color)}`
+      : `/product/${product.slug}?color=default`;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -100,7 +108,6 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
     setSelectedVariant(null);
   };
 
-  const hasColorVariants = product.colorVariants.length > 0;
   const visibleColorVariants = product.colorVariants.slice(0, MAX_VISIBLE_SWATCHES - 1);
   const hiddenSwatchCount = product.colorVariants.length - visibleColorVariants.length;
 

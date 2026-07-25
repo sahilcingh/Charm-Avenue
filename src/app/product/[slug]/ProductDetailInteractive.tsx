@@ -83,13 +83,18 @@ export default function ProductDetailInteractive({
     [variants]
   );
 
-  // A ProductCard swatch can link here with ?color=... to open the detail page already
-  // showing the variant the shopper previewed — falls back to the first color otherwise.
+  // A ProductCard swatch links here with ?color=<name> (a specific variant) or
+  // ?color=default (the card's own "default photo" option, explicitly) — the two must never
+  // disagree about what's currently shown, which is why "default" is a real, explicit value
+  // here rather than just the absence of a ?color= param. A bare link with no ?color= at all
+  // (an organic/search link that predates variants, or one that just doesn't care) still
+  // falls back to the first color, same as before this option existed.
   const requestedColor = searchParams.get('color');
-  const initialColor = requestedColor && colors.includes(requestedColor) ? requestedColor : null;
-  const [selectedColor, setSelectedColor] = useState<string | null>(
-    initialColor ?? colors[0] ?? null
-  );
+  const [selectedColor, setSelectedColor] = useState<string | null>(() => {
+    if (requestedColor === null) return colors[0] ?? null;
+    if (requestedColor === 'default') return null;
+    return colors.includes(requestedColor) ? requestedColor : (colors[0] ?? null);
+  });
   const [selectedSize, setSelectedSize] = useState<string | null>(sizes[0] ?? null);
 
   const selectedVariant =
@@ -119,12 +124,12 @@ export default function ProductDetailInteractive({
       ]
     : galleryImages;
 
-  // Once a product has ≥1 variant, variant-level stock is fully authoritative
-  // (no fallback to the product's own stock fields) — matches the same rule
-  // already applied to price/image above.
-  const hasVariants = variants.length > 0;
-  const effectiveStockStatus = hasVariants ? (selectedVariant?.stock_status ?? null) : stockStatus;
-  const effectiveStockCount = hasVariants ? (selectedVariant?.stock_count ?? null) : stockCount;
+  // A specific variant's stock is fully authoritative while one is selected (no fallback to
+  // the product's own stock fields) — but the "Default" option is deliberately the base
+  // product's own state, so it falls back to the product's fields just like a product with
+  // no variants at all does.
+  const effectiveStockStatus = selectedVariant ? selectedVariant.stock_status : stockStatus;
+  const effectiveStockCount = selectedVariant ? selectedVariant.stock_count : stockCount;
   const stockLabel = effectiveStockStatus ? STOCK_STATUS_LABELS[effectiveStockStatus] : null;
   const lowStock =
     effectiveStockStatus === 'in_stock' &&
@@ -180,9 +185,29 @@ export default function ProductDetailInteractive({
                   className="text-xs font-bold uppercase tracking-wide mb-1.5"
                   style={{ color: 'var(--blush-muted)' }}
                 >
-                  Color: <span style={{ color: 'var(--blush-text)' }}>{selectedColor}</span>
+                  Color:{' '}
+                  <span style={{ color: 'var(--blush-text)' }}>{selectedColor ?? 'Default'}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
+                  {/* Lets a shopper who arrived here via a color-specific link (e.g. a
+                      ProductCard swatch) switch back to how this product looked before any
+                      color variants existed — mirrors the same "default" option on the card. */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedColor(null)}
+                    className="px-3.5 py-2 rounded-full text-xs font-semibold border transition-colors"
+                    style={
+                      selectedColor === null
+                        ? {
+                            borderColor: 'var(--blush-rose)',
+                            background: 'var(--blush-bg)',
+                            color: 'var(--blush-text)',
+                          }
+                        : { borderColor: 'var(--blush-border)', color: 'var(--blush-muted)' }
+                    }
+                  >
+                    Default
+                  </button>
                   {colors.map((c) => (
                     <button
                       key={c}
@@ -292,7 +317,7 @@ export default function ProductDetailInteractive({
               {lowStock ? `Only ${effectiveStockCount} left` : stockLabel.label}
             </span>
           )}
-          {!hasVariants && stockStatus === 'made_to_order' && madeToOrderLeadTime && (
+          {!selectedVariant && stockStatus === 'made_to_order' && madeToOrderLeadTime && (
             <span className="block text-xs mt-1.5" style={{ color: 'var(--blush-muted)' }}>
               {madeToOrderLeadTime}
             </span>

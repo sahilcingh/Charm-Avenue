@@ -243,12 +243,29 @@ describe('ProductCard — color swatches', () => {
     act(() => screen.getByRole('button', { name: 'View Panda Lamp (default)' }).click());
 
     expect(screen.getByText('₹130')).toBeInTheDocument();
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/product/panda-lamp');
     expect(screen.getByRole('button', { name: 'View Panda Lamp (default)' })).toHaveAttribute(
       'aria-pressed',
       'true'
     );
   });
+
+  it(
+    'links with an explicit ?color=default once a product has variants — so the product page ' +
+      "can't fall back to auto-selecting its first variant and silently override the card's " +
+      'current selection (the bug: switching back to Default on the card still opened the ' +
+      "previously-picked variant's page)",
+    () => {
+      mockLoggedOut();
+      renderCard({ colorVariants });
+      expect(screen.getByRole('link')).toHaveAttribute('href', '/product/panda-lamp?color=default');
+
+      act(() => screen.getByRole('button', { name: 'View Panda Lamp in Blue' }).click());
+      expect(screen.getByRole('link')).toHaveAttribute('href', '/product/panda-lamp?color=Blue');
+
+      act(() => screen.getByRole('button', { name: 'View Panda Lamp (default)' }).click());
+      expect(screen.getByRole('link')).toHaveAttribute('href', '/product/panda-lamp?color=default');
+    }
+  );
 
   it('selecting a swatch swaps the displayed image and price without navigating', () => {
     mockLoggedOut();
