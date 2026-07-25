@@ -268,6 +268,24 @@ describe('ProductCard — color swatches', () => {
       act(() => trigger.click());
       expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     });
+
+    it(
+      "renders the popover portaled to <body> with fixed positioning, outside the card's own " +
+        "link/image containers (failure case: nested inside the card's overflow-hidden image " +
+        'wrapper, the popover used to get clipped on narrow screens and could spill onto the ' +
+        'neighboring card on wide ones)',
+      () => {
+        mockLoggedOut();
+        const { container } = renderCard({ colorVariants: many });
+
+        act(() => screen.getByRole('button', { name: /Show 3 more colors/i }).click());
+
+        const menu = screen.getByRole('menu');
+        expect(container.contains(menu)).toBe(false);
+        expect(document.body).toContainElement(menu);
+        expect(menu.className).toContain('fixed');
+      }
+    );
   });
 
   it("includes a swatch for the product's own default photo alongside the real variants", () => {

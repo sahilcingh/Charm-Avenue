@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AppImage from '@/components/ui/AppImage';
@@ -14,6 +15,13 @@ import { resolveCssColor } from '@/lib/css-color';
 
 const MAX_VISIBLE_SWATCHES = 5;
 const CARD_IMAGE_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw';
+const OVERFLOW_POPOVER_WIDTH = 144; // matches the popover's w-36
+const VIEWPORT_MARGIN = 8;
+
+interface OverflowPosition {
+  top: number;
+  left: number;
+}
 
 interface ProductCardProps {
   product: Product;
@@ -45,7 +53,9 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   const [selectedVariant, setSelectedVariant] = useState<ProductColorVariant | null>(null);
   const [preloadedVariantIds, setPreloadedVariantIds] = useState<Set<string>>(new Set());
   const [overflowOpen, setOverflowOpen] = useState(false);
-  const overflowRef = useRef<HTMLDivElement>(null);
+  const [overflowPosition, setOverflowPosition] = useState<OverflowPosition | null>(null);
+  const overflowButtonRef = useRef<HTMLButtonElement>(null);
+  const overflowPopoverRef = useRef<HTMLDivElement>(null);
   // resolveCssColor needs a real DOM to validate a color name, which doesn't exist during
   // server rendering — resolving it immediately would render a different border server-side
   // vs. client-side and trigger a hydration mismatch. Stay on the neutral fallback for the
@@ -54,15 +64,30 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // The popover itself is portaled to <body> (see below), so it's no longer a DOM descendant
+  // of the trigger button — "outside" now means outside BOTH of them, checked separately.
   useEffect(() => {
     if (!overflowOpen) return;
     function handleClickOutside(e: MouseEvent) {
-      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        !overflowButtonRef.current?.contains(target) &&
+        !overflowPopoverRef.current?.contains(target)
+      ) {
         setOverflowOpen(false);
       }
     }
+    // Scrolling anywhere invalidates the popover's one-time-computed position — closing it is
+    // simpler and safer than tracking every scroll container it could drift out of sync with.
+    function handleScroll() {
+      setOverflowOpen(false);
+    }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [overflowOpen]);
 
   const { addToCart } = useCart();
@@ -127,7 +152,22 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   const handleToggleOverflow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setOverflowOpen((v) => !v);
+    setOverflowOpen((wasOpen) => {
+      if (wasOpen) return false;
+      // Computed fresh every time it opens (rather than following the button via CSS) since
+      // the popover is portaled straight to <body> to escape the card's own overflow-hidden —
+      // without that portal, a card near the edge of the grid clipped the popover's far side
+      // (mobile) or let it spill on top of the neighboring card, uncontained, on desktop.
+      const rect = overflowButtonRef.current?.getBoundingClientRect();
+      if (rect) {
+        const left = Math.min(
+          Math.max(VIEWPORT_MARGIN, rect.left),
+          window.innerWidth - OVERFLOW_POPOVER_WIDTH - VIEWPORT_MARGIN
+        );
+        setOverflowPosition({ top: rect.bottom + 8, left });
+      }
+      return true;
+    });
   };
 
   const visibleColorVariants = product.colorVariants.slice(0, MAX_VISIBLE_SWATCHES - 1);
@@ -230,61 +270,68 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
               );
             })}
             {hiddenColorVariants.length > 0 && (
-              <div className="relative" ref={overflowRef}>
-                <button
-                  onClick={handleToggleOverflow}
-                  aria-label={`Show ${hiddenColorVariants.length} more colors for ${product.name}`}
-                  aria-expanded={overflowOpen}
-                  className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[0.5625rem] font-bold shadow-sm transition-transform hover:scale-110"
-                  style={{ background: '#FFFFFF', color: 'var(--blush-text)' }}
-                >
-                  +{hiddenColorVariants.length}
-                </button>
-                {overflowOpen && (
-                  <div
-                    role="menu"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    className="absolute bottom-full left-0 mb-2 w-36 rounded-2xl border bg-white p-1.5 shadow-lg z-20 flex flex-col gap-0.5"
-                    style={{ borderColor: 'var(--blush-border)' }}
-                  >
-                    {hiddenColorVariants.map((variant) => (
-                      <button
-                        key={variant.id}
-                        role="menuitem"
-                        onClick={(e) => handleSelectVariant(e, variant)}
-                        onMouseEnter={() => handlePreloadVariant(variant.id)}
-                        className="flex items-center gap-2 px-1.5 py-1.5 rounded-xl text-left transition-colors duration-150 hover:bg-[var(--blush-bg)]"
-                      >
-                        <span
-                          className="w-5 h-5 rounded-full overflow-hidden shrink-0"
-                          style={{
-                            border: `2px solid ${mounted ? resolveCssColor(variant.color, '#FFFFFF') : '#FFFFFF'}`,
-                          }}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={variant.image ?? product.image}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        </span>
-                        <span
-                          className="text-xs font-semibold truncate"
-                          style={{ color: 'var(--blush-text)' }}
-                        >
-                          {variant.color}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <button
+                ref={overflowButtonRef}
+                onClick={handleToggleOverflow}
+                aria-label={`Show ${hiddenColorVariants.length} more colors for ${product.name}`}
+                aria-expanded={overflowOpen}
+                className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[0.5625rem] font-bold shadow-sm transition-transform hover:scale-110"
+                style={{ background: '#FFFFFF', color: 'var(--blush-text)' }}
+              >
+                +{hiddenColorVariants.length}
+              </button>
             )}
           </div>
         )}
+        {overflowOpen &&
+          overflowPosition &&
+          createPortal(
+            <div
+              ref={overflowPopoverRef}
+              role="menu"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="fixed w-36 rounded-2xl border bg-white p-1.5 shadow-lg z-50 flex flex-col gap-0.5"
+              style={{
+                top: overflowPosition.top,
+                left: overflowPosition.left,
+                borderColor: 'var(--blush-border)',
+              }}
+            >
+              {hiddenColorVariants.map((variant) => (
+                <button
+                  key={variant.id}
+                  role="menuitem"
+                  onClick={(e) => handleSelectVariant(e, variant)}
+                  onMouseEnter={() => handlePreloadVariant(variant.id)}
+                  className="flex items-center gap-2 px-1.5 py-1.5 rounded-xl text-left transition-colors duration-150 hover:bg-[var(--blush-bg)]"
+                >
+                  <span
+                    className="w-5 h-5 rounded-full overflow-hidden shrink-0"
+                    style={{
+                      border: `2px solid ${mounted ? resolveCssColor(variant.color, '#FFFFFF') : '#FFFFFF'}`,
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={variant.image ?? product.image}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </span>
+                  <span
+                    className="text-xs font-semibold truncate"
+                    style={{ color: 'var(--blush-text)' }}
+                  >
+                    {variant.color}
+                  </span>
+                </button>
+              ))}
+            </div>,
+            document.body
+          )}
         {/* Quick add overlay */}
         <div
           className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}
