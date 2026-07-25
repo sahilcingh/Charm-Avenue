@@ -157,11 +157,14 @@ export default function ProductDetailInteractive({
   // (previously, the selected variant's photo was always spliced to the front of the array,
   // which visually yanked whichever thumbnail you'd just clicked to the first position instead
   // of leaving it where it was).
-  const baseImage: GalleryImage = galleryImages[0] ?? { url: '', alt: productName };
+  const baseImage: GalleryImage = {
+    ...(galleryImages[0] ?? { url: '', alt: productName }),
+    label: colors.length > 0 ? 'Default' : undefined,
+  };
   const colorPhotos: GalleryImage[] = colors.flatMap((c) => {
     const variant = variants.find((v) => v.color === c && v.image);
     return variant
-      ? [{ url: variant.image as string, alt: `${productName} — ${c}`, color: c }]
+      ? [{ url: variant.image as string, alt: `${productName} — ${c}`, color: c, label: c }]
       : [];
   });
 

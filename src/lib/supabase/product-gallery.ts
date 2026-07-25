@@ -4,6 +4,10 @@ export interface GalleryImage {
   /** Set when this thumbnail is a specific color variant's own photo — selecting it should also
    *  switch the page's active color, not just change which thumbnail is highlighted. */
   color?: string;
+  /** Human-readable name shown under this thumbnail (a color name, or "Default") — kept separate
+   *  from `color` since not every labeled thumbnail should trigger a color switch when clicked
+   *  (a plain extra product photo can carry no label at all). */
+  label?: string;
 }
 
 /**

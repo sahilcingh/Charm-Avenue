@@ -113,4 +113,40 @@ describe('ProductGallery', () => {
       '2px solid var(--blush-rose)'
     );
   });
+
+  it('shows the color/variant name written under each labeled thumbnail', () => {
+    render(
+      <ProductGallery
+        images={[
+          { url: '/base.jpg', alt: 'Product', label: 'Default' },
+          { url: '/black.jpg', alt: 'Product — Black', color: 'Black', label: 'Black' },
+        ]}
+        activeIndex={0}
+      />
+    );
+    const labels = screen.getAllByTestId('gallery-thumb-label').map((el) => el.textContent);
+    expect(labels).toEqual(['Default', 'Black']);
+  });
+
+  it(
+    'makes the thumbnail row swipeable on touch devices the same way other horizontal scrollers ' +
+      'in the app already work (failure case reported live: the row felt "static" and would not ' +
+      'slide to reveal more thumbnails on a phone — it was missing the same scroll-snap/touch-' +
+      'momentum classes used elsewhere, e.g. the homepage Instagram carousel)',
+    () => {
+      const { container } = render(
+        <ProductGallery
+          images={[
+            { url: '/photo-1.jpg', alt: 'Photo 1' },
+            { url: '/photo-2.jpg', alt: 'Photo 2' },
+          ]}
+          activeIndex={0}
+        />
+      );
+      const row = container.querySelector('.overflow-x-auto');
+      expect(row?.className).toContain('snap-scroll');
+      const thumbWrapper = screen.getByRole('button', { name: 'Show photo 2' }).parentElement;
+      expect(thumbWrapper?.className).toContain('snap-item');
+    }
+  );
 });

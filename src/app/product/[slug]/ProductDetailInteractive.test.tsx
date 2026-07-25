@@ -331,6 +331,19 @@ describe('ProductDetailInteractive — gallery reset on variant switch', () => {
       expect(hero.src).toContain('white.jpg');
     }
   );
+
+  it('writes the color name (or "Default") under each gallery thumbnail', () => {
+    searchParamsValue = new URLSearchParams('color=Red bow');
+    renderDetail([
+      makeVariant({ id: 'v1', color: 'Red bow', image: '/red-bow.jpg' }),
+      makeVariant({ id: 'v2', color: 'Black bow', image: '/black-bow.jpg' }),
+    ]);
+
+    // "Default"/"Red bow"/"Black bow" also each appear as a color-pill <button> and in the
+    // "Color: X" line lower on the page — the gallery's own captions carry a stable test id.
+    const labels = screen.getAllByTestId('gallery-thumb-label').map((el) => el.textContent);
+    expect(labels).toEqual(['Default', 'Red bow', 'Black bow']);
+  });
 });
 
 describe('ProductDetailInteractive — color+size cross-filtering (no invalid combos)', () => {

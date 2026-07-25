@@ -56,28 +56,39 @@ export default function ProductGallery({
         // Vertical padding gives the selected thumbnail's outline (offset 2px outward) room to
         // render fully — without it, this row's implied overflow-y:auto (a side effect of
         // overflow-x-auto) clipped the top/bottom of the ring instead of showing a full circle.
-        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+        // snap-scroll/snap-item are the same scroll-snap + touch-momentum classes already relied
+        // on for the homepage's Instagram carousel — without them this row didn't reliably
+        // respond to a swipe on a phone to reveal thumbnails past the fold.
+        <div className="flex gap-2 overflow-x-auto no-scrollbar snap-scroll py-1">
           {images.map((img, i) => (
-            <button
-              key={img.url + i}
-              type="button"
-              onClick={() => {
-                if (img.color) onSelectColor?.(img.color);
-                else onSelectIndex?.(i);
-              }}
-              aria-label={img.color ? `Show ${img.color}` : `Show photo ${i + 1}`}
-              className="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 transition-shadow duration-200"
-              style={
-                // Only the selected thumbnail gets an explicit ring — forcing a transparent
-                // outline on the rest used to silently swallow the browser's own default focus
-                // ring for keyboard users, since an inline style always wins over it.
-                i === activeIndex
-                  ? { outline: '2px solid var(--blush-rose)', outlineOffset: '2px' }
-                  : undefined
-              }
-            >
-              <AppImage src={img.url} alt={img.alt} fill className="object-cover" sizes="64px" />
-            </button>
+            <div key={img.url + i} className="flex flex-col items-center gap-1 shrink-0 snap-item">
+              <button
+                type="button"
+                onClick={() => {
+                  if (img.color) onSelectColor?.(img.color);
+                  else onSelectIndex?.(i);
+                }}
+                aria-label={img.color ? `Show ${img.color}` : `Show photo ${i + 1}`}
+                className="relative w-16 h-16 rounded-2xl overflow-hidden transition-shadow duration-200"
+                style={
+                  // Only the selected thumbnail gets an explicit ring — forcing a transparent
+                  // outline on the rest used to silently swallow the browser's own default focus
+                  // ring for keyboard users, since an inline style always wins over it.
+                  i === activeIndex
+                    ? { outline: '2px solid var(--blush-rose)', outlineOffset: '2px' }
+                    : undefined
+                }
+              >
+                <AppImage src={img.url} alt={img.alt} fill className="object-cover" sizes="64px" />
+              </button>
+              <span
+                data-testid="gallery-thumb-label"
+                className="w-16 text-center text-[10px] font-medium leading-tight truncate min-h-[14px]"
+                style={{ color: 'var(--blush-muted)' }}
+              >
+                {img.label ?? ''}
+              </span>
+            </div>
           ))}
         </div>
       )}
