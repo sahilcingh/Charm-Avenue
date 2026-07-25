@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server';
 import Icon from '@/components/ui/AppIcon';
 import SignOutButton from './SignOutButton';
 import AdminNav from './AdminNav';
+import AdminBottomNav from './AdminBottomNav';
+import AdminAccountMenu from './AdminAccountMenu';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // Every /admin/* request already passed through middleware's decideAdminAccess (getUser() +
@@ -57,17 +59,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               style={{ background: 'var(--blush-border)' }}
             />
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+              className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-xs font-bold text-white shrink-0"
               style={{ background: 'var(--blush-rose)' }}
               title={user.email ?? undefined}
             >
               {(user.email ?? '?').charAt(0).toUpperCase()}
             </div>
-            <SignOutButton />
+            <div className="hidden sm:block">
+              <SignOutButton />
+            </div>
+            {/* Mobile: one account button instead of two disconnected ones */}
+            <div className="sm:hidden">
+              <AdminAccountMenu email={user.email ?? null} />
+            </div>
           </div>
         </div>
       </header>
-      <main className="max-w-screen-2xl mx-auto px-4 md:px-8 py-8">{children}</main>
+      <main className="max-w-screen-2xl mx-auto px-4 md:px-8 pt-8 pb-24 sm:pb-8">{children}</main>
+      <AdminBottomNav />
     </div>
   );
 }

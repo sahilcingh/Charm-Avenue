@@ -40,99 +40,106 @@ function CategoryRow({ category, blockingProducts, onEdit, onDeleted }: Category
 
   return (
     <div
-      className="flex flex-col gap-2 px-4 py-3 border-b last:border-0"
+      className="flex flex-col gap-3 px-4 py-3 border-b last:border-0"
       style={{ borderColor: 'var(--blush-border)' }}
     >
-      <div className="flex items-center gap-3">
-        <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={category.image}
-            alt={category.image_alt}
-            className="w-full h-full object-cover"
-          />
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex items-start gap-3 min-w-0 sm:flex-1">
+          <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={category.image}
+              alt={category.image_alt}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold tracking-tight text-sm" style={{ color: 'var(--blush-text)' }}>
+              {category.emoji} {category.title}
+            </p>
+            <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
+              {category.subtitle}
+            </p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p
-            className="font-bold tracking-tight truncate text-sm"
-            style={{ color: 'var(--blush-text)' }}
-          >
-            {category.emoji} {category.title}
-          </p>
-          <p className="text-xs truncate" style={{ color: 'var(--blush-muted)' }}>
-            {category.subtitle}
-          </p>
-        </div>
-        <span
-          className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold shrink-0"
-          style={{ background: category.tag_bg, color: category.tag_text }}
+
+        <div
+          className="flex items-center justify-between gap-2 pt-2 sm:pt-0 sm:gap-3 border-t sm:border-t-0"
+          style={{ borderColor: 'var(--blush-bg)' }}
         >
-          {category.tag}
-        </span>
-        <button
-          onClick={() => setShowBlockers((v) => !v)}
-          className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 transition-colors duration-150"
-          style={{ background: 'var(--blush-bg)', color: 'var(--blush-muted)' }}
-        >
-          {blockingProducts.length} product{blockingProducts.length === 1 ? '' : 's'}
-        </button>
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={onEdit}
-            aria-label={`Edit ${category.title}`}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose)] hover:text-white"
-          >
-            <Icon name="PencilSquareIcon" size={15} />
-          </button>
-          {blocked ? (
-            <button
-              onClick={() => setShowBlockers(true)}
-              aria-label={`Can't delete ${category.title} — still in use`}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-border)] cursor-not-allowed"
-              title="Reassign its products before deleting"
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold shrink-0"
+              style={{ background: category.tag_bg, color: category.tag_text }}
             >
-              <Icon name="TrashIcon" size={15} />
-            </button>
-          ) : confirmingDelete ? (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={handleDelete}
-                disabled={isPending}
-                className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full text-white disabled:opacity-50"
-                style={{ background: 'var(--blush-rose-dark)' }}
-              >
-                {isPending ? '…' : 'Confirm'}
-              </button>
-              <button
-                onClick={() => setConfirmingDelete(false)}
-                aria-label="Cancel delete"
-                className="w-7 h-7 rounded-full flex items-center justify-center"
-                style={{ background: 'var(--blush-bg)', color: 'var(--blush-muted)' }}
-              >
-                <Icon name="XMarkIcon" size={14} />
-              </button>
-            </div>
-          ) : (
+              {category.tag}
+            </span>
             <button
-              onClick={() => setConfirmingDelete(true)}
-              aria-label={`Delete ${category.title}`}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-dark)] hover:text-white"
+              onClick={() => setShowBlockers((v) => !v)}
+              className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 transition-colors duration-150"
+              style={{ background: 'var(--blush-bg)', color: 'var(--blush-muted)' }}
             >
-              <Icon name="TrashIcon" size={15} />
+              {blockingProducts.length} product{blockingProducts.length === 1 ? '' : 's'}
             </button>
-          )}
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={onEdit}
+              aria-label={`Edit ${category.title}`}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose)] hover:text-white"
+            >
+              <Icon name="PencilSquareIcon" size={15} />
+            </button>
+            {blocked ? (
+              <button
+                onClick={() => setShowBlockers(true)}
+                aria-label={`Can't delete ${category.title} — still in use`}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-border)] cursor-not-allowed"
+                title="Reassign its products before deleting"
+              >
+                <Icon name="TrashIcon" size={15} />
+              </button>
+            ) : confirmingDelete ? (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handleDelete}
+                  disabled={isPending}
+                  className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full text-white disabled:opacity-50"
+                  style={{ background: 'var(--blush-rose-dark)' }}
+                >
+                  {isPending ? '…' : 'Confirm'}
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(false)}
+                  aria-label="Cancel delete"
+                  className="w-7 h-7 rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--blush-bg)', color: 'var(--blush-muted)' }}
+                >
+                  <Icon name="XMarkIcon" size={14} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmingDelete(true)}
+                aria-label={`Delete ${category.title}`}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-dark)] hover:text-white"
+              >
+                <Icon name="TrashIcon" size={15} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {error && (
-        <p className="text-xs font-medium pl-[4.25rem]" style={{ color: 'var(--blush-rose-dark)' }}>
+        <p className="text-xs font-medium" style={{ color: 'var(--blush-rose-dark)' }}>
           {error}
         </p>
       )}
 
       {showBlockers && (
         <div
-          className="ml-[4.25rem] rounded-2xl p-3 text-xs"
+          className="rounded-2xl p-3 text-xs"
           style={{ background: 'var(--blush-bg)', color: 'var(--blush-muted)' }}
         >
           {blocked ? (

@@ -15,7 +15,7 @@ export default function AdminNav() {
 
   return (
     <nav
-      className="flex items-center gap-1 p-1 rounded-full overflow-x-auto max-w-full"
+      className="hidden sm:flex items-center gap-1 p-1 rounded-full overflow-x-auto max-w-full"
       style={{ background: 'var(--blush-bg)' }}
     >
       {NAV_ITEMS.map((item) => {
