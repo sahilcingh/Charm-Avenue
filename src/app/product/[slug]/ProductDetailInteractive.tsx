@@ -116,8 +116,15 @@ export default function ProductDetailInteractive({
 
   const availableSizes = sizesForColor(selectedColor);
 
+  // A plain extra product photo (no color of its own) can be previewed in the gallery without
+  // touching the selected color — this tracks that one-off override; any real color change
+  // (via a pill or a color-tagged thumbnail) clears it so the highlight goes back to following
+  // whichever color is actually selected.
+  const [manualGalleryIndex, setManualGalleryIndex] = useState<number | null>(null);
+
   const handleSelectColor = (color: string | null) => {
     setSelectedColor(color);
+    setManualGalleryIndex(null);
     const nextSizes = sizesForColor(color);
     if (nextSizes.length > 0 && !nextSizes.includes(selectedSize ?? '')) {
       setSelectedSize(nextSizes[0]);
@@ -142,19 +149,15 @@ export default function ProductDetailInteractive({
       ? Math.round(((resolved.originalPrice - resolved.price) / resolved.originalPrice) * 100)
       : null;
 
-  // The variant's own photo becomes the gallery hero when set. Every OTHER color's own photo is
-  // also included as a thumbnail (tagged with its color) so a shopper can browse every option's
-  // look directly in the gallery, not just whichever one happens to be selected right now —
-  // clicking one of these also switches the active color (see onSelectColor below), keeping the
-  // gallery, the color pill, and the price/stock always in agreement.
-  const heroImage: GalleryImage = selectedVariant?.image
-    ? {
-        url: selectedVariant.image,
-        alt: galleryImages[0]?.alt ?? productName,
-        color: selectedColor ?? undefined,
-      }
-    : (galleryImages[0] ?? { url: '', alt: productName });
-
+  // Every color's own photo gets a thumbnail (tagged with its color) so a shopper can browse
+  // every option's look directly in the gallery, not just whichever one happens to be selected
+  // right now. This list is built in a FIXED order (base photo, then each color in the same
+  // order as the color pills) and never reorders itself around the current selection — only
+  // `activeGalleryIndex` below changes, moving the highlight/hero to the right spot in place
+  // (previously, the selected variant's photo was always spliced to the front of the array,
+  // which visually yanked whichever thumbnail you'd just clicked to the first position instead
+  // of leaving it where it was).
+  const baseImage: GalleryImage = galleryImages[0] ?? { url: '', alt: productName };
   const colorPhotos: GalleryImage[] = colors.flatMap((c) => {
     const variant = variants.find((v) => v.color === c && v.image);
     return variant
@@ -162,14 +165,24 @@ export default function ProductDetailInteractive({
       : [];
   });
 
-  const seenImageUrls = new Set([heroImage.url]);
-  const otherImages = [...colorPhotos, ...galleryImages].filter((img) => {
+  const seenImageUrls = new Set([baseImage.url]);
+  const extraImages = [...colorPhotos, ...galleryImages].filter((img) => {
     if (seenImageUrls.has(img.url)) return false;
     seenImageUrls.add(img.url);
     return true;
   });
 
-  const displayImages: GalleryImage[] = [heroImage, ...otherImages];
+  const displayImages: GalleryImage[] =
+    colors.length > 0 ? [baseImage, ...extraImages] : galleryImages;
+
+  const colorDrivenIndex =
+    selectedColor === null
+      ? 0
+      : Math.max(
+          0,
+          displayImages.findIndex((img) => img.color === selectedColor)
+        );
+  const activeGalleryIndex = manualGalleryIndex ?? colorDrivenIndex;
 
   // A specific variant's stock is fully authoritative while one is selected (no fallback to
   // the product's own stock fields) — but the "Default" option is deliberately the base
@@ -186,16 +199,14 @@ export default function ProductDetailInteractive({
 
   return (
     <div className="grid md:grid-cols-2 gap-8 md:gap-14">
-      {/* Keyed on the selected variant so switching color/size remounts the gallery fresh —
-          otherwise its internal "which thumbnail is active" state survived the swap, leaving the
-          ring pointing at a position that no longer matched the new variant's own photo array. */}
       <ProductGallery
-        key={selectedVariant?.id ?? 'default'}
         images={displayImages}
+        activeIndex={activeGalleryIndex}
+        onSelectIndex={setManualGalleryIndex}
+        onSelectColor={handleSelectColor}
         tag={tag}
         tagBg={tagBg}
         tagText={tagText}
-        onSelectColor={handleSelectColor}
       />
 
       <div className="flex flex-col">

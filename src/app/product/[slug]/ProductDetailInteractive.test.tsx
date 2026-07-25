@@ -123,7 +123,7 @@ describe('ProductDetailInteractive — initial color from ?color=', () => {
       makeVariant({ id: 'v2', color: 'Blue', image: '/blue.jpg' }),
     ]);
     expect(getColorLabel().textContent).toBe('Color: Blue');
-    const heroImage = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+    const heroImage = screen.getByTestId('gallery-hero-image') as HTMLImageElement;
     expect(heroImage.src).toContain('blue.jpg');
   });
 
@@ -153,7 +153,7 @@ describe('ProductDetailInteractive — initial color from ?color=', () => {
         makeVariant({ id: 'v2', color: 'Blue', image: '/blue.jpg' }),
       ]);
       expect(getColorLabel().textContent).toBe('Color: Default');
-      const heroImage = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+      const heroImage = screen.getByTestId('gallery-hero-image') as HTMLImageElement;
       expect(heroImage.src).toContain('base.jpg');
     }
   );
@@ -181,7 +181,7 @@ describe('ProductDetailInteractive — switching back to the Default (pre-varian
 
     expect(getColorLabel().textContent).toBe('Color: Default');
     expect(screen.getByText('₹130')).toBeInTheDocument();
-    const heroImage = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+    const heroImage = screen.getByTestId('gallery-hero-image') as HTMLImageElement;
     expect(heroImage.src).toContain('base.jpg');
   });
 
@@ -242,16 +242,17 @@ describe('ProductDetailInteractive — gallery reset on variant switch', () => {
         }
       );
 
-      // Gallery = [pink.jpg (hero), blue.jpg (Blue's own photo), base.jpg, base-2.jpg].
+      // Stable gallery order: [base.jpg, pink.jpg (Pink), blue.jpg (Blue), base-2.jpg].
       act(() => screen.getByRole('button', { name: 'Show photo 4' }).click());
-      expect(screen.getAllByAltText('Panda Lamp')[0]).toHaveAttribute(
+      expect(screen.getByTestId('gallery-hero-image')).toHaveAttribute(
         'src',
         expect.stringContaining('base-2.jpg')
       );
 
-      // Switch to Blue: gallery becomes [blue.jpg, base.jpg, base-2.jpg] — must reset to index 0.
+      // Switch to Blue via the color pill — the highlight/hero must follow Blue's own thumbnail
+      // wherever it sits in the (unchanged) order, not reset to index 0.
       act(() => screen.getByRole('button', { name: 'Blue' }).click());
-      const hero = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+      const hero = screen.getByTestId('gallery-hero-image') as HTMLImageElement;
       expect(hero.src).toContain('blue.jpg');
     }
   );
@@ -276,7 +277,37 @@ describe('ProductDetailInteractive — gallery reset on variant switch', () => {
       expect(screen.getByRole('button', { name: 'Show Black' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Show White' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Show Brown' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Show photo 4' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Show photo 1' })).toBeInTheDocument();
+    }
+  );
+
+  it(
+    'keeps every gallery thumbnail in the same fixed position (base photo, then each color in ' +
+      'the same order as the color pills) no matter which color is selected — only the ' +
+      'highlight/hero moves, the thumbnails themselves never jump to the front (failure case ' +
+      'reported live: selecting the 2nd or 3rd color thumbnail made that photo jump to the ' +
+      'first position instead of staying where it was and just gaining the highlight ring)',
+    () => {
+      searchParamsValue = new URLSearchParams('color=Black bow');
+      renderDetail([
+        makeVariant({ id: 'v1', color: 'Red bow', image: '/red-bow.jpg' }),
+        makeVariant({ id: 'v2', color: 'Black bow', image: '/black-bow.jpg' }),
+      ]);
+
+      const orderBefore = screen
+        .getAllByRole('button')
+        .filter((b) => /^Show /.test(b.getAttribute('aria-label') ?? ''))
+        .map((b) => b.getAttribute('aria-label'));
+      expect(orderBefore).toEqual(['Show photo 1', 'Show Red bow', 'Show Black bow']);
+
+      act(() => screen.getByRole('button', { name: 'Show Red bow' }).click());
+
+      const orderAfter = screen
+        .getAllByRole('button')
+        .filter((b) => /^Show /.test(b.getAttribute('aria-label') ?? ''))
+        .map((b) => b.getAttribute('aria-label'));
+      expect(orderAfter).toEqual(orderBefore);
+      expect(getColorLabel().textContent).toBe('Color: Red bow');
     }
   );
 
@@ -296,7 +327,7 @@ describe('ProductDetailInteractive — gallery reset on variant switch', () => {
 
       expect(getColorLabel().textContent).toBe('Color: White');
       expect(screen.getByText('₹150')).toBeInTheDocument();
-      const hero = screen.getAllByAltText('Panda Lamp')[0] as HTMLImageElement;
+      const hero = screen.getByTestId('gallery-hero-image') as HTMLImageElement;
       expect(hero.src).toContain('white.jpg');
     }
   );

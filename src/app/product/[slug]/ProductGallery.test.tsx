@@ -4,20 +4,23 @@ import React from 'react';
 import ProductGallery from './ProductGallery';
 
 describe('ProductGallery', () => {
-  it('shows the first photo by default and switches the hero photo when a thumbnail is clicked', () => {
+  it('shows whichever photo activeIndex points at, and calls onSelectIndex when a plain thumbnail is clicked', () => {
+    const onSelectIndex = vi.fn();
     render(
       <ProductGallery
         images={[
           { url: '/photo-1.jpg', alt: 'Photo 1' },
           { url: '/photo-2.jpg', alt: 'Photo 2' },
         ]}
+        activeIndex={0}
+        onSelectIndex={onSelectIndex}
       />
     );
     const hero = screen.getAllByAltText(/Photo/)[0] as HTMLImageElement;
     expect(hero.src).toContain('photo-1.jpg');
 
     act(() => screen.getByRole('button', { name: 'Show photo 2' }).click());
-    expect((screen.getAllByAltText(/Photo/)[0] as HTMLImageElement).src).toContain('photo-2.jpg');
+    expect(onSelectIndex).toHaveBeenCalledWith(1);
   });
 
   it(
@@ -31,6 +34,7 @@ describe('ProductGallery', () => {
             { url: '/photo-1.jpg', alt: 'Photo 1' },
             { url: '/photo-2.jpg', alt: 'Photo 2' },
           ]}
+          activeIndex={0}
         />
       );
       const secondThumb = screen.getByRole('button', { name: 'Show photo 2' });
@@ -45,43 +49,68 @@ describe('ProductGallery', () => {
           { url: '/base.jpg', alt: 'Product' },
           { url: '/black.jpg', alt: 'Product — Black', color: 'Black' },
         ]}
+        activeIndex={0}
       />
     );
     expect(screen.getByRole('button', { name: 'Show Black' })).toBeInTheDocument();
   });
 
   it(
-    "calls onSelectColor when a color-tagged thumbnail is clicked, so the page's active color " +
-      "(and its price/stock) switches along with the hero photo — not just the gallery's own " +
-      'local highlight',
+    'calls onSelectColor (not onSelectIndex) when a color-tagged thumbnail is clicked, so the ' +
+      "page's active color (and its price/stock) switches along with the hero photo",
     () => {
       const onSelectColor = vi.fn();
+      const onSelectIndex = vi.fn();
       render(
         <ProductGallery
           images={[
             { url: '/base.jpg', alt: 'Product' },
             { url: '/black.jpg', alt: 'Product — Black', color: 'Black' },
           ]}
+          activeIndex={0}
           onSelectColor={onSelectColor}
+          onSelectIndex={onSelectIndex}
         />
       );
       act(() => screen.getByRole('button', { name: 'Show Black' }).click());
       expect(onSelectColor).toHaveBeenCalledWith('Black');
+      expect(onSelectIndex).not.toHaveBeenCalled();
     }
   );
 
-  it('does not call onSelectColor when clicking a plain (non-color) thumbnail', () => {
-    const onSelectColor = vi.fn();
-    render(
+  it('highlights whichever thumbnail activeIndex points at, without reordering the images themselves', () => {
+    const { rerender } = render(
       <ProductGallery
         images={[
-          { url: '/photo-1.jpg', alt: 'Photo 1' },
-          { url: '/photo-2.jpg', alt: 'Photo 2' },
+          { url: '/base.jpg', alt: 'Product' },
+          { url: '/red.jpg', alt: 'Product — Red', color: 'Red' },
+          { url: '/black.jpg', alt: 'Product — Black', color: 'Black' },
         ]}
-        onSelectColor={onSelectColor}
+        activeIndex={2}
       />
     );
-    act(() => screen.getByRole('button', { name: 'Show photo 2' }).click());
-    expect(onSelectColor).not.toHaveBeenCalled();
+    const orderBefore = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'));
+    expect(screen.getByRole('button', { name: 'Show Black' })).toHaveStyle({
+      outline: '2px solid var(--blush-rose)',
+    });
+
+    rerender(
+      <ProductGallery
+        images={[
+          { url: '/base.jpg', alt: 'Product' },
+          { url: '/red.jpg', alt: 'Product — Red', color: 'Red' },
+          { url: '/black.jpg', alt: 'Product — Black', color: 'Black' },
+        ]}
+        activeIndex={1}
+      />
+    );
+    const orderAfter = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'));
+    expect(orderAfter).toEqual(orderBefore);
+    expect(screen.getByRole('button', { name: 'Show Red' })).toHaveStyle({
+      outline: '2px solid var(--blush-rose)',
+    });
+    expect(screen.getByRole('button', { name: 'Show Black' }).style.outline).not.toBe(
+      '2px solid var(--blush-rose)'
+    );
   });
 });
