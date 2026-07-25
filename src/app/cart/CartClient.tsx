@@ -30,6 +30,9 @@ export default function CartClient() {
   const { lines, hydrated, adjustQuantity, removeFromCart, clearCart } = useCart();
   const [productsById, setProductsById] = useState<Record<string, Product> | null>(null);
   const [variantsById, setVariantsById] = useState<Record<string, DbProductVariant>>({});
+  // A variant that RLS silently returns nothing for (deactivated/discontinued after being added
+  // to the cart) looks identical to "no variant was ever selected" unless tracked separately.
+  const [unavailableVariantIds, setUnavailableVariantIds] = useState<Set<string>>(new Set());
   const [combos, setCombos] = useState<ComboDefinition[]>([]);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -110,9 +113,11 @@ export default function CartClient() {
             map[row.id] = row;
           });
           setVariantsById(map);
+          setUnavailableVariantIds(new Set(variantIds.filter((id) => !map[id])));
         });
     } else {
       setVariantsById({});
+      setUnavailableVariantIds(new Set());
     }
 
     return () => {
@@ -140,6 +145,7 @@ export default function CartClient() {
       const product = productsById[line.productId];
       if (!product) return null;
       const variant = line.variantId ? (variantsById[line.variantId] ?? null) : null;
+      const isUnavailable = Boolean(line.variantId && unavailableVariantIds.has(line.variantId));
       const resolved = resolveVariantDisplay(
         {
           price: product.price,
@@ -152,6 +158,7 @@ export default function CartClient() {
         line,
         product,
         variant,
+        isUnavailable,
         effectivePrice: resolved.price,
         effectiveImage: resolved.image,
       };
@@ -254,110 +261,120 @@ export default function CartClient() {
       <div className="max-w-screen-2xl mx-auto grid md:grid-cols-3 gap-8">
         {/* Line items */}
         <div className="md:col-span-2 flex flex-col gap-4">
-          {items.map(({ line, product, variant, effectivePrice, effectiveImage }) => {
-            const lineOptions = {
-              variantId: line.variantId,
-              personalizationText: line.personalizationText,
-            };
-            const variantLabel = variant ? formatVariantLabel(variant) : null;
-            return (
-              <div
-                key={`${product.id}:${line.variantId ?? ''}:${line.personalizationText ?? ''}`}
-                className="flex gap-4 bg-white rounded-3xl p-4 card-bubble"
-              >
-                <Link
-                  href={`/product/${product.slug}`}
-                  className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0"
+          {items.map(
+            ({ line, product, variant, isUnavailable, effectivePrice, effectiveImage }) => {
+              const lineOptions = {
+                variantId: line.variantId,
+                personalizationText: line.personalizationText,
+              };
+              const variantLabel = variant ? formatVariantLabel(variant) : null;
+              return (
+                <div
+                  key={`${product.id}:${line.variantId ?? ''}:${line.personalizationText ?? ''}`}
+                  className="flex gap-4 bg-white rounded-3xl p-4 card-bubble"
                 >
-                  <AppImage
-                    src={effectiveImage}
-                    alt={product.imageAlt}
-                    fill
-                    className="object-cover"
-                    sizes="112px"
-                  />
-                </Link>
-                <div className="flex-1 flex flex-col justify-between min-w-0">
-                  <div>
-                    <p
-                      className="text-xs font-medium mb-0.5"
-                      style={{ color: 'var(--blush-muted)' }}
-                    >
-                      {product.category}
-                    </p>
-                    <Link
-                      href={`/product/${product.slug}`}
-                      className="font-bold text-sm sm:text-base hover:opacity-70 transition-opacity"
-                      style={{ color: 'var(--blush-text)' }}
-                    >
-                      {product.name}
-                    </Link>
-                    {variantLabel && (
+                  <Link
+                    href={`/product/${product.slug}`}
+                    className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0"
+                  >
+                    <AppImage
+                      src={effectiveImage}
+                      alt={product.imageAlt}
+                      fill
+                      className="object-cover"
+                      sizes="112px"
+                    />
+                  </Link>
+                  <div className="flex-1 flex flex-col justify-between min-w-0">
+                    <div>
                       <p
-                        className="text-xs font-medium mt-0.5"
+                        className="text-xs font-medium mb-0.5"
                         style={{ color: 'var(--blush-muted)' }}
                       >
-                        {variantLabel}
+                        {product.category}
                       </p>
-                    )}
-                    {line.personalizationText && (
-                      <p
-                        className="text-xs font-medium mt-0.5 italic"
-                        style={{ color: 'var(--blush-muted)' }}
-                      >
-                        &ldquo;{line.personalizationText}&rdquo;
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between gap-2 mt-2">
-                    <div
-                      className="flex items-center gap-1 rounded-full p-1"
-                      style={{ background: 'var(--blush-bg)' }}
-                    >
-                      <button
-                        onClick={() => adjustQuantity(product.id, -1, lineOptions)}
-                        aria-label="Decrease quantity"
-                        className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold hover:opacity-70 transition-opacity"
-                        style={{ color: 'var(--blush-rose)' }}
-                      >
-                        −
-                      </button>
-                      <span
-                        className="w-6 text-center text-sm font-bold"
+                      <Link
+                        href={`/product/${product.slug}`}
+                        className="font-bold text-sm sm:text-base hover:opacity-70 transition-opacity"
                         style={{ color: 'var(--blush-text)' }}
                       >
-                        {line.quantity}
-                      </span>
-                      <button
-                        onClick={() => adjustQuantity(product.id, 1, lineOptions)}
-                        aria-label="Increase quantity"
-                        className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold hover:opacity-70 transition-opacity"
+                        {product.name}
+                      </Link>
+                      {variantLabel && (
+                        <p
+                          className="text-xs font-medium mt-0.5"
+                          style={{ color: 'var(--blush-muted)' }}
+                        >
+                          {variantLabel}
+                        </p>
+                      )}
+                      {isUnavailable && (
+                        <p
+                          className="text-xs font-semibold mt-0.5"
+                          style={{ color: 'var(--blush-rose-dark)' }}
+                        >
+                          This option is no longer available
+                        </p>
+                      )}
+                      {line.personalizationText && (
+                        <p
+                          className="text-xs font-medium mt-0.5 italic"
+                          style={{ color: 'var(--blush-muted)' }}
+                        >
+                          &ldquo;{line.personalizationText}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-2">
+                      <div
+                        className="flex items-center gap-1 rounded-full p-1"
+                        style={{ background: 'var(--blush-bg)' }}
+                      >
+                        <button
+                          onClick={() => adjustQuantity(product.id, -1, lineOptions)}
+                          aria-label="Decrease quantity"
+                          className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold hover:opacity-70 transition-opacity"
+                          style={{ color: 'var(--blush-rose)' }}
+                        >
+                          −
+                        </button>
+                        <span
+                          className="w-6 text-center text-sm font-bold"
+                          style={{ color: 'var(--blush-text)' }}
+                        >
+                          {line.quantity}
+                        </span>
+                        <button
+                          onClick={() => adjustQuantity(product.id, 1, lineOptions)}
+                          aria-label="Increase quantity"
+                          className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold hover:opacity-70 transition-opacity"
+                          style={{ color: 'var(--blush-rose)' }}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span
+                        className="font-elegant-serif font-bold text-base sm:text-lg"
                         style={{ color: 'var(--blush-rose)' }}
                       >
-                        +
-                      </button>
+                        ₹{effectivePrice * line.quantity}
+                      </span>
                     </div>
-                    <span
-                      className="font-elegant-serif font-bold text-base sm:text-lg"
-                      style={{ color: 'var(--blush-rose)' }}
+                  </div>
+                  <div className="self-start flex flex-col items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => removeFromCart(product.id, lineOptions)}
+                      aria-label="Remove item"
+                      className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
+                      style={{ color: 'var(--blush-muted)' }}
                     >
-                      ₹{effectivePrice * line.quantity}
-                    </span>
+                      <Icon name="XMarkIcon" size={16} />
+                    </button>
                   </div>
                 </div>
-                <div className="self-start flex flex-col items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => removeFromCart(product.id, lineOptions)}
-                    aria-label="Remove item"
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
-                    style={{ color: 'var(--blush-muted)' }}
-                  >
-                    <Icon name="XMarkIcon" size={16} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            }
+          )}
         </div>
 
         {/* Summary */}

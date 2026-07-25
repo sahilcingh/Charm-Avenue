@@ -95,7 +95,33 @@ export default function ProductDetailInteractive({
     if (requestedColor === 'default') return null;
     return colors.includes(requestedColor) ? requestedColor : (colors[0] ?? null);
   });
-  const [selectedSize, setSelectedSize] = useState<string | null>(sizes[0] ?? null);
+
+  // Sizes are scoped to whichever color is currently selected — a color+size combo with no
+  // matching variant row must never be reachable through the UI, since picking one silently
+  // resolved to the base product with no indication the combination didn't actually exist.
+  const sizesForColor = (color: string | null) =>
+    Array.from(
+      new Set(
+        variants
+          .filter((v) => color === null || v.color === color)
+          .map((v) => v.size)
+          .filter((s): s is string => Boolean(s))
+      )
+    );
+
+  const [selectedSize, setSelectedSize] = useState<string | null>(
+    () => sizesForColor(selectedColor)[0] ?? null
+  );
+
+  const availableSizes = sizesForColor(selectedColor);
+
+  const handleSelectColor = (color: string | null) => {
+    setSelectedColor(color);
+    const nextSizes = sizesForColor(color);
+    if (nextSizes.length > 0 && !nextSizes.includes(selectedSize ?? '')) {
+      setSelectedSize(nextSizes[0]);
+    }
+  };
 
   const selectedVariant =
     variants.find(
@@ -194,7 +220,7 @@ export default function ProductDetailInteractive({
                       color variants existed — mirrors the same "default" option on the card. */}
                   <button
                     type="button"
-                    onClick={() => setSelectedColor(null)}
+                    onClick={() => handleSelectColor(null)}
                     className="px-3.5 py-2 rounded-full text-xs font-semibold border transition-colors"
                     style={
                       selectedColor === null
@@ -212,7 +238,7 @@ export default function ProductDetailInteractive({
                     <button
                       key={c}
                       type="button"
-                      onClick={() => setSelectedColor(c)}
+                      onClick={() => handleSelectColor(c)}
                       className="px-3.5 py-2 rounded-full text-xs font-semibold border transition-colors"
                       style={
                         c === selectedColor
@@ -230,7 +256,7 @@ export default function ProductDetailInteractive({
                 </div>
               </div>
             )}
-            {sizes.length > 0 && (
+            {availableSizes.length > 0 && (
               <div>
                 <p
                   className="text-xs font-bold uppercase tracking-wide mb-1.5"
@@ -239,7 +265,7 @@ export default function ProductDetailInteractive({
                   Size: <span style={{ color: 'var(--blush-text)' }}>{selectedSize}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {sizes.map((s) => (
+                  {availableSizes.map((s) => (
                     <button
                       key={s}
                       type="button"

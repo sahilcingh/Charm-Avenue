@@ -197,8 +197,21 @@ describe('mapProductRow', () => {
       });
       const mapped = mapProductRow(dbProduct, 'Anti-Tarnish Jewellery', [variant]);
       expect(mapped.colorVariants).toEqual([
-        { id: 'v1', color: 'Pink', image: '/pink.jpg', price: 350, originalPrice: 450 },
+        {
+          id: 'v1',
+          color: 'Pink',
+          image: '/pink.jpg',
+          price: 350,
+          originalPrice: 450,
+          stockStatus: null,
+        },
       ]);
+    });
+
+    it('carries the variant stock status through, so a card can warn a shopper before they select an unavailable color', () => {
+      const variant = makeVariant({ id: 'v1', color: 'Black', stock_status: 'out_of_stock' });
+      const mapped = mapProductRow(dbProduct, 'Anti-Tarnish Jewellery', [variant]);
+      expect(mapped.colorVariants[0].stockStatus).toBe('out_of_stock');
     });
 
     it('excludes variants with no color set (size-only variants)', () => {

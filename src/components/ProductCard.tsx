@@ -12,6 +12,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import type { Product, ProductColorVariant } from '@/lib/supabase/product-mapper';
 import { isSaleWindowActive } from '@/lib/supabase/sale-window';
 import { resolveCssColor } from '@/lib/css-color';
+import { STOCK_STATUS_LABELS } from '@/lib/supabase/product-variants';
 
 const MAX_VISIBLE_SWATCHES = 5;
 const CARD_IMAGE_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw';
@@ -98,6 +99,10 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   const displayImage = selectedVariant?.image ?? product.image;
   const displayPrice = selectedVariant?.price ?? product.price;
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product.originalPrice;
+  // Stock is only ever known per-variant here (see ProductColorVariant) — the base/"Default"
+  // photo has no stock field of its own to fall back to, unlike the product detail page.
+  const displayStockStatus = selectedVariant?.stockStatus ?? null;
+  const stockLabel = displayStockStatus ? STOCK_STATUS_LABELS[displayStockStatus] : null;
   const showDiscount =
     Boolean(displayOriginalPrice) &&
     isSaleWindowActive(product.saleStartsAt, product.saleEndsAt, new Date());
@@ -382,6 +387,15 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
             </span>
           )}
         </div>
+        {stockLabel && (
+          <span
+            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 mt-1.5 text-[0.625rem] font-semibold"
+            style={{ background: stockLabel.bg, color: stockLabel.color }}
+          >
+            <span className="w-1 h-1 rounded-full" style={{ background: stockLabel.color }} />
+            {stockLabel.label}
+          </span>
+        )}
       </div>
     </Link>
   );

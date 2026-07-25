@@ -316,6 +316,33 @@ describe('CartClient', () => {
     );
   });
 
+  it(
+    'warns that a line item is no longer available when its variant has been deactivated ' +
+      'since being added to the cart, instead of silently dropping the color/size label and ' +
+      'letting the shopper submit the enquiry as if nothing had changed (failure case: RLS ' +
+      'simply returns no row for a deactivated variant, which looked identical to "no variant ' +
+      'was ever selected")',
+    async () => {
+      mockProductRows([makeProductRow({ id: 'p1', name: 'Panda Lamp', price: 130 })]);
+      // The variant used to exist but is now deactivated — RLS returns nothing for it.
+      variantsInMock.mockResolvedValue({ data: [] });
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify([{ productId: 'p1', variantId: 'variant-1', quantity: 1 }])
+      );
+      render(
+        <ToastProvider>
+          <CartProvider>
+            <CartClient />
+          </CartProvider>
+        </ToastProvider>
+      );
+
+      await screen.findByText('Panda Lamp');
+      expect(screen.getByText(/no longer available/i)).toBeInTheDocument();
+    }
+  );
+
   it('shows an error and does not navigate when the enquiry fails to save', async () => {
     vi.mocked(createWhatsAppEnquiry).mockResolvedValue({
       error: 'Could not record your enquiry. Please try again.',

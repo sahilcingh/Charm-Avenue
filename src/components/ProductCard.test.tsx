@@ -179,8 +179,22 @@ describe('ProductCard', () => {
 
 describe('ProductCard — color swatches', () => {
   const colorVariants = [
-    { id: 'v1', color: 'Pink', image: '/pink.jpg', price: null, originalPrice: null },
-    { id: 'v2', color: 'Blue', image: '/blue.jpg', price: 150, originalPrice: 200 },
+    {
+      id: 'v1',
+      color: 'Pink',
+      image: '/pink.jpg',
+      price: null,
+      originalPrice: null,
+      stockStatus: null,
+    },
+    {
+      id: 'v2',
+      color: 'Blue',
+      image: '/blue.jpg',
+      price: 150,
+      originalPrice: 200,
+      stockStatus: null,
+    },
   ];
 
   it('renders no swatches when the product has no color variants', () => {
@@ -204,6 +218,7 @@ describe('ProductCard — color swatches', () => {
       image: null,
       price: null,
       originalPrice: null,
+      stockStatus: null,
     }));
     renderCard({ colorVariants: many });
     expect(screen.getAllByRole('button', { name: /^View Panda Lamp in/ })).toHaveLength(4);
@@ -217,6 +232,7 @@ describe('ProductCard — color swatches', () => {
       image: null,
       price: null,
       originalPrice: null,
+      stockStatus: null,
     }));
 
     it('opens a popover listing the hidden colors instead of navigating (failure case: previously this was a plain span, so any tap on it just opened the product page)', () => {
@@ -377,6 +393,36 @@ describe('ProductCard — color swatches', () => {
     expect(stored).toEqual([{ productId: 'p1', variantId: 'v2', quantity: 1 }]);
   });
 
+  it(
+    'shows an "Out of Stock" badge when the selected variant is out of stock, and hides it again ' +
+      'once a variant that is in stock is selected (failure case: the card gave no indication ' +
+      'at all that a variant was unavailable, so a shopper could Quick Add it with no warning)',
+    () => {
+      mockLoggedOut();
+      renderCard({
+        colorVariants: [
+          ...colorVariants,
+          {
+            id: 'v3',
+            color: 'Black',
+            image: '/black.jpg',
+            price: null,
+            originalPrice: null,
+            stockStatus: 'out_of_stock',
+          },
+        ],
+      });
+
+      expect(screen.queryByText('Out of Stock')).not.toBeInTheDocument();
+
+      act(() => screen.getByRole('button', { name: 'View Panda Lamp in Black' }).click());
+      expect(screen.getByText('Out of Stock')).toBeInTheDocument();
+
+      act(() => screen.getByRole('button', { name: 'View Panda Lamp in Pink' }).click());
+      expect(screen.queryByText('Out of Stock')).not.toBeInTheDocument();
+    }
+  );
+
   it("borders an unselected swatch in the admin's own color name, and switches to the brand rose once selected", () => {
     mockLoggedOut();
     renderCard({ colorVariants });
@@ -408,7 +454,14 @@ describe('ProductCard — color swatches', () => {
     mockLoggedOut();
     renderCard({
       colorVariants: [
-        { id: 'v3', color: 'Rose Gold', image: '/rg.jpg', price: null, originalPrice: null },
+        {
+          id: 'v3',
+          color: 'Rose Gold',
+          image: '/rg.jpg',
+          price: null,
+          originalPrice: null,
+          stockStatus: null,
+        },
       ],
     });
     expect(screen.getByRole('button', { name: 'View Panda Lamp in Rose Gold' })).toHaveStyle({

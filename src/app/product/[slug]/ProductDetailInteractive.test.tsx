@@ -99,6 +99,13 @@ function getColorLabel() {
   );
 }
 
+function getSizeLabel() {
+  return screen.getByText(
+    (_, element) =>
+      element?.tagName.toLowerCase() === 'p' && (element.textContent?.startsWith('Size:') ?? false)
+  );
+}
+
 describe('ProductDetailInteractive — initial color from ?color=', () => {
   it('defaults to the first color when there is no ?color= param', () => {
     searchParamsValue = new URLSearchParams();
@@ -192,5 +199,42 @@ describe('ProductDetailInteractive — switching back to the Default (pre-varian
     act(() => screen.getByRole('button', { name: 'Default' }).click());
 
     expect(screen.getByText('In Stock')).toBeInTheDocument();
+  });
+});
+
+describe('ProductDetailInteractive — color+size cross-filtering (no invalid combos)', () => {
+  // Red/S, Red/M, Blue/S exist — Blue/M does not.
+  const crossAxisVariants = [
+    makeVariant({ id: 'v1', color: 'Red', size: 'S', price_override: 100 }),
+    makeVariant({ id: 'v2', color: 'Red', size: 'M', price_override: 100 }),
+    makeVariant({ id: 'v3', color: 'Blue', size: 'S', price_override: 100 }),
+  ];
+
+  it("only offers sizes that actually exist for the selected color, so a shopper can't pick a combination with no matching variant", () => {
+    searchParamsValue = new URLSearchParams('color=Red');
+    renderDetail(crossAxisVariants);
+
+    expect(screen.getByRole('button', { name: 'S' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'M' })).toBeInTheDocument();
+
+    act(() => screen.getByRole('button', { name: 'Blue' }).click());
+
+    expect(screen.getByRole('button', { name: 'S' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'M' })).not.toBeInTheDocument();
+  });
+
+  it('auto-corrects the selected size to one that actually exists when switching to a color that lacks the current size, instead of silently falling back to the base product with no warning', () => {
+    searchParamsValue = new URLSearchParams('color=Red');
+    renderDetail(crossAxisVariants);
+
+    act(() => screen.getByRole('button', { name: 'M' }).click());
+    expect(getSizeLabel().textContent).toBe('Size: M');
+
+    act(() => screen.getByRole('button', { name: 'Blue' }).click());
+
+    // Blue/M doesn't exist — the size selection must move to Blue's real size (S),
+    // not stay on the now-invalid "M" and silently resolve to the base product.
+    expect(getSizeLabel().textContent).toBe('Size: S');
+    expect(screen.getByText('₹100')).toBeInTheDocument();
   });
 });

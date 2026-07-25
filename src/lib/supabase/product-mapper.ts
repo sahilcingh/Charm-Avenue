@@ -7,6 +7,7 @@ export interface ProductColorVariant {
   image: string | null;
   price: number | null;
   originalPrice: number | null;
+  stockStatus: ProductStockStatus | null;
 }
 
 export interface Category {
@@ -87,6 +88,7 @@ function colorVariantsFromRows(rows: DbProductVariant[]): ProductColorVariant[] 
     image: row.image,
     price: row.price_override,
     originalPrice: row.original_price_override,
+    stockStatus: row.stock_status,
   }));
 }
 
