@@ -4,6 +4,7 @@ import Link from 'next/link';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import type { Category } from '@/lib/supabase/product-mapper';
+import { computeFinalTileColSpan } from './categoryBentoLayout';
 
 // Fluid clamp() ranges instead of a breakpoint jump — scales continuously with
 // viewport width rather than snapping once at `md`. Floor/ceiling match the
@@ -11,24 +12,27 @@ import type { Category } from '@/lib/supabase/product-mapper';
 const LARGE_TILE_HEIGHT = 'min-h-[clamp(26.25rem,40vw,31.25rem)]';
 const STANDARD_TILE_HEIGHT = 'min-h-[clamp(12rem,18vw,16rem)]';
 
-const layoutBySlug: Record<string, { colSpan: string; rowSpan: string; minHeight: string }> = {
-  hair: { colSpan: 'md:col-span-2', rowSpan: 'md:row-span-2', minHeight: LARGE_TILE_HEIGHT },
-  accessories: {
-    colSpan: 'md:col-span-1',
-    rowSpan: 'md:row-span-1',
-    minHeight: STANDARD_TILE_HEIGHT,
-  },
-  pouches: { colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1', minHeight: STANDARD_TILE_HEIGHT },
-  'gifts-novelty': {
-    colSpan: 'md:col-span-2',
-    rowSpan: 'md:row-span-1',
-    minHeight: STANDARD_TILE_HEIGHT,
-  },
+const layoutBySlug: Record<string, { colSpanNum: number; rowSpanNum: number; minHeight: string }> =
+  {
+    hair: { colSpanNum: 2, rowSpanNum: 2, minHeight: LARGE_TILE_HEIGHT },
+    accessories: { colSpanNum: 1, rowSpanNum: 1, minHeight: STANDARD_TILE_HEIGHT },
+    pouches: { colSpanNum: 1, rowSpanNum: 1, minHeight: STANDARD_TILE_HEIGHT },
+    'gifts-novelty': { colSpanNum: 2, rowSpanNum: 1, minHeight: STANDARD_TILE_HEIGHT },
+  };
+const DEFAULT_LAYOUT = { colSpanNum: 1, rowSpanNum: 1, minHeight: STANDARD_TILE_HEIGHT };
+
+// Tailwind's JIT only generates a utility for a class name that appears
+// literally in source — this lookup exists so the dynamically-picked
+// `md:col-span-3` (used to stretch a trailing tile across the whole row)
+// actually ships in the built CSS.
+const COL_SPAN_CLASSES: Record<number, string> = {
+  1: 'md:col-span-1',
+  2: 'md:col-span-2',
+  3: 'md:col-span-3',
 };
-const DEFAULT_LAYOUT = {
-  colSpan: 'md:col-span-1',
-  rowSpan: 'md:row-span-1',
-  minHeight: STANDARD_TILE_HEIGHT,
+const ROW_SPAN_CLASSES: Record<number, string> = {
+  1: 'md:row-span-1',
+  2: 'md:row-span-2',
 };
 
 export default function CategoryBento({ categories }: { categories: Category[] }) {
@@ -88,55 +92,67 @@ export default function CategoryBento({ categories }: { categories: Category[] }
 
       {/* Bento Grid */}
       <div className="max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-min">
-        {categories.map((cat, i) => {
-          const layout = layoutBySlug[cat.slug] ?? DEFAULT_LAYOUT;
-          return (
-            <Link
-              key={cat.slug}
-              href={`/shop/${cat.slug}`}
-              className={`block relative ${layout.colSpan} ${layout.rowSpan} ${layout.minHeight} rounded-3xl overflow-hidden group cursor-pointer reveal-scale card-depth`}
-              style={{ transitionDelay: `${i * 80}ms` }}
-            >
-              {/* Image */}
-              <AppImage
-                src={cat.image}
-                alt={cat.imageAlt}
-                fill
-                className="object-cover grayscale-hover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              {/* Gradient scrim */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1E1712]/80 via-[#1E1712]/30 to-transparent" />
-
-              {/* Content */}
-              <div className="absolute inset-0 flex flex-col justify-between p-5 md:p-6 z-10">
-                {/* Top tag */}
-                <div className="flex justify-between items-start">
-                  <span
-                    className="badge-pill shadow-sm"
-                    style={{ background: cat.tagBg, color: cat.tagText }}
-                  >
-                    {cat.emoji} {cat.tag}
-                  </span>
-                  <span className="w-9 h-9 rounded-full glass-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Icon name="ArrowUpRightIcon" size={16} className="text-white" />
-                  </span>
-                </div>
-
-                {/* Bottom text */}
-                <div>
-                  <h3 className="font-elegant-serif text-white text-xl md:text-2xl leading-tight mb-1">
-                    {cat.title}
-                  </h3>
-                  <p className="text-white/80 text-xs md:text-sm font-medium">{cat.subtitle}</p>
-                  <span className="mt-3 text-white text-xs font-bold uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                    Explore <Icon name="ChevronRightIcon" size={14} className="text-white" />
-                  </span>
-                </div>
-              </div>
-            </Link>
+        {(() => {
+          const finalColSpanNum = computeFinalTileColSpan(
+            categories.map((cat) => {
+              const l = layoutBySlug[cat.slug] ?? DEFAULT_LAYOUT;
+              return { colSpan: l.colSpanNum, rowSpan: l.rowSpanNum };
+            })
           );
-        })}
+          return categories.map((cat, i) => {
+            const layout = layoutBySlug[cat.slug] ?? DEFAULT_LAYOUT;
+            const isLast = i === categories.length - 1;
+            const colSpanClass =
+              COL_SPAN_CLASSES[isLast ? finalColSpanNum : layout.colSpanNum] ?? COL_SPAN_CLASSES[1];
+            const rowSpanClass = ROW_SPAN_CLASSES[layout.rowSpanNum] ?? ROW_SPAN_CLASSES[1];
+            return (
+              <Link
+                key={cat.slug}
+                href={`/shop/${cat.slug}`}
+                className={`block relative ${colSpanClass} ${rowSpanClass} ${layout.minHeight} rounded-3xl overflow-hidden group cursor-pointer reveal-scale card-depth`}
+                style={{ transitionDelay: `${i * 80}ms` }}
+              >
+                {/* Image */}
+                <AppImage
+                  src={cat.image}
+                  alt={cat.imageAlt}
+                  fill
+                  className="object-cover grayscale-hover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                {/* Gradient scrim */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1E1712]/80 via-[#1E1712]/30 to-transparent" />
+
+                {/* Content */}
+                <div className="absolute inset-0 flex flex-col justify-between p-5 md:p-6 z-10">
+                  {/* Top tag */}
+                  <div className="flex justify-between items-start">
+                    <span
+                      className="badge-pill shadow-sm"
+                      style={{ background: cat.tagBg, color: cat.tagText }}
+                    >
+                      {cat.emoji} {cat.tag}
+                    </span>
+                    <span className="w-9 h-9 rounded-full glass-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <Icon name="ArrowUpRightIcon" size={16} className="text-white" />
+                    </span>
+                  </div>
+
+                  {/* Bottom text */}
+                  <div>
+                    <h3 className="font-elegant-serif text-white text-xl md:text-2xl leading-tight mb-1">
+                      {cat.title}
+                    </h3>
+                    <p className="text-white/80 text-xs md:text-sm font-medium">{cat.subtitle}</p>
+                    <span className="mt-3 text-white text-xs font-bold uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                      Explore <Icon name="ChevronRightIcon" size={14} className="text-white" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          });
+        })()}
       </div>
     </section>
   );
