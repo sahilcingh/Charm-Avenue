@@ -51,6 +51,9 @@ interface ProductFormValues {
   // Phase 3 — categories beyond the required primary one, plus tags.
   extraCategorySlugs: string[];
   tagSlugs: string[];
+  // Phase 8 — explicit New Arrivals/Best Sellers membership.
+  isNewArrival: boolean;
+  isBestSeller: boolean;
 }
 
 function parseForm(formData: FormData): ProductFormValues {
@@ -122,6 +125,8 @@ function parseForm(formData: FormData): ProductFormValues {
         : PERSONALIZATION_MAX_LENGTH_FALLBACK,
     extraCategorySlugs: formData.getAll('extraCategories').map(String),
     tagSlugs: formData.getAll('tags').map(String),
+    isNewArrival: formData.get('isNewArrival') === 'on',
+    isBestSeller: formData.get('isBestSeller') === 'on',
   };
 }
 
@@ -268,6 +273,8 @@ export async function createProduct(formData: FormData) {
       personalization_label: values.personalizationLabel,
       personalization_required: values.personalizationRequired,
       personalization_max_length: values.personalizationMaxLength,
+      is_new_arrival: values.isNewArrival,
+      is_best_seller: values.isBestSeller,
     })
     .select('id')
     .single();
@@ -324,6 +331,8 @@ export async function updateProduct(productId: string, formData: FormData) {
     personalization_label: values.personalizationLabel,
     personalization_required: values.personalizationRequired,
     personalization_max_length: values.personalizationMaxLength,
+    is_new_arrival: values.isNewArrival,
+    is_best_seller: values.isBestSeller,
   };
   if (imageUrl) update.image = imageUrl;
 

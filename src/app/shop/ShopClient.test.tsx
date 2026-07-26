@@ -36,14 +36,16 @@ function makeProduct(overrides: Partial<Product>): Product {
     material: null,
     careInstructions: null,
     colorVariants: [],
+    isNewArrival: false,
+    isBestSeller: false,
     ...overrides,
   };
 }
 
 const products: Product[] = [
-  makeProduct({ id: '1', name: 'Classic Clip', tag: undefined }),
-  makeProduct({ id: '2', name: 'Fresh Drop', tag: 'New' }),
-  makeProduct({ id: '3', name: 'Top Seller Bag', tag: 'Best Seller' }),
+  makeProduct({ id: '1', name: 'Classic Clip' }),
+  makeProduct({ id: '2', name: 'Fresh Drop', isNewArrival: true }),
+  makeProduct({ id: '3', name: 'Top Seller Bag', isBestSeller: true }),
 ];
 
 describe('ShopClient — filter routing', () => {
@@ -54,14 +56,14 @@ describe('ShopClient — filter routing', () => {
     expect(screen.getByText('Top Seller Bag')).toBeInTheDocument();
   });
 
-  it('shows only "new"-tagged products for the "new" filter', () => {
+  it('shows only products with isNewArrival for the "new" filter, regardless of badge text', () => {
     render(<ShopClient initialFilter="new" products={products} categories={[]} />);
     expect(screen.getByText('Fresh Drop')).toBeInTheDocument();
     expect(screen.queryByText('Classic Clip')).not.toBeInTheDocument();
     expect(screen.queryByText('Top Seller Bag')).not.toBeInTheDocument();
   });
 
-  it('shows only best-seller-tagged products for the "bestseller" filter (Best Sellers nav link)', () => {
+  it('shows only products with isBestSeller for the "bestseller" filter (Best Sellers nav link)', () => {
     render(<ShopClient initialFilter="bestseller" products={products} categories={[]} />);
     expect(screen.getByText('Top Seller Bag')).toBeInTheDocument();
     expect(screen.queryByText('Classic Clip')).not.toBeInTheDocument();

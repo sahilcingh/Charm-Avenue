@@ -30,6 +30,8 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     material: null,
     careInstructions: null,
     colorVariants: [],
+    isNewArrival: false,
+    isBestSeller: false,
     ...overrides,
   };
 }

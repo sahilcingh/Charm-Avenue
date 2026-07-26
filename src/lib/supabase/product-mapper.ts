@@ -59,6 +59,9 @@ export interface Product {
   careInstructions: string | null;
   // Phase 7 — card-level color swatches (see ProductCard); one entry per distinct color.
   colorVariants: ProductColorVariant[];
+  // Phase 8 — explicit New Arrivals/Best Sellers membership (see /shop's filter).
+  isNewArrival: boolean;
+  isBestSeller: boolean;
 }
 
 export function mapCategoryRow(row: DbCategory): Category {
@@ -133,5 +136,7 @@ export function mapProductRow(
     material: row.material,
     careInstructions: row.care_instructions,
     colorVariants: colorVariantsFromRows(variantRows),
+    isNewArrival: row.is_new_arrival,
+    isBestSeller: row.is_best_seller,
   };
 }

@@ -155,6 +155,8 @@ export default function ProductForm({
   const [compressing, setCompressing] = useState(false);
   const [tagStyle, setTagStyle] = useState<TagStyleKey>(tagStyleKeyFor(product?.tag_bg ?? null));
   const [tagLabel, setTagLabel] = useState(product?.tag ?? '');
+  const [isNewArrival, setIsNewArrival] = useState(product?.is_new_arrival ?? false);
+  const [isBestSeller, setIsBestSeller] = useState(product?.is_best_seller ?? false);
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
 
   // Tracked only to drive the live preview card — the form itself still submits via native FormData.
@@ -729,6 +731,28 @@ export default function ProductForm({
                 />
               </div>
             )}
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                name="isNewArrival"
+                checked={isNewArrival}
+                onChange={(e) => setIsNewArrival(e.target.checked)}
+                className="accent-[var(--blush-rose)]"
+              />
+              <span style={{ color: 'var(--blush-text)' }}>Show in New Arrivals</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                name="isBestSeller"
+                checked={isBestSeller}
+                onChange={(e) => setIsBestSeller(e.target.checked)}
+                className="accent-[var(--blush-rose)]"
+              />
+              <span style={{ color: 'var(--blush-text)' }}>Show in Best Sellers</span>
+            </label>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>

@@ -142,6 +142,33 @@ export interface DbProduct {
   // Phase 6 — only meaningful for a product with zero variants; once any
   // variant exists, variant-level stock_count is authoritative instead.
   stock_count: number | null;
+  // Phase 8 — explicit New Arrivals/Best Sellers membership, independent of
+  // whatever text (if any) the tag/tag_bg/tag_text badge fields show.
+  is_new_arrival: boolean;
+  is_best_seller: boolean;
+}
+
+// Phase 9 — an admin-curated, orderable homepage section (e.g. "Impulse Buys
+// You Need") and its orderable product membership. See
+// products-phase9-homepage-sections-migration.sql.
+export type HomepageSectionLayout = 'grid' | 'carousel';
+
+export interface DbHomepageSection {
+  id: string;
+  title: string;
+  eyebrow_emoji: string;
+  eyebrow_label: string;
+  subtitle: string | null;
+  layout: HomepageSectionLayout;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbHomepageSectionProduct {
+  section_id: string;
+  product_id: string;
+  sort_order: number;
 }
 
 /** Preset badge styles the admin form offers, instead of raw hex color inputs. */

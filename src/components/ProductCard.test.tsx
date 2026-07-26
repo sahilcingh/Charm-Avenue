@@ -70,6 +70,8 @@ const product: Product = {
   material: null,
   careInstructions: null,
   colorVariants: [],
+  isNewArrival: false,
+  isBestSeller: false,
 };
 
 function CartProbe() {

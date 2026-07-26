@@ -33,3 +33,27 @@ describe('ProductForm — product photo upload accessibility', () => {
     }
   );
 });
+
+describe('ProductForm — New Arrivals/Best Sellers toggles', () => {
+  it('renders both toggles unchecked by default for a new product', () => {
+    renderForm();
+
+    const newArrival = screen.getByRole('checkbox', { name: 'Show in New Arrivals' });
+    const bestSeller = screen.getByRole('checkbox', { name: 'Show in Best Sellers' });
+    expect(newArrival).not.toBeChecked();
+    expect(bestSeller).not.toBeChecked();
+    expect(newArrival).toHaveAttribute('name', 'isNewArrival');
+    expect(bestSeller).toHaveAttribute('name', 'isBestSeller');
+  });
+
+  it('checking a toggle updates its own checked state independently of the other', () => {
+    renderForm();
+
+    const newArrival = screen.getByRole('checkbox', { name: 'Show in New Arrivals' });
+    const bestSeller = screen.getByRole('checkbox', { name: 'Show in Best Sellers' });
+
+    fireEvent.click(newArrival);
+    expect(newArrival).toBeChecked();
+    expect(bestSeller).not.toBeChecked();
+  });
+});

@@ -631,6 +631,30 @@ describe('reorderProductImage', () => {
   });
 });
 
+describe('createProduct/updateProduct — New Arrivals/Best Sellers flags', () => {
+  it('defaults both flags to false when their checkboxes are left unchecked', async () => {
+    mockAdmin();
+    await createProduct(validProductFormData());
+
+    expect(productsInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({ is_new_arrival: false, is_best_seller: false })
+    );
+  });
+
+  it('saves is_new_arrival/is_best_seller as true when their checkboxes are checked', async () => {
+    mockAdmin();
+    const fd = validProductFormData();
+    fd.set('isNewArrival', 'on');
+    fd.set('isBestSeller', 'on');
+
+    await createProduct(fd);
+
+    expect(productsInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({ is_new_arrival: true, is_best_seller: true })
+    );
+  });
+});
+
 describe('createProduct — Categories & Tags sync', () => {
   it('adds the primary category to product_categories, with no extra categories or tags by default', async () => {
     mockAdmin();

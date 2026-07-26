@@ -48,6 +48,8 @@ const dbProduct: DbProduct = {
   personalization_label: null,
   personalization_required: false,
   personalization_max_length: null,
+  is_new_arrival: false,
+  is_best_seller: false,
 };
 
 describe('mapCategoryRow', () => {
@@ -100,7 +102,16 @@ describe('mapProductRow', () => {
       lowStockThreshold: null,
       stockCount: null,
       colorVariants: [],
+      isNewArrival: false,
+      isBestSeller: false,
     });
+  });
+
+  it('surfaces the New Arrivals/Best Sellers flags (Phase 8)', () => {
+    const row = { ...dbProduct, is_new_arrival: true, is_best_seller: true };
+    const mapped = mapProductRow(row, 'Anti-Tarnish Jewellery');
+    expect(mapped.isNewArrival).toBe(true);
+    expect(mapped.isBestSeller).toBe(true);
   });
 
   it('omits originalPrice when the row has none (not shown as a fake discount)', () => {

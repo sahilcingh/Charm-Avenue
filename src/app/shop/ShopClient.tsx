@@ -14,8 +14,8 @@ interface ShopClientProps {
 
 export default function ShopClient({ initialFilter, products, categories }: ShopClientProps) {
   const filtered = products.filter((p) => {
-    if (initialFilter === 'new') return p.tag?.toLowerCase().includes('new');
-    if (initialFilter === 'bestseller') return p.tag?.toLowerCase().includes('best');
+    if (initialFilter === 'new') return p.isNewArrival;
+    if (initialFilter === 'bestseller') return p.isBestSeller;
     return true;
   });
 
