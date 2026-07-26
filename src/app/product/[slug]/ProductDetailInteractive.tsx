@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import ProductGallery from './ProductGallery';
+import GalleryThumbnails from './GalleryThumbnails';
 import AddToCartButton from './AddToCartButton';
 import AdminEditLink from './AdminEditLink';
 import type { DbProductVariant, ProductStockStatus } from '@/lib/supabase/types';
@@ -254,6 +255,17 @@ export default function ProductDetailInteractive({
             {rating} ({reviewCount} reviews)
           </span>
         </div>
+
+        {/* Desktop only — on mobile these same thumbnails render instead under the photo (see
+            ProductGallery), where a swipeable row fits the layout better than sitting here. */}
+        <GalleryThumbnails
+          images={displayImages}
+          activeIndex={activeGalleryIndex}
+          onSelectIndex={setManualGalleryIndex}
+          onSelectColor={handleSelectColor}
+          onSelectDefault={() => handleSelectColor(null)}
+          className="hidden md:flex mb-4"
+        />
 
         <AdminEditLink productId={productId} />
 
