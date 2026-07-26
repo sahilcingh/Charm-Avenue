@@ -4,7 +4,7 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product, Category } from '@/lib/supabase/product-mapper';
 
-type FilterKey = 'all' | 'new';
+type FilterKey = 'all' | 'new' | 'bestseller';
 
 interface ShopClientProps {
   initialFilter: FilterKey;
@@ -15,6 +15,7 @@ interface ShopClientProps {
 export default function ShopClient({ initialFilter, products, categories }: ShopClientProps) {
   const filtered = products.filter((p) => {
     if (initialFilter === 'new') return p.tag?.toLowerCase().includes('new');
+    if (initialFilter === 'bestseller') return p.tag?.toLowerCase().includes('best');
     return true;
   });
 

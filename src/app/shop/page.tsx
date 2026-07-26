@@ -17,7 +17,8 @@ export default async function ShopPage({
   searchParams: Promise<{ filter?: string }>;
 }) {
   const params = await searchParams;
-  const initialFilter = params?.filter === 'new' ? 'new' : 'all';
+  const initialFilter =
+    params?.filter === 'new' ? 'new' : params?.filter === 'bestseller' ? 'bestseller' : 'all';
   const [categories, products] = await Promise.all([getCategories(), getAllActiveProducts()]);
 
   return (

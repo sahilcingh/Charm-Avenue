@@ -1,8 +1,8 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import { useAdminMode } from '@/lib/admin-mode-context';
 import { getInitial } from '@/lib/auth-validation';
@@ -14,7 +14,7 @@ const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'Shop', href: '/shop' },
   { label: 'New Arrivals', href: '/shop?filter=new' },
-  { label: 'Best Sellers', href: '/shop' },
+  { label: 'Best Sellers', href: '/shop?filter=bestseller' },
   { label: 'About Us', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ];
@@ -32,7 +32,9 @@ const navLinkDelays = [
 export default function Header() {
   return (
     <ErrorBoundary fallback={<HeaderFallback />}>
-      <HeaderContent />
+      <Suspense fallback={<HeaderFallback />}>
+        <HeaderContent />
+      </Suspense>
     </ErrorBoundary>
   );
 }
@@ -59,6 +61,7 @@ function HeaderContent() {
   const { isAdmin, user } = useAdminMode();
   const accountInitial = user ? getInitial(user.user_metadata?.name || user.email || '') : null;
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const desktopSearch = useLiveProductSearch(searchQuery);
   const mobileSearch = useLiveProductSearch(mobileSearchQuery);
@@ -90,8 +93,12 @@ function HeaderContent() {
   }, [menuOpen]);
 
   const isLinkActive = (href: string) => {
-    const base = href.split('?')[0];
-    return base === '/' ? pathname === '/' : pathname.startsWith(base);
+    const [base, query] = href.split('?');
+    if (base === '/') return pathname === '/';
+    if (!pathname.startsWith(base)) return false;
+
+    const linkFilter = new URLSearchParams(query ?? '').get('filter');
+    return linkFilter === searchParams.get('filter');
   };
 
   return (
