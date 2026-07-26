@@ -5,6 +5,7 @@ import { CartProvider } from '@/lib/cart-context';
 import { ToastProvider } from '@/lib/toast-context';
 import { AdminModeProvider } from '@/lib/admin-mode-context';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import Clarity from '@/components/analytics/Clarity';
 import '../styles/tailwind.css';
 
 const syne = Syne({
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       className={`${syne.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} ${dancingScript.variable}`}
     >
       <body className={plusJakartaSans.className}>
+        <Clarity />
         <ErrorBoundary>
           <ToastProvider>
             <CartProvider>
