@@ -148,7 +148,7 @@ export async function deleteCategory(slug: string) {
   if (error) {
     if (error.code === '23503') {
       throw new Error(
-        'This category still has products assigned to it — reassign them to another category first.'
+        'This category still has products assigned to it. Reassign them to another category first.'
       );
     }
     throw new Error(error.message);

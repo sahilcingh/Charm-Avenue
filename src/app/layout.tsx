@@ -44,7 +44,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: 'Charm Avenue by Nandini — Cute Accessories & Everyday Finds',
+  title: 'Charm Avenue by Nandini | Cute Accessories & Everyday Finds',
   description:
     'Shop cute accessories, hair accessories, gifts & novelty finds starting ₹150. Fast shipping across India. Charm Avenue by Nandini.',
   icons: {

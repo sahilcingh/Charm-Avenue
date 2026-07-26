@@ -93,7 +93,7 @@ function CategoryRow({ category, blockingProducts, onEdit, onDeleted }: Category
             {blocked ? (
               <button
                 onClick={() => setShowBlockers(true)}
-                aria-label={`Can't delete ${category.title} — still in use`}
+                aria-label={`Can't delete ${category.title}, still in use`}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-border)] cursor-not-allowed"
                 title="Reassign its products before deleting"
               >
@@ -145,7 +145,7 @@ function CategoryRow({ category, blockingProducts, onEdit, onDeleted }: Category
           {blocked ? (
             <>
               <p className="font-semibold mb-1.5" style={{ color: 'var(--blush-text)' }}>
-                Can&apos;t delete — {blockingProducts.length} product
+                Can&apos;t delete: {blockingProducts.length} product
                 {blockingProducts.length === 1 ? ' uses' : 's use'} this category. Reassign{' '}
                 {blockingProducts.length === 1 ? 'it' : 'them'} first:
               </p>
@@ -163,7 +163,7 @@ function CategoryRow({ category, blockingProducts, onEdit, onDeleted }: Category
               </div>
             </>
           ) : (
-            <p>No products use this category yet — it&apos;s safe to delete.</p>
+            <p>No products use this category yet. It&apos;s safe to delete.</p>
           )}
         </div>
       )}
@@ -229,7 +229,7 @@ export default function CategoryManager({ categories, productsByCategory }: Cate
       <div className="bg-white rounded-2xl border" style={{ borderColor: 'var(--blush-border)' }}>
         {categoryList.length === 0 ? (
           <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--blush-muted)' }}>
-            No categories yet — click &quot;Add Category&quot; to create your first one.
+            No categories yet. Click &quot;Add Category&quot; to create your first one.
           </p>
         ) : (
           categoryList.map((category) => (

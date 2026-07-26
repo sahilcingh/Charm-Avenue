@@ -176,7 +176,7 @@ export default function TagManager({ tags }: { tags: DbTag[] }) {
       <div className="bg-white rounded-2xl border" style={{ borderColor: 'var(--blush-border)' }}>
         {tags.length === 0 ? (
           <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--blush-muted)' }}>
-            No tags yet — add one above to start tagging products (e.g. &quot;New&quot;,
+            No tags yet. Add one above to start tagging products (e.g. &quot;New&quot;,
             &quot;Bestseller&quot;).
           </p>
         ) : (

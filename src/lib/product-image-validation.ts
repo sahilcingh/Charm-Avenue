@@ -10,7 +10,7 @@ export function validateProductImageFile(file: File): string | null {
   if (file.size > MAX_PRODUCT_IMAGE_BYTES) {
     const maxMb = MAX_PRODUCT_IMAGE_BYTES / (1024 * 1024);
     const actualMb = (file.size / (1024 * 1024)).toFixed(1);
-    return `This photo is ${actualMb}MB — that's too large. Please choose one under ${maxMb}MB.`;
+    return `This photo is ${actualMb}MB, which is too large. Please choose one under ${maxMb}MB.`;
   }
   return null;
 }

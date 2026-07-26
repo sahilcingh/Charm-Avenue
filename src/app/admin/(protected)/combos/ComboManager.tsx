@@ -396,7 +396,7 @@ export default function ComboManager({
       <div className="bg-white rounded-2xl border" style={{ borderColor: 'var(--blush-border)' }}>
         {combos.length === 0 ? (
           <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--blush-muted)' }}>
-            No combos yet — add one above to offer a discount when 2+ products are bought together.
+            No combos yet. Add one above to offer a discount when 2+ products are bought together.
           </p>
         ) : (
           combos.map((combo) => <ComboRow key={combo.id} combo={combo} products={products} />)

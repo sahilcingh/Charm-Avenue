@@ -42,7 +42,7 @@ export default async function SearchPage({
             <div className="text-center py-16" style={{ color: 'var(--blush-muted)' }}>
               <span className="text-4xl block mb-3">🔍</span>
               <p className="font-medium mb-6">
-                No products match &quot;{query}&quot; — try a different search.
+                No products match &quot;{query}&quot;. Try a different search.
               </p>
               <Link
                 href="/shop"

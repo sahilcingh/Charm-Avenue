@@ -170,7 +170,7 @@ describe('deleteCategory', () => {
   it('translates a foreign-key violation into a clear message', async () => {
     categoriesDeleteEqMock.mockResolvedValue({ error: { code: '23503', message: 'fk violation' } });
     await expect(deleteCategory('anti-tarnish-jewellery')).rejects.toThrow(
-      'reassign them to another category first'
+      'Reassign them to another category first'
     );
   });
 });

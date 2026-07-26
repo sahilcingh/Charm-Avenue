@@ -87,7 +87,7 @@ export default function HeroSection() {
           className="text-sm sm:text-base leading-relaxed mb-8"
           style={{ color: 'var(--blush-text)', opacity: 0.8 }}
         >
-          Little charms, beautiful moments, and a touch of magic — made to make you uniquely you.
+          Little charms, beautiful moments, and a touch of magic, made to make you uniquely you.
         </p>
         <Link
           href="/shop"

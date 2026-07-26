@@ -36,7 +36,7 @@ export default async function AdminCombosPage() {
           Combos
         </h1>
         <p className="text-sm mt-1" style={{ color: 'var(--blush-muted)' }}>
-          Cross-product discounts — pick 2+ products; once a shopper has all of them in their bag, a
+          Cross-product discounts: pick 2+ products; once a shopper has all of them in their bag, a
           percentage discount applies automatically.
         </p>
       </div>

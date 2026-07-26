@@ -465,7 +465,7 @@ export async function updateVariant(variantId: string, productId: string, formDa
       hasImage = Boolean(existing?.image);
     }
     if (!hasImage) {
-      throw new Error("Please add a photo for this color — it's shown when shoppers select it.");
+      throw new Error("Please add a photo for this color. It's shown when shoppers select it.");
     }
   }
 

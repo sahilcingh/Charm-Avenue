@@ -190,9 +190,7 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
       <div className="relative aspect-square overflow-hidden rounded-t-3xl">
         <AppImage
           src={displayImage}
-          alt={
-            selectedVariant ? `${product.imageAlt} — ${selectedVariant.color}` : product.imageAlt
-          }
+          alt={selectedVariant ? `${product.imageAlt}, ${selectedVariant.color}` : product.imageAlt}
           fill
           className={`object-cover transition-transform duration-500 ${hovered ? 'scale-110' : 'scale-100'}`}
           sizes={CARD_IMAGE_SIZES}

@@ -101,7 +101,7 @@ export default async function AdminOrderDetailPage({
           </div>
         ) : (
           <p className="text-sm" style={{ color: 'var(--blush-muted)' }}>
-            No delivery details collected on the site — check the WhatsApp chat for this
+            No delivery details collected on the site. Check the WhatsApp chat for this
             customer&apos;s name, phone, and address.
           </p>
         )}

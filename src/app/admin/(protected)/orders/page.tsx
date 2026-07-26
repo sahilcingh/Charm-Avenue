@@ -226,7 +226,7 @@ export default async function AdminOrdersPage({
                 className="flex items-center justify-between text-xs"
                 style={{ color: 'var(--blush-muted)' }}
               >
-                <span>{order.guest_phone || '—'}</span>
+                <span>{order.guest_phone || 'N/A'}</span>
                 <Link
                   href={`/admin/orders/${order.id}`}
                   className="font-semibold hover:text-[var(--blush-rose)] transition-colors"
@@ -332,7 +332,7 @@ export default async function AdminOrdersPage({
                       {order.guest_name || 'WhatsApp enquiry'}
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--blush-muted)' }}>
-                      {order.guest_phone || '—'}
+                      {order.guest_phone || 'N/A'}
                     </p>
                   </td>
                   <td className="px-5 py-4">

@@ -171,7 +171,7 @@ export default function ProductDetailInteractive({
     const variant = variants.find((v) => v.color === c && v.image);
     return {
       url: variant?.image ?? baseImage.url,
-      alt: variant?.image ? `${productName} — ${c}` : baseImage.alt,
+      alt: variant?.image ? `${productName}, ${c}` : baseImage.alt,
       color: c,
       label: c,
     };

@@ -446,7 +446,7 @@ describe('CartClient', () => {
       { productId: 'p2', quantity: 1 },
     ]);
 
-    expect(await screen.findByText('🎁 Earrings + Necklace — 10% off')).toBeInTheDocument();
+    expect(await screen.findByText('🎁 Earrings + Necklace (10% off)')).toBeInTheDocument();
     expect(screen.getByText('−₹50')).toBeInTheDocument();
     // Subtotal 500, discount 50 -> total 450 (subtotal row still shows 500).
     expect(screen.getByText('₹500')).toBeInTheDocument();

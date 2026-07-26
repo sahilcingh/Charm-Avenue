@@ -55,7 +55,7 @@ export default function ShopClient({ initialFilter, products, categories }: Shop
           {filtered.length === 0 && (
             <div className="text-center py-16" style={{ color: 'var(--blush-muted)' }}>
               <span className="text-4xl block mb-3">🛍️</span>
-              <p className="font-medium">No items in this range yet — check back soon!</p>
+              <p className="font-medium">No items in this range yet. Check back soon!</p>
             </div>
           )}
         </div>

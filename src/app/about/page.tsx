@@ -8,7 +8,7 @@ import Icon from '@/components/ui/AppIcon';
 export const metadata: Metadata = {
   title: 'About Us | Charm Avenue by Nandini',
   description:
-    'Meet Nandini, the founder of Charm Avenue — bringing you trendy, stylish and affordable accessories and cute lifestyle products.',
+    'Meet Nandini, the founder of Charm Avenue, bringing you trendy, stylish and affordable accessories and cute lifestyle products.',
 };
 
 const whyChooseUs = [
@@ -47,7 +47,7 @@ export default function AboutPage() {
               className="font-elegant-serif text-section-title tracking-tight mb-4"
               style={{ color: 'var(--blush-text)' }}
             >
-              Little charms, beautiful moments, and a touch of magic —{' '}
+              Little charms, beautiful moments, and a touch of magic,{' '}
               <span className="font-script" style={{ color: 'var(--blush-rose)' }}>
                 made to make you uniquely you.
               </span>

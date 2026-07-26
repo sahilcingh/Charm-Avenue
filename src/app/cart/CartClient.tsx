@@ -397,7 +397,7 @@ export default function CartClient() {
                 style={{ color: 'var(--blush-rose)' }}
               >
                 <span>
-                  🎁 {combo.name} — {combo.discountPercent}% off
+                  🎁 {combo.name} ({combo.discountPercent}% off)
                 </span>
                 <span className="font-bold">−₹{amount}</span>
               </div>

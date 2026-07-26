@@ -20,7 +20,7 @@ export default async function AdminTagsPage() {
         </h1>
         <p className="text-sm mt-1" style={{ color: 'var(--blush-muted)' }}>
           Manage the fixed list of tags products can be labeled with (e.g. &quot;New&quot;,
-          &quot;Bestseller&quot;) — separate from categories.
+          &quot;Bestseller&quot;), separate from categories.
         </p>
       </div>
       <TagManager tags={(tags as DbTag[]) ?? []} />

@@ -162,8 +162,8 @@ export default function TrustCTA() {
               </span>
             </h2>
             <p className="text-white/80 text-base leading-relaxed mb-10">
-              Real customer unboxings, restock alerts, and behind-the-scenes cuteness — straight
-              from our socials.
+              Real customer unboxings, restock alerts, and behind-the-scenes cuteness, straight from
+              our socials.
             </p>
 
             <div className="flex items-center justify-center gap-6 md:gap-10 flex-wrap">

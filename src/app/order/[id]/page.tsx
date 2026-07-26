@@ -27,7 +27,7 @@ export default async function OrderLookupPage({ params }: { params: Promise<{ id
   const supabase = createServiceClient();
   if (!supabase)
     throw new Error(
-      'SUPABASE_SERVICE_ROLE_KEY is not configured — order confirmation pages cannot load.'
+      'SUPABASE_SERVICE_ROLE_KEY is not configured. Order confirmation pages cannot load.'
     );
 
   // order_items only keys on the id route param, not on anything from the orders row, so it's
@@ -58,7 +58,7 @@ export default async function OrderLookupPage({ params }: { params: Promise<{ id
       <PageHero
         eyebrow="🎀 Enquiry Received"
         title="Your Order Enquiry Has Been Received"
-        subtitle="Keep this page's link — you can check back on your enquiry status here anytime."
+        subtitle="Keep this page's link so you can check back on your enquiry status here anytime."
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Order' }]}
       />
       <section className="w-full px-4 md:px-10 pb-20">
@@ -164,8 +164,8 @@ export default async function OrderLookupPage({ params }: { params: Promise<{ id
                 style={{ color: 'var(--blush-muted)' }}
               >
                 <Icon name="ChatBubbleLeftRightIcon" size={14} />
-                Reply in the WhatsApp chat that opened — we&apos;ll confirm availability and
-                delivery there.
+                Reply in the WhatsApp chat that opened. We&apos;ll confirm availability and delivery
+                there.
               </p>
             )}
           </div>

@@ -14,8 +14,8 @@ const sections = [
     heading: 'Information We Collect',
     body: (
       <p>
-        We collect information you provide directly — such as your name, email, phone number and
-        shipping address when you place an order or sign up for updates — along with basic usage
+        We collect information you provide directly (such as your name, email, phone number and
+        shipping address when you place an order or sign up for updates), along with basic usage
         data like pages visited.
       </p>
     ),

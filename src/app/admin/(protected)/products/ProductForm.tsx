@@ -338,7 +338,7 @@ export default function ProductForm({
               <p className="text-xs mt-0.5" style={{ color: 'var(--blush-muted)' }}>
                 {compressing
                   ? 'Just a moment'
-                  : `PNG or JPG, any size — we'll optimize it automatically`}
+                  : `PNG or JPG, any size. We'll optimize it automatically`}
               </p>
             </div>
             <input
@@ -379,13 +379,13 @@ export default function ProductForm({
         <SectionCard
           icon="🎨"
           title="Variants"
-          subtitle="Optional — color/size options, each with its own price, stock, and photo"
+          subtitle="Optional: color/size options, each with its own price, stock, and photo"
         >
           {product ? (
             <VariantsManager productId={product.id} variants={variants} />
           ) : (
             <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
-              Save this product first — then come back here to add variants.
+              Save this product first, then come back here to add variants.
             </p>
           )}
         </SectionCard>
@@ -393,13 +393,13 @@ export default function ProductForm({
         <SectionCard
           icon="🖼️"
           title="Additional Photos"
-          subtitle="Optional — shown after the main photo on the product page"
+          subtitle="Optional: shown after the main photo on the product page"
         >
           {product ? (
             <AdditionalPhotosManager productId={product.id} images={images} />
           ) : (
             <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
-              Save this product first — then come back here to add extra photos.
+              Save this product first, then come back here to add extra photos.
             </p>
           )}
         </SectionCard>
@@ -475,7 +475,7 @@ export default function ProductForm({
         <SectionCard
           icon="🏷️"
           title="Categories & Tags"
-          subtitle="Optional — show in more places, or label with tags"
+          subtitle="Optional: show in more places, or label with tags"
         >
           {!categoriesTagsOpen ? (
             <AddSectionButton
@@ -559,7 +559,7 @@ export default function ProductForm({
                 </label>
                 {allTags.length === 0 ? (
                   <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
-                    No tags yet — create some from the Tags page in the admin nav.
+                    No tags yet. Create some from the Tags page in the admin nav.
                   </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
@@ -620,7 +620,7 @@ export default function ProductForm({
             </div>
             <div>
               <label className={labelClass} style={{ color: 'var(--blush-text)' }}>
-                Original Price (₹) — optional
+                Original Price (₹, optional)
               </label>
               <input
                 type="number"
@@ -685,7 +685,7 @@ export default function ProductForm({
                   </div>
                   <p className="text-xs mt-2" style={{ color: 'var(--blush-muted)' }}>
                     Outside this window, the original price and discount badge won&apos;t be shown.
-                    The charged price is always the Price field above — update it yourself when the
+                    The charged price is always the Price field above. Update it yourself when the
                     sale starts or ends.
                   </p>
                   <input type="hidden" name="scheduleSale" value="on" />
@@ -790,7 +790,7 @@ export default function ProductForm({
         <SectionCard
           icon="📦"
           title="Stock & Availability"
-          subtitle="Optional — separate from Visibility below"
+          subtitle="Optional: separate from Visibility below"
         >
           {!trackStock ? (
             <AddSectionButton
@@ -892,7 +892,7 @@ export default function ProductForm({
         <SectionCard
           icon="✍️"
           title="Personalization"
-          subtitle="Optional — let shoppers add custom text at checkout"
+          subtitle="Optional: let shoppers add custom text at checkout"
         >
           <label className="flex items-center justify-between cursor-pointer">
             <div>
@@ -902,7 +902,7 @@ export default function ProductForm({
               <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
                 {personalizationEnabled
                   ? 'Shoppers will see a custom text field'
-                  : 'Off — no custom text field shown'}
+                  : 'Off (no custom text field shown)'}
               </p>
             </div>
             <span
@@ -976,11 +976,7 @@ export default function ProductForm({
           )}
         </SectionCard>
 
-        <SectionCard
-          icon="📐"
-          title="More Details"
-          subtitle="Optional — dimensions, material, care"
-        >
+        <SectionCard icon="📐" title="More Details" subtitle="Optional: dimensions, material, care">
           {!moreDetailsOpen ? (
             <AddSectionButton
               icon="PlusIcon"

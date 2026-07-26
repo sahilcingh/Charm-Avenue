@@ -8,7 +8,7 @@ import { getCategories, getAllActiveProducts } from '@/lib/supabase/products-dat
 export const metadata: Metadata = {
   title: 'Shop All | Charm Avenue by Nandini',
   description:
-    'Shop cute accessories, hair accessories, gifts & novelty and trending finds — starting at just ₹150.',
+    'Shop cute accessories, hair accessories, gifts & novelty and trending finds, starting at just ₹150.',
 };
 
 export default async function ShopPage({
@@ -31,7 +31,7 @@ export default async function ShopPage({
             All the <span style={{ color: 'var(--blush-rose)' }}>Cute Stuff</span> in one place.
           </>
         }
-        subtitle="Cute accessories, hair accessories, gifts & novelty and trending finds — starting at just ₹150."
+        subtitle="Cute accessories, hair accessories, gifts & novelty and trending finds, starting at just ₹150."
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Shop' }]}
       />
       <ShopClient initialFilter={initialFilter} products={products} categories={categories} />

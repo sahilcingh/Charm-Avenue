@@ -47,7 +47,7 @@ function OrderedProductPicker({
       >
         {selected.length === 0 ? (
           <p className="text-xs" style={{ color: 'var(--blush-muted)' }}>
-            No products yet — add some below.
+            No products yet. Add some below.
           </p>
         ) : (
           selected.map((id, i) => {
@@ -109,7 +109,7 @@ function OrderedProductPicker({
           <option value="">+ Add a product…</option>
           {available.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.name} — ₹{p.price}
+              {p.name} (₹{p.price})
             </option>
           ))}
         </select>
@@ -507,7 +507,7 @@ export default function HomepageSectionsManager({
       <div className="bg-white rounded-2xl border" style={{ borderColor: 'var(--blush-border)' }}>
         {sections.length === 0 ? (
           <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--blush-muted)' }}>
-            No homepage sections yet — add one above.
+            No homepage sections yet. Add one above.
           </p>
         ) : (
           sections.map((section, i) => (

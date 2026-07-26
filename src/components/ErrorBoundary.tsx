@@ -44,7 +44,7 @@ function DefaultFallback() {
         Something went wrong.
       </p>
       <p className="text-sm" style={{ color: 'var(--blush-muted)' }}>
-        Please refresh the page — we&apos;ve been notified.
+        Please refresh the page. We&apos;ve been notified.
       </p>
     </div>
   );

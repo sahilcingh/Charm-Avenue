@@ -39,7 +39,7 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
   const handleSave = () => {
     setError(null);
     if (color.trim() && !preview) {
-      setError("Please add a photo for this color — it's shown when shoppers select it.");
+      setError("Please add a photo for this color. It's shown when shoppers select it.");
       return;
     }
     const fd = new FormData();
@@ -216,7 +216,7 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
           }}
           className={fieldClass}
           style={{ color: 'var(--blush-text)' }}
-          placeholder="—"
+          placeholder="Optional"
         />
       </div>
 
