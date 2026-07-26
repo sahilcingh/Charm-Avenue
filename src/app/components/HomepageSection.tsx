@@ -3,26 +3,22 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
+import ProductCard from '@/components/ProductCard';
 import { useCart } from '@/lib/cart-context';
 import { useToast } from '@/lib/toast-context';
 import type { Product } from '@/lib/supabase/product-mapper';
+import type { HomepageSectionLayout } from '@/lib/supabase/types';
 
-export default function InstagramCarousel({ products }: { products: Product[] }) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [addedId, setAddedId] = useState<string | null>(null);
-  const sectionRef = useRef<HTMLElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { addToCart } = useCart();
-  const { showToast } = useToast();
+export interface HomepageSectionProps {
+  title: string;
+  eyebrowEmoji: string;
+  eyebrowLabel: string;
+  subtitle: string | null;
+  layout: HomepageSectionLayout;
+  products: Product[];
+}
 
-  const handleAddToBag = (e: React.MouseEvent, item: Product) => {
-    e.preventDefault();
-    addToCart(item.id, 1);
-    setAddedId(item.id);
-    setTimeout(() => setAddedId((current) => (current === item.id ? null : current)), 1200);
-    showToast(`${item.name} added to your bag`, { href: '/cart', actionLabel: 'View Bag' });
-  };
-
+function useRevealOnScroll(sectionRef: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -39,7 +35,91 @@ export default function InstagramCarousel({ products }: { products: Product[] })
       ?.querySelectorAll('.reveal, .reveal-scale')
       .forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [sectionRef]);
+}
+
+function GridSection({
+  title,
+  eyebrowEmoji,
+  eyebrowLabel,
+  subtitle,
+  products,
+}: Omit<HomepageSectionProps, 'layout'>) {
+  const sectionRef = useRef<HTMLElement>(null);
+  useRevealOnScroll(sectionRef);
+
+  return (
+    <section
+      ref={sectionRef}
+      className="w-full px-4 md:px-10 pt-14 pb-12"
+      style={{ background: 'var(--blush-border)' }}
+    >
+      <div className="max-w-screen-2xl mx-auto">
+        <div className="reveal mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <span
+              className="badge-pill text-white mb-3 inline-flex"
+              style={{ background: 'var(--blush-rose-button)' }}
+            >
+              <span>{eyebrowEmoji}</span> {eyebrowLabel}
+            </span>
+            <h2
+              className="font-elegant-serif text-section-title tracking-tight"
+              style={{ color: 'var(--blush-text)' }}
+            >
+              {title}
+            </h2>
+          </div>
+          {subtitle && (
+            <p className="text-sm max-w-xs leading-relaxed" style={{ color: 'var(--blush-muted)' }}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(clamp(9rem,32vw,16rem),1fr))] gap-3 md:gap-4">
+          {products.map((product, i) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              transitionDelay={i * 60}
+              className="reveal-scale"
+            />
+          ))}
+        </div>
+
+        {products.length === 0 && (
+          <div className="text-center py-16" style={{ color: 'var(--blush-muted)' }}>
+            <span className="text-4xl block mb-3">🛍️</span>
+            <p className="font-medium">No items in this section yet — check back soon!</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function CarouselSection({
+  title,
+  eyebrowEmoji,
+  eyebrowLabel,
+  products,
+}: Omit<HomepageSectionProps, 'layout' | 'subtitle'>) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [addedId, setAddedId] = useState<string | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
+  useRevealOnScroll(sectionRef);
+
+  const handleAddToBag = (e: React.MouseEvent, item: Product) => {
+    e.preventDefault();
+    addToCart(item.id, 1);
+    setAddedId(item.id);
+    setTimeout(() => setAddedId((current) => (current === item.id ? null : current)), 1200);
+    showToast(`${item.name} added to your bag`, { href: '/cart', actionLabel: 'View Bag' });
+  };
 
   const scroll = (dir: 'left' | 'right') => {
     if (!scrollRef.current) return;
@@ -53,7 +133,6 @@ export default function InstagramCarousel({ products }: { products: Product[] })
       style={{ background: 'var(--blush-bg)' }}
     >
       <div className="max-w-screen-2xl mx-auto px-4 md:px-10">
-        {/* Header */}
         <div className="reveal mb-8 flex items-end justify-between gap-4">
           <div>
             <span
@@ -64,18 +143,19 @@ export default function InstagramCarousel({ products }: { products: Product[] })
                 border: '1px solid var(--blush-border)',
               }}
             >
-              <span>📸</span> Charm Feed
+              <span>{eyebrowEmoji}</span> {eyebrowLabel}
             </span>
             <h2
               className="font-elegant-serif text-section-title tracking-tight"
               style={{ color: 'var(--blush-text)' }}
             >
-              Shop the <span style={{ color: 'var(--blush-rose)' }}>Aesthetic</span>
+              {title}
             </h2>
           </div>
           <div className="hidden md:flex gap-2">
             <button
               onClick={() => scroll('left')}
+              aria-label="Scroll left"
               className="w-11 h-11 rounded-full border bg-white flex items-center justify-center hover:text-white transition-all duration-300"
               style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
               onMouseEnter={(e) => {
@@ -91,6 +171,7 @@ export default function InstagramCarousel({ products }: { products: Product[] })
             </button>
             <button
               onClick={() => scroll('right')}
+              aria-label="Scroll right"
               className="w-11 h-11 rounded-full border bg-white flex items-center justify-center hover:text-white transition-all duration-300"
               style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-text)' }}
               onMouseEnter={(e) => {
@@ -108,7 +189,6 @@ export default function InstagramCarousel({ products }: { products: Product[] })
         </div>
       </div>
 
-      {/* Scroll container */}
       <div
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto no-scrollbar snap-scroll px-4 md:px-10 pb-4"
@@ -122,7 +202,6 @@ export default function InstagramCarousel({ products }: { products: Product[] })
             onMouseEnter={() => setHoveredId(item.id)}
             onMouseLeave={() => setHoveredId(null)}
           >
-            {/* Image */}
             <div className="relative aspect-[3/4] overflow-hidden rounded-3xl">
               <AppImage
                 src={item.image}
@@ -131,10 +210,8 @@ export default function InstagramCarousel({ products }: { products: Product[] })
                 className={`object-cover transition-transform duration-700 ${hoveredId === item.id ? 'scale-110' : 'scale-100'}`}
                 sizes="300px"
               />
-              {/* Base gradient */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#1E1712]/85 via-transparent to-transparent" />
 
-              {/* Hover overlay */}
               <div
                 className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 ${hoveredId === item.id ? 'opacity-100' : 'opacity-0'}`}
                 style={{ background: 'rgba(30,23,18,0.55)' }}
@@ -162,7 +239,6 @@ export default function InstagramCarousel({ products }: { products: Product[] })
                 </button>
               </div>
 
-              {/* Top bar */}
               <div className="absolute top-3 left-3 right-3 flex justify-between items-center z-10">
                 {item.tag ? (
                   <span
@@ -182,7 +258,6 @@ export default function InstagramCarousel({ products }: { products: Product[] })
                 </button>
               </div>
 
-              {/* Bottom info */}
               <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
                 <p className="text-white font-bold text-sm leading-tight mb-1">{item.name}</p>
                 <div className="flex items-center justify-between">
@@ -197,7 +272,6 @@ export default function InstagramCarousel({ products }: { products: Product[] })
         ))}
       </div>
 
-      {/* Mobile scroll hint */}
       <div className="flex md:hidden justify-center mt-4 gap-1.5 px-4">
         {products.map((_, i) => (
           <div
@@ -208,4 +282,9 @@ export default function InstagramCarousel({ products }: { products: Product[] })
       </div>
     </section>
   );
+}
+
+export default function HomepageSection(props: HomepageSectionProps) {
+  if (props.products.length === 0 && props.layout === 'carousel') return null;
+  return props.layout === 'carousel' ? <CarouselSection {...props} /> : <GridSection {...props} />;
 }

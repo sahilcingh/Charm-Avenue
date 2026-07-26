@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: '/admin/orders', label: 'Orders' },
   { href: '/admin/tags', label: 'Tags' },
   { href: '/admin/combos', label: 'Combos' },
+  { href: '/admin/homepage', label: 'Homepage' },
 ];
 
 export default function AdminNav() {

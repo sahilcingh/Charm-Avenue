@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/admin/orders', label: 'Orders', icon: 'ClipboardDocumentListIcon' },
   { href: '/admin/tags', label: 'Tags', icon: 'TagIcon' },
   { href: '/admin/combos', label: 'Combos', icon: 'GiftIcon' },
+  { href: '/admin/homepage', label: 'Homepage', icon: 'HomeIcon' },
 ] as const;
 
 /** Mobile-only fixed tab bar — replaces the horizontally-scrolling pill nav, which

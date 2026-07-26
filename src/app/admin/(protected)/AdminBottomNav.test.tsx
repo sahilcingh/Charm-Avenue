@@ -14,7 +14,7 @@ describe('AdminBottomNav', () => {
     pathnameMock.mockReturnValue('/admin/products');
     render(<AdminBottomNav />);
 
-    ['Products', 'Categories', 'Orders', 'Tags', 'Combos'].forEach((label) => {
+    ['Products', 'Categories', 'Orders', 'Tags', 'Combos', 'Homepage'].forEach((label) => {
       expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
     });
   });
