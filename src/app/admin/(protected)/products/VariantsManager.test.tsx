@@ -90,3 +90,39 @@ describe('VariantsManager — photo required once a color is set', () => {
     expect(screen.queryByText(/Please add a photo/)).not.toBeInTheDocument();
   });
 });
+
+function fileOfSize(bytes: number, name = 'photo.jpg'): File {
+  return new File([new Uint8Array(bytes)], name, { type: 'image/jpeg' });
+}
+
+describe('VariantsManager — photo picking validates size before it can reach Save', () => {
+  it('rejects an oversized phone photo with a clear message instead of letting it through to Save (reproduces the "unexpected response from the server" crash)', async () => {
+    render(<VariantsManager productId="p1" variants={[makeVariant({ color: 'Blue' })]} />);
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fileOfSize(9 * 1024 * 1024)] } });
+    });
+
+    expect(screen.getByText(/too large/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save variant' })).not.toBeInTheDocument();
+  });
+
+  it('accepts a normally-sized photo and marks the row dirty so it can be saved', async () => {
+    render(<VariantsManager productId="p1" variants={[makeVariant({ color: 'Blue' })]} />);
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fileOfSize(500 * 1024)] } });
+    });
+
+    expect(screen.queryByText(/too large/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save variant' })).toBeInTheDocument();
+
+    await act(async () => {
+      screen.getByRole('button', { name: 'Save variant' }).click();
+    });
+
+    expect(updateVariant).toHaveBeenCalledTimes(1);
+  });
+});

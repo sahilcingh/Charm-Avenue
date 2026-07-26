@@ -2,6 +2,8 @@
 import React, { useRef, useState, useTransition } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import type { DbProductVariant, ProductStockStatus } from '@/lib/supabase/types';
+import { validateProductImageFile } from '@/lib/product-image-validation';
+import { compressProductImage } from '@/lib/compress-product-image';
 import { addVariant, updateVariant, removeVariant } from './actions';
 
 const STOCK_OPTIONS: { value: '' | ProductStockStatus; label: string }[] = [
@@ -18,6 +20,7 @@ const fieldLabelClass = 'text-[10px] font-bold uppercase tracking-wide mb-1 bloc
 
 function VariantRow({ variant, productId }: { variant: DbProductVariant; productId: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pickedFileRef = useRef<File | null>(null);
   const [isPending, startTransition] = useTransition();
   const [color, setColor] = useState(variant.color ?? '');
   const [size, setSize] = useState(variant.size ?? '');
@@ -31,6 +34,7 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
   const [dirty, setDirty] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [compressing, setCompressing] = useState(false);
 
   const handleSave = () => {
     setError(null);
@@ -45,8 +49,7 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
     fd.set('stockStatus', stockStatus);
     fd.set('stockCount', stockCount);
     fd.set('isActive', isActive ? 'on' : 'off');
-    const file = fileInputRef.current?.files?.[0];
-    if (file) fd.set('imageFile', file);
+    if (pickedFileRef.current) fd.set('imageFile', pickedFileRef.current);
 
     startTransition(async () => {
       try {
@@ -58,10 +61,25 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
     });
   };
 
-  function handleImagePick(files: FileList | null) {
+  async function handleImagePick(files: FileList | null) {
     const file = files?.[0];
-    if (!file) return;
-    setPreview(URL.createObjectURL(file));
+    if (!file || compressing) return;
+
+    setError(null);
+    setCompressing(true);
+    const finalFile = await compressProductImage(file);
+    setCompressing(false);
+
+    const validationError = validateProductImageFile(finalFile);
+    if (validationError) {
+      setError(validationError);
+      pickedFileRef.current = null;
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    pickedFileRef.current = finalFile;
+    setPreview(URL.createObjectURL(finalFile));
     setDirty(true);
   }
 
@@ -74,14 +92,24 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
+          disabled={compressing}
           aria-label="Change variant photo"
-          className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2"
+          className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 disabled:opacity-60"
           style={{
             borderColor: color.trim() && !preview ? '#A6740A' : 'var(--blush-border)',
             background: 'var(--blush-bg)',
           }}
         >
-          {preview ? (
+          {compressing ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <Icon
+                name="ArrowPathIcon"
+                size={16}
+                className="animate-spin"
+                style={{ color: 'var(--blush-border)' }}
+              />
+            </div>
+          ) : preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt="" className="w-full h-full object-cover" />
           ) : (
