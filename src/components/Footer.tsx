@@ -80,23 +80,39 @@ export default function Footer() {
 
         {/* Bottom row */}
         <div
-          className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t"
+          className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 pt-6 border-t"
           style={{ borderColor: 'var(--blush-border)' }}
         >
-          <p className="text-sm" style={{ color: 'var(--blush-muted)' }}>
+          <p
+            className="text-sm text-center sm:text-left sm:justify-self-start"
+            style={{ color: 'var(--blush-muted)' }}
+          >
             © 2026 Charm Avenue by Nandini · All rights reserved
           </p>
-          <div className="flex items-center gap-3">
-            <span className="text-sm" style={{ color: 'var(--blush-muted)' }}>
-              <Link href="/privacy" className="hover:opacity-70 transition-opacity">
-                Privacy
-              </Link>
-              <span className="mx-2">·</span>
-              <Link href="/terms" className="hover:opacity-70 transition-opacity">
-                Terms
-              </Link>
-            </span>
-          </div>
+
+          <a
+            href="https://www.qyroxis.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="badge-pill justify-self-center transition-transform hover:scale-105"
+            style={{ background: 'var(--blush-rose-button)', color: '#FFFFFF' }}
+          >
+            <Icon name="SparklesIcon" size={12} />
+            Site by Qyroxis
+          </a>
+
+          <span
+            className="text-sm text-center sm:text-right sm:justify-self-end"
+            style={{ color: 'var(--blush-muted)' }}
+          >
+            <Link href="/privacy" className="hover:opacity-70 transition-opacity">
+              Privacy
+            </Link>
+            <span className="mx-2">·</span>
+            <Link href="/terms" className="hover:opacity-70 transition-opacity">
+              Terms
+            </Link>
+          </span>
         </div>
       </div>
     </footer>
