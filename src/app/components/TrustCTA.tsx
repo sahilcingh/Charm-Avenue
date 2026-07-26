@@ -1,5 +1,20 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { FaInstagram, FaWhatsapp, FaYoutube, FaFacebookF } from 'react-icons/fa';
+
+// href is null for accounts that don't exist yet — shown for brand recognition
+// only, deliberately not rendered as a clickable link (a link to nowhere is
+// worse than no link at all).
+const socialLinks = [
+  {
+    label: 'Instagram',
+    Icon: FaInstagram,
+    href: 'https://www.instagram.com/charm_avenue.in?igsh=Z3FkazM2MDV2cGUw',
+  },
+  { label: 'WhatsApp', Icon: FaWhatsapp, href: 'https://wa.me/918957298041' },
+  { label: 'YouTube', Icon: FaYoutube, href: null },
+  { label: 'Facebook', Icon: FaFacebookF, href: null },
+];
 
 const trustItems = [
   { icon: '✨', text: 'Handpicked With Love' },
@@ -13,8 +28,6 @@ const trustItems = [
 ];
 
 export default function TrustCTA() {
-  const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -34,14 +47,6 @@ export default function TrustCTA() {
       .forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setSubmitted(true);
-      setEmail('');
-    }
-  };
 
   // Duplicate for seamless loop
   const allItems = [...trustItems, ...trustItems];
@@ -84,8 +89,8 @@ export default function TrustCTA() {
       <div className="max-w-screen-2xl mx-auto px-4 md:px-10 pt-14 pb-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {[
-            { num: '12K+', label: 'Happy Customers', emoji: '💝' },
-            { num: '500+', label: 'Products', emoji: '🛍️' },
+            { num: '500+', label: 'Happy Customers', emoji: '💝' },
+            { num: '50+', label: 'Products', emoji: '🛍️' },
             { num: '4.9★', label: 'Average Rating', emoji: '⭐' },
             { num: '2-5', label: 'Days Delivery', emoji: '🚀' },
           ].map((stat, i) => (
@@ -138,10 +143,10 @@ export default function TrustCTA() {
                 color: '#FFFFFF',
               }}
             >
-              🎀 Join the Charm Club
+              💕 Stay in the Loop
             </span>
             <h2 className="font-elegant-serif text-white text-3xl md:text-5xl tracking-tight mb-4">
-              Get 10% Off Your{' '}
+              Follow Along for More{' '}
               <span
                 className="font-script"
                 style={{
@@ -153,60 +158,61 @@ export default function TrustCTA() {
                   animation: 'shimmer 4s linear infinite',
                 }}
               >
-                First Order
+                Charm
               </span>
             </h2>
-            <p className="text-white/80 text-base leading-relaxed mb-8">
-              Subscribe for exclusive drops, early access, and cute surprises straight to your
-              inbox.
+            <p className="text-white/80 text-base leading-relaxed mb-10">
+              Real customer unboxings, restock alerts, and behind-the-scenes cuteness — straight
+              from our socials.
             </p>
 
-            {submitted ? (
-              <div
-                className="flex items-center justify-center gap-3 rounded-full px-8 py-4"
-                style={{
-                  background: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.35)',
-                }}
-              >
-                <span className="text-xl">🎉</span>
-                <p className="text-white font-bold">
-                  You&apos;re in! Check your inbox for your 10% off code.
-                </p>
-              </div>
-            ) : (
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
-              >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  className="flex-1 rounded-full px-6 py-3.5 text-sm focus:outline-none transition-colors"
-                  style={{
-                    background: 'rgba(255,255,255,0.92)',
-                    border: '1.5px solid rgba(255,255,255,0.5)',
-                    color: 'var(--blush-text)',
-                  }}
-                />
-                <button
-                  type="submit"
-                  className="px-7 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 shrink-0 transition-all duration-300 hover:scale-105"
-                  style={{
-                    background: 'var(--blush-text)',
-                    color: '#FFFFFF',
-                    boxShadow: '0 4px 20px rgba(30,23,18,0.4)',
-                  }}
-                >
-                  <span>Join ✨</span>
-                </button>
-              </form>
-            )}
+            <div className="flex items-center justify-center gap-6 md:gap-10 flex-wrap">
+              {socialLinks.map((s) => {
+                const iconCircle = (
+                  <span
+                    className={`w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] rounded-full flex items-center justify-center transition-all duration-300 ${
+                      s.href
+                        ? 'text-white bg-white/15 border border-white/35 group-hover:scale-110 group-hover:bg-white group-hover:text-[var(--blush-rose)]'
+                        : 'text-white/40 bg-white/5 border border-white/15'
+                    }`}
+                  >
+                    <s.Icon size={26} />
+                  </span>
+                );
+                const labelEl = (
+                  <span
+                    className={`text-xs font-bold uppercase tracking-widest transition-colors ${
+                      s.href ? 'text-white/80 group-hover:text-white' : 'text-white/30'
+                    }`}
+                  >
+                    {s.label}
+                  </span>
+                );
 
-            <p className="text-white/50 text-xs mt-4">No spam. Unsubscribe anytime. 💌</p>
+                return s.href ? (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Charm Avenue on ${s.label}`}
+                    className="group flex flex-col items-center gap-2.5"
+                  >
+                    {iconCircle}
+                    {labelEl}
+                  </a>
+                ) : (
+                  <div
+                    key={s.label}
+                    aria-hidden="true"
+                    className="flex flex-col items-center gap-2.5"
+                  >
+                    {iconCircle}
+                    {labelEl}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

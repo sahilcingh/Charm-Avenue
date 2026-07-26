@@ -12,12 +12,6 @@ const footerLinks = [
   { label: 'Returns', href: '/returns' },
 ];
 
-const socialLinks = [
-  { label: 'Instagram', icon: 'HeartIcon' as const, href: '#' },
-  { label: 'YouTube', icon: 'PlayIcon' as const, href: '#' },
-  { label: 'WhatsApp', icon: 'ChatBubbleLeftRightIcon' as const, href: '#' },
-];
-
 export default function Footer() {
   return (
     <footer
@@ -39,28 +33,6 @@ export default function Footer() {
             <p className="text-sm leading-relaxed" style={{ color: 'var(--blush-muted)' }}>
               by Nandini — Cute accessories & everyday finds for every girl.
             </p>
-            {/* Social icons */}
-            <div className="flex items-center gap-2 mt-4">
-              {socialLinks.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  aria-label={s.label}
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-                  style={{ background: 'var(--blush-border)', color: 'var(--blush-rose)' }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.background = 'var(--blush-rose)';
-                    (e.currentTarget as HTMLAnchorElement).style.color = '#FFFFFF';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.background = 'var(--blush-border)';
-                    (e.currentTarget as HTMLAnchorElement).style.color = 'var(--blush-rose)';
-                  }}
-                >
-                  <Icon name={s.icon} size={16} />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Right: Links */}
