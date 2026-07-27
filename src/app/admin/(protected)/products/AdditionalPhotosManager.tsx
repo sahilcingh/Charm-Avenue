@@ -51,7 +51,13 @@ export default function AdditionalPhotosManager({
               key={img.id}
               className="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 group"
             >
-              <AppImage src={img.url} alt={img.alt} fill sizes="64px" />
+              <AppImage
+                src={img.url}
+                alt={img.alt}
+                width={64}
+                height={64}
+                className="w-full h-full object-cover"
+              />
               <div
                 className="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ background: 'rgba(30,23,18,0.55)' }}

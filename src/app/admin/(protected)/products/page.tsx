@@ -168,8 +168,14 @@ export default async function AdminProductsPage() {
                   borderColor: 'var(--blush-border)',
                 }}
               >
-                <div className="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0">
-                  <AppImage src={product.image} alt={product.image_alt} fill sizes="64px" />
+                <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0">
+                  <AppImage
+                    src={product.image}
+                    alt={product.image_alt}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p
@@ -304,8 +310,14 @@ export default async function AdminProductsPage() {
                     }}
                   >
                     <td className="pl-5 pr-2 py-4">
-                      <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-105">
-                        <AppImage src={product.image} alt={product.image_alt} fill sizes="64px" />
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-105">
+                        <AppImage
+                          src={product.image}
+                          alt={product.image_alt}
+                          width={64}
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     </td>
                     <td

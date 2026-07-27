@@ -46,8 +46,14 @@ function CategoryRow({ category, blockingProducts, onEdit, onDeleted }: Category
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-start gap-3 min-w-0 sm:flex-1">
-          <div className="relative w-14 h-14 rounded-2xl overflow-hidden shrink-0">
-            <AppImage src={category.image} alt={category.image_alt} fill sizes="56px" />
+          <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0">
+            <AppImage
+              src={category.image}
+              alt={category.image_alt}
+              width={56}
+              height={56}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="min-w-0">
             <p className="font-bold tracking-tight text-sm" style={{ color: 'var(--blush-text)' }}>

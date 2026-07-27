@@ -238,8 +238,14 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
                 border: `2px solid ${selectedVariant === null ? 'var(--blush-rose)' : '#FFFFFF'}`,
               }}
             >
-              <span aria-hidden="true" className="block relative w-full h-full">
-                <AppImage src={product.image} alt="" fill sizes="24px" />
+              <span aria-hidden="true" className="block w-full h-full">
+                <AppImage
+                  src={product.image}
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="w-full h-full object-cover"
+                />
               </span>
             </button>
             {visibleColorVariants.map((variant) => {
@@ -264,8 +270,14 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
                     }`,
                   }}
                 >
-                  <span aria-hidden="true" className="block relative w-full h-full">
-                    <AppImage src={variant.image ?? product.image} alt="" fill sizes="24px" />
+                  <span aria-hidden="true" className="block w-full h-full">
+                    <AppImage
+                      src={variant.image ?? product.image}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="w-full h-full object-cover"
+                    />
                   </span>
                 </button>
               );
@@ -311,12 +323,18 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
                 >
                   <span
                     aria-hidden="true"
-                    className="relative w-5 h-5 rounded-full overflow-hidden shrink-0"
+                    className="w-5 h-5 rounded-full overflow-hidden shrink-0"
                     style={{
                       border: `2px solid ${mounted ? resolveCssColor(variant.color, '#FFFFFF') : '#FFFFFF'}`,
                     }}
                   >
-                    <AppImage src={variant.image ?? product.image} alt="" fill sizes="20px" />
+                    <AppImage
+                      src={variant.image ?? product.image}
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="w-full h-full object-cover"
+                    />
                   </span>
                   <span
                     className="text-xs font-semibold truncate"

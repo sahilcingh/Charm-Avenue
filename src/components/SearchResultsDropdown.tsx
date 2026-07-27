@@ -43,8 +43,14 @@ export default function SearchResultsDropdown({
                 className="flex items-center gap-3 px-3 py-2.5 border-b last:border-0 transition-colors duration-150 hover:bg-[var(--blush-bg)]"
                 style={{ borderColor: 'var(--blush-border)' }}
               >
-                <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
-                  <AppImage src={product.image} alt={product.imageAlt} fill sizes="40px" />
+                <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                  <AppImage
+                    src={product.image}
+                    alt={product.imageAlt}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <span
                   className="flex-1 min-w-0 text-sm font-semibold truncate"
