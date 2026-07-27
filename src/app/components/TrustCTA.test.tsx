@@ -15,10 +15,7 @@ describe('TrustCTA — social links', () => {
   it('links to the real Instagram profile, opened safely in a new tab', () => {
     render(<TrustCTA />);
     const link = screen.getByRole('link', { name: 'Charm Avenue on Instagram' });
-    expect(link).toHaveAttribute(
-      'href',
-      'https://www.instagram.com/charm_avenue.in?igsh=Z3FkazM2MDV2cGUw'
-    );
+    expect(link).toHaveAttribute('href', 'https://www.instagram.com/charm_avenue.in');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
   });

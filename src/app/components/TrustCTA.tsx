@@ -9,7 +9,7 @@ const socialLinks = [
   {
     label: 'Instagram',
     Icon: FaInstagram,
-    href: 'https://www.instagram.com/charm_avenue.in?igsh=Z3FkazM2MDV2cGUw',
+    href: 'https://www.instagram.com/charm_avenue.in',
   },
   { label: 'WhatsApp', Icon: FaWhatsapp, href: 'https://wa.me/918957298041' },
   { label: 'YouTube', Icon: FaYoutube, href: null },
