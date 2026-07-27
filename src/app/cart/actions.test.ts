@@ -111,13 +111,13 @@ describe('createWhatsAppEnquiry', () => {
     expect(ordersInsertMock).toHaveBeenCalledWith(expect.objectContaining({ guest_address: null }));
   });
 
-  it('builds a product-only WhatsApp URL — name/phone/address are for admin tracking, not the message', async () => {
+  it('builds a product/variant/quantity-only WhatsApp URL — no price, no name/phone/address', async () => {
     mockLoggedOut();
     const result = await createWhatsAppEnquiry(items, validContact);
     const decoded = decodeURIComponent(result.whatsappUrl ?? '');
 
-    expect(decoded).toContain('Panda Lamp x2');
-    expect(decoded).toContain('Total: ₹260');
+    expect(decoded).toContain('Panda Lamp, Qty 2');
+    expect(decoded).not.toMatch(/₹/);
     expect(decoded).not.toContain('Priya Sharma');
     expect(decoded).not.toContain(validContact.phone);
   });
@@ -131,7 +131,7 @@ describe('createWhatsAppEnquiry', () => {
     );
   });
 
-  it('subtracts a combo discount from the stored subtotal, saves discount_total, and reflects it in the WhatsApp message', async () => {
+  it('subtracts a combo discount from the stored subtotal and saves discount_total (the WhatsApp message never mentions price, so it has nothing to reflect)', async () => {
     mockLoggedOut();
     const result = await createWhatsAppEnquiry(items, validContact, 50);
 
@@ -139,8 +139,7 @@ describe('createWhatsAppEnquiry', () => {
       expect.objectContaining({ subtotal: 210, discount_total: 50 })
     );
     const decoded = decodeURIComponent(result.whatsappUrl ?? '');
-    expect(decoded).toContain('Combo discount: -₹50');
-    expect(decoded).toContain('Total: ₹210');
+    expect(decoded).not.toMatch(/₹/);
   });
 
   it('snapshots variant_id/variant_label/variant_image/personalization_text when a line item has them', async () => {
@@ -168,6 +167,24 @@ describe('createWhatsAppEnquiry', () => {
         personalization_text: 'Add initials: AB',
       }),
     ]);
+  });
+
+  it('includes the variant label in the WhatsApp message itself, not just the saved order_items row (the reported bug)', async () => {
+    mockLoggedOut();
+    const itemsWithVariant = [
+      {
+        productId: 'p1',
+        productName: 'Panda Lamp',
+        unitPrice: 130,
+        quantity: 1,
+        variantLabel: 'Red / M',
+      },
+    ];
+
+    const result = await createWhatsAppEnquiry(itemsWithVariant, validContact);
+    const decoded = decodeURIComponent(result.whatsappUrl ?? '');
+
+    expect(decoded).toContain('Panda Lamp (Red / M), Qty 1');
   });
 
   it('leaves variant/personalization columns null for a plain line item without them (unchanged behavior)', async () => {

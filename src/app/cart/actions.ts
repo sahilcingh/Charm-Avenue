@@ -112,9 +112,8 @@ export async function createWhatsAppEnquiry(
     items.map((item) => ({
       name: item.productName,
       quantity: item.quantity,
-      price: item.unitPrice,
-    })),
-    discountTotal
+      variantLabel: item.variantLabel,
+    }))
   );
   const whatsappUrl = buildWhatsAppUrl(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '', message);
 
