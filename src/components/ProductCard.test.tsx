@@ -475,7 +475,11 @@ describe('ProductCard — color swatches', () => {
     mockLoggedOut();
     renderCard({ colorVariants });
 
-    const hiddenPreload = () => document.querySelector('[aria-hidden] img[src*="blue.jpg"]');
+    // Scoped to the preload wrapper's own class, not just any aria-hidden element — the
+    // color-swatch buttons are also (correctly) aria-hidden and can coincidentally match
+    // the same image by src substring.
+    const hiddenPreload = () =>
+      document.querySelector('.opacity-0.pointer-events-none img[src*="blue.jpg"]');
     expect(hiddenPreload()).not.toBeInTheDocument();
 
     act(() => {

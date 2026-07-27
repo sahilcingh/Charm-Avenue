@@ -238,8 +238,9 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
                 border: `2px solid ${selectedVariant === null ? 'var(--blush-rose)' : '#FFFFFF'}`,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={product.image} alt="" className="w-full h-full object-cover" />
+              <span aria-hidden="true" className="block relative w-full h-full">
+                <AppImage src={product.image} alt="" fill sizes="24px" />
+              </span>
             </button>
             {visibleColorVariants.map((variant) => {
               const isSelected = selectedVariant?.id === variant.id;
@@ -263,12 +264,9 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
                     }`,
                   }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={variant.image ?? product.image}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
+                  <span aria-hidden="true" className="block relative w-full h-full">
+                    <AppImage src={variant.image ?? product.image} alt="" fill sizes="24px" />
+                  </span>
                 </button>
               );
             })}
@@ -312,17 +310,13 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
                   className="flex items-center gap-2 px-1.5 py-1.5 rounded-xl text-left transition-colors duration-150 hover:bg-[var(--blush-bg)]"
                 >
                   <span
-                    className="w-5 h-5 rounded-full overflow-hidden shrink-0"
+                    aria-hidden="true"
+                    className="relative w-5 h-5 rounded-full overflow-hidden shrink-0"
                     style={{
                       border: `2px solid ${mounted ? resolveCssColor(variant.color, '#FFFFFF') : '#FFFFFF'}`,
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={variant.image ?? product.image}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                    <AppImage src={variant.image ?? product.image} alt="" fill sizes="20px" />
                   </span>
                   <span
                     className="text-xs font-semibold truncate"

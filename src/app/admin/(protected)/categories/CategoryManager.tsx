@@ -2,6 +2,7 @@
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
+import AppImage from '@/components/ui/AppImage';
 import type { DbCategory } from '@/lib/supabase/types';
 import CategoryFormModal from './CategoryFormModal';
 import { deleteCategory } from './actions';
@@ -45,13 +46,8 @@ function CategoryRow({ category, blockingProducts, onEdit, onDeleted }: Category
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-start gap-3 min-w-0 sm:flex-1">
-          <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={category.image}
-              alt={category.image_alt}
-              className="w-full h-full object-cover"
-            />
+          <div className="relative w-14 h-14 rounded-2xl overflow-hidden shrink-0">
+            <AppImage src={category.image} alt={category.image_alt} fill sizes="56px" />
           </div>
           <div className="min-w-0">
             <p className="font-bold tracking-tight text-sm" style={{ color: 'var(--blush-text)' }}>

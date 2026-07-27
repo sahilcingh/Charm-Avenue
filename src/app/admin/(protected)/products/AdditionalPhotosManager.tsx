@@ -1,6 +1,7 @@
 'use client';
 import React, { useRef, useState, useTransition } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import AppImage from '@/components/ui/AppImage';
 import type { DbProductImage } from '@/lib/supabase/types';
 import { validateProductImageFile } from '@/lib/product-image-validation';
 import { compressProductImage } from '@/lib/compress-product-image';
@@ -50,8 +51,7 @@ export default function AdditionalPhotosManager({
               key={img.id}
               className="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 group"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+              <AppImage src={img.url} alt={img.alt} fill sizes="64px" />
               <div
                 className="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ background: 'rgba(30,23,18,0.55)' }}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import Icon from '@/components/ui/AppIcon';
+import AppImage from '@/components/ui/AppImage';
 import type { DbCategory, DbProduct } from '@/lib/supabase/types';
 import DeleteProductButton from './DeleteProductButton';
 import AddCategoryButton from './AddCategoryButton';
@@ -167,13 +168,8 @@ export default async function AdminProductsPage() {
                   borderColor: 'var(--blush-border)',
                 }}
               >
-                <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={product.image}
-                    alt={product.image_alt}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0">
+                  <AppImage src={product.image} alt={product.image_alt} fill sizes="64px" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p
@@ -308,13 +304,8 @@ export default async function AdminProductsPage() {
                     }}
                   >
                     <td className="pl-5 pr-2 py-4">
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-105">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={product.image}
-                          alt={product.image_alt}
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-105">
+                        <AppImage src={product.image} alt={product.image_alt} fill sizes="64px" />
                       </div>
                     </td>
                     <td

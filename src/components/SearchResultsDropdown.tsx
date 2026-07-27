@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
+import AppImage from '@/components/ui/AppImage';
 import type { LiveSearchResult } from '@/lib/use-live-product-search';
 
 interface SearchResultsDropdownProps {
@@ -42,13 +43,8 @@ export default function SearchResultsDropdown({
                 className="flex items-center gap-3 px-3 py-2.5 border-b last:border-0 transition-colors duration-150 hover:bg-[var(--blush-bg)]"
                 style={{ borderColor: 'var(--blush-border)' }}
               >
-                <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={product.image}
-                    alt={product.imageAlt}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                  <AppImage src={product.image} alt={product.imageAlt} fill sizes="40px" />
                 </div>
                 <span
                   className="flex-1 min-w-0 text-sm font-semibold truncate"
