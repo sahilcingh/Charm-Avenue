@@ -4,8 +4,9 @@ import Icon from '@/components/ui/AppIcon';
 import AutoRefresh from '@/components/AutoRefresh';
 import type { DbOrder, OrderStatus } from '@/lib/supabase/types';
 import OrderStatusSelect from './OrderStatusSelect';
+import { OrderRow, OrderCard, StopPropagation } from './OrderRow';
 
-type OrderRow = DbOrder & { order_items: { count: number }[] };
+type OrderRowData = DbOrder & { order_items: { count: number }[] };
 
 const STATUS_FILTERS: { key: OrderStatus | ''; label: string }[] = [
   { key: '', label: 'All' },
@@ -38,7 +39,7 @@ export default async function AdminOrdersPage({
     supabase.from('orders').select('status, subtotal'),
   ]);
 
-  const list = (orders as OrderRow[] | null) ?? [];
+  const list = (orders as OrderRowData[] | null) ?? [];
   const all = (allOrders as Pick<DbOrder, 'status' | 'subtotal'>[] | null) ?? [];
   const pendingCount = all.filter(
     (o) => o.status === 'pending_whatsapp' || o.status === 'pending_payment'
@@ -206,8 +207,9 @@ export default async function AdminOrdersPage({
           style={{ borderColor: 'var(--blush-border)' }}
         >
           {list.map((order) => (
-            <div
+            <OrderCard
               key={order.id}
+              orderId={order.id}
               className="flex flex-col gap-3 p-4 border-b last:border-0 transition-colors duration-150 hover:bg-[var(--blush-bg)]"
               style={{
                 borderColor: 'var(--blush-border)',
@@ -220,20 +222,18 @@ export default async function AdminOrdersPage({
                 >
                   {order.guest_name || 'WhatsApp enquiry'}
                 </p>
-                <OrderStatusSelect orderId={order.id} status={order.status} />
+                <StopPropagation>
+                  <OrderStatusSelect orderId={order.id} status={order.status} />
+                </StopPropagation>
               </div>
               <div
                 className="flex items-center justify-between text-xs"
                 style={{ color: 'var(--blush-muted)' }}
               >
                 <span>{order.guest_phone || 'N/A'}</span>
-                <Link
-                  href={`/admin/orders/${order.id}`}
-                  className="font-semibold hover:text-[var(--blush-rose)] transition-colors"
-                  style={{ color: 'var(--blush-muted)' }}
-                >
+                <span className="font-semibold" style={{ color: 'var(--blush-muted)' }}>
                   #{order.id.slice(0, 8)}
-                </Link>
+                </span>
               </div>
               <div
                 className="flex items-center justify-between text-xs pt-2 border-t"
@@ -254,7 +254,7 @@ export default async function AdminOrdersPage({
                   ₹{order.subtotal}
                 </span>
               </div>
-            </div>
+            </OrderCard>
           ))}
           <div
             className="px-4 py-3 border-t text-xs"
@@ -317,8 +317,9 @@ export default async function AdminOrdersPage({
             </thead>
             <tbody>
               {list.map((order) => (
-                <tr
+                <OrderRow
                   key={order.id}
+                  orderId={order.id}
                   className="border-t transition-colors duration-150 hover:bg-[var(--blush-bg)]"
                   style={{
                     borderColor: 'var(--blush-border)',
@@ -336,13 +337,9 @@ export default async function AdminOrdersPage({
                     </p>
                   </td>
                   <td className="px-5 py-4">
-                    <Link
-                      href={`/admin/orders/${order.id}`}
-                      className="text-xs font-semibold hover:text-[var(--blush-rose)] transition-colors"
-                      style={{ color: 'var(--blush-muted)' }}
-                    >
+                    <span className="text-xs font-semibold" style={{ color: 'var(--blush-muted)' }}>
                       #{order.id.slice(0, 8)}
-                    </Link>
+                    </span>
                   </td>
                   <td className="px-5 py-4" style={{ color: 'var(--blush-text)' }}>
                     {order.order_items?.[0]?.count ?? 0}
@@ -363,9 +360,11 @@ export default async function AdminOrdersPage({
                     })}
                   </td>
                   <td className="px-5 py-4">
-                    <OrderStatusSelect orderId={order.id} status={order.status} />
+                    <StopPropagation>
+                      <OrderStatusSelect orderId={order.id} status={order.status} />
+                    </StopPropagation>
                   </td>
-                </tr>
+                </OrderRow>
               ))}
             </tbody>
           </table>
