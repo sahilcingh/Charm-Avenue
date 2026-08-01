@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import Icon from '@/components/ui/AppIcon';
 import AutoRefresh from '@/components/AutoRefresh';
 import type { DbOrderItem } from '@/lib/supabase/types';
+import { buildWhatsAppBillMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
 import OrderStatusSelect from '../OrderStatusSelect';
 
 export default async function AdminOrderDetailPage({
@@ -23,6 +24,21 @@ export default async function AdminOrderDetailPage({
   if (!order) notFound();
 
   const orderItems = (items ?? []) as DbOrderItem[];
+
+  const billMessage = buildWhatsAppBillMessage(
+    order.id,
+    orderItems.map((item) => ({
+      name: item.product_name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      variantLabel: item.variant_label ?? undefined,
+    })),
+    order.subtotal,
+    order.discount_total
+  );
+  const billWhatsAppUrl = order.guest_phone
+    ? buildWhatsAppUrl(order.guest_phone, billMessage)
+    : null;
 
   return (
     <div>
@@ -54,7 +70,29 @@ export default async function AdminOrderDetailPage({
               })}
             </p>
           </div>
-          <OrderStatusSelect orderId={order.id} status={order.status} />
+          <div className="flex items-center gap-3">
+            <a
+              href={`/admin/orders/${order.id}/bill`}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 transition-opacity hover:opacity-80"
+              style={{ background: 'var(--blush-bg)', color: 'var(--blush-rose-dark)' }}
+            >
+              <Icon name="DocumentArrowDownIcon" size={14} />
+              Download Bill PDF
+            </a>
+            {billWhatsAppUrl && (
+              <a
+                href={billWhatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 transition-opacity hover:opacity-80"
+                style={{ background: '#E8F5E9', color: '#2E7D32' }}
+              >
+                <Icon name="ChatBubbleLeftRightIcon" size={14} />
+                Send Bill
+              </a>
+            )}
+            <OrderStatusSelect orderId={order.id} status={order.status} />
+          </div>
         </div>
 
         {order.guest_name || order.guest_phone || order.guest_address ? (

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { buildWhatsAppEnquiryMessage, buildWhatsAppUrl } from './whatsapp';
+import {
+  buildWhatsAppEnquiryMessage,
+  buildWhatsAppBillMessage,
+  buildWhatsAppUrl,
+} from './whatsapp';
 
 describe('buildWhatsAppEnquiryMessage', () => {
   it('lists each item with its quantity, politely, with no price anywhere', () => {
@@ -44,6 +48,60 @@ describe('buildWhatsAppEnquiryMessage', () => {
     expect(message).not.toContain('Name:');
     expect(message).not.toContain('Phone:');
     expect(message).not.toContain('Address:');
+  });
+});
+
+describe('buildWhatsAppBillMessage', () => {
+  it('lists each item with quantity and price, and includes the total', () => {
+    const message = buildWhatsAppBillMessage(
+      'abcd1234-ef56-7890-abcd-ef1234567890',
+      [
+        { name: 'Panda Lamp', quantity: 2, unitPrice: 300 },
+        { name: 'Water Keychains', quantity: 1, unitPrice: 150 },
+      ],
+      750
+    );
+
+    expect(message).toContain('Panda Lamp x2 - ₹600');
+    expect(message).toContain('Water Keychains x1 - ₹150');
+    expect(message).toContain('Total: ₹750');
+    expect(message).toContain('#abcd1234');
+  });
+
+  it('includes the variant label alongside the product name when one is set', () => {
+    const message = buildWhatsAppBillMessage(
+      'abcd1234-ef56-7890-abcd-ef1234567890',
+      [{ name: 'Cat Eye Press-on Nails', quantity: 2, unitPrice: 200, variantLabel: 'Blue' }],
+      400
+    );
+    expect(message).toContain('Cat Eye Press-on Nails (Blue) x2 - ₹400');
+  });
+
+  it('includes the combo discount line only when a discount was applied', () => {
+    const withDiscount = buildWhatsAppBillMessage(
+      'abcd1234-ef56-7890-abcd-ef1234567890',
+      [{ name: 'Mirrors', quantity: 1, unitPrice: 500 }],
+      450,
+      50
+    );
+    expect(withDiscount).toContain('Combo discount: -₹50');
+
+    const withoutDiscount = buildWhatsAppBillMessage(
+      'abcd1234-ef56-7890-abcd-ef1234567890',
+      [{ name: 'Mirrors', quantity: 1, unitPrice: 500 }],
+      500
+    );
+    expect(withoutDiscount).not.toContain('Combo discount');
+  });
+
+  it('opens with a bill greeting and closes with a thank-you', () => {
+    const message = buildWhatsAppBillMessage(
+      'abcd1234-ef56-7890-abcd-ef1234567890',
+      [{ name: 'Panda Lamp', quantity: 1, unitPrice: 300 }],
+      300
+    );
+    expect(message).toMatch(/^Hi! Here's your bill for order #abcd1234:/);
+    expect(message).toContain('Thank you for shopping with Charm Avenue!');
   });
 });
 
