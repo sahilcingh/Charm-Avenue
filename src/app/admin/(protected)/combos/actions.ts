@@ -53,7 +53,13 @@ export async function createCombo(formData: FormData) {
     .insert(
       values.productIds.map((productId) => ({ combo_id: inserted.id, product_id: productId }))
     );
-  if (linkError) throw new Error(linkError.message);
+  if (linkError) {
+    // Supabase has no client-side multi-statement transaction, so this insert can fail
+    // after the combo row above already committed — clean up the orphan rather than
+    // leaving a combo with zero linked products sitting in the list.
+    await supabase.from('combos').delete().eq('id', inserted.id);
+    throw new Error(linkError.message);
+  }
 
   revalidatePath('/admin/combos');
 }

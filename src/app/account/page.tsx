@@ -55,7 +55,9 @@ export default async function AccountPage() {
           <AccountMain
             phone={profile?.phone ?? ''}
             address={profile?.address ?? ''}
-            orders={(orders ?? []) as Pick<DbOrder, 'id' | 'status' | 'subtotal' | 'created_at'>[]}
+            orders={(
+              (orders ?? []) as Pick<DbOrder, 'id' | 'status' | 'subtotal' | 'created_at'>[]
+            ).map((o) => ({ ...o, subtotal: Number(o.subtotal) }))}
           />
         </div>
       </section>

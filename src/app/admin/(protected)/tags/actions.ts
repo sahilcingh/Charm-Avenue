@@ -48,6 +48,19 @@ export async function updateTagLabel(slug: string, label: string) {
 
 export async function deleteTag(slug: string) {
   const { supabase } = await requireAdmin();
+
+  // product_tags.tag_slug is `on delete cascade` — without this check, deleting a
+  // tag silently detaches it from every product using it, with no warning at all.
+  const { count } = await supabase
+    .from('product_tags')
+    .select('tag_slug', { count: 'exact', head: true })
+    .eq('tag_slug', slug);
+  if (count) {
+    throw new Error(
+      `This tag is used on ${count} product${count === 1 ? '' : 's'}. Remove it from ${count === 1 ? 'that product' : 'those products'} first.`
+    );
+  }
+
   const { error } = await supabase.from('tags').delete().eq('slug', slug);
   if (error) throw new Error(error.message);
 

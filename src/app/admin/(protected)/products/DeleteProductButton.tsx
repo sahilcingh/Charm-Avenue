@@ -12,12 +12,25 @@ export default function DeleteProductButton({
 }) {
   const [confirming, setConfirming] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function handleDelete() {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await deleteProduct(productId, productName);
+      } catch (err) {
+        setConfirming(false);
+        setError(err instanceof Error ? err.message : 'Could not delete this product.');
+      }
+    });
+  }
 
   if (confirming) {
     return (
       <div className="flex items-center gap-1.5 animate-bounce-in">
         <button
-          onClick={() => startTransition(() => deleteProduct(productId, productName))}
+          onClick={handleDelete}
           disabled={isPending}
           className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           style={{ background: 'var(--blush-rose-dark)' }}
@@ -37,12 +50,22 @@ export default function DeleteProductButton({
   }
 
   return (
-    <button
-      onClick={() => setConfirming(true)}
-      aria-label={`Delete ${productName}`}
-      className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-dark)] hover:text-white"
-    >
-      <Icon name="TrashIcon" size={15} />
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={() => setConfirming(true)}
+        aria-label={`Delete ${productName}`}
+        className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--blush-muted)] transition-colors duration-200 hover:bg-[var(--blush-rose-dark)] hover:text-white"
+      >
+        <Icon name="TrashIcon" size={15} />
+      </button>
+      {error && (
+        <p
+          className="text-xs font-medium text-right max-w-[10rem]"
+          style={{ color: 'var(--blush-rose-dark)' }}
+        >
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

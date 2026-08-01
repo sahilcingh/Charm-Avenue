@@ -1,6 +1,7 @@
 'use client';
 import React, { useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { unstable_rethrow } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import type {
   DbCategory,
@@ -219,6 +220,7 @@ export default function ProductForm({
   const [tagSelections, setTagSelections] = useState<Set<string>>(new Set(selectedTagSlugs));
   const [categoryList, setCategoryList] = useState<DbCategory[]>(categories);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const selectedCategory = categoryList.find((c) => c.slug === categorySlug);
   const activeTagStyle = TAG_STYLES[tagStyle];
@@ -249,9 +251,25 @@ export default function ProductForm({
     }
   }
 
+  // A raw `<form action={action}>` would let a failed save (flaky image upload, a slug
+  // collision, a DB constraint) fall through to the nearest error boundary — which, with no
+  // error.tsx scoped under /admin, replaces this entire page and wipes every field the admin
+  // just filled in. Catching it here keeps the form (and its data) on screen with an inline
+  // message instead. `redirect()` on success works by throwing a special Next.js signal, not a
+  // real error — unstable_rethrow lets that pass through untouched so the redirect still happens.
+  async function handleSubmit(formData: FormData) {
+    setSubmitError(null);
+    try {
+      await action(formData);
+    } catch (err) {
+      unstable_rethrow(err);
+      setSubmitError(err instanceof Error ? err.message : 'Could not save this product.');
+    }
+  }
+
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18.75rem)] gap-6 items-start">
-      <form action={action} className="flex flex-col gap-5">
+      <form action={handleSubmit} className="flex flex-col gap-5">
         <SectionCard icon="📸" title="Product Photo">
           <div
             onDragOver={(e) => {
@@ -1068,6 +1086,12 @@ export default function ProductForm({
             </span>
           </label>
         </SectionCard>
+
+        {submitError && (
+          <p className="text-xs font-medium" style={{ color: 'var(--blush-rose-dark)' }}>
+            {submitError}
+          </p>
+        )}
 
         <div>
           <SubmitButton isEdit={Boolean(product)} />

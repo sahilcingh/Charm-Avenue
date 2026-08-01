@@ -92,7 +92,7 @@ export default function AccountSidebar({ name, email }: { name: string; email: s
                 onClick={() => setEditingName(true)}
                 aria-label="Edit name"
                 className="transition-opacity hover:opacity-70 shrink-0"
-                style={{ color: 'var(--blush-rose)' }}
+                style={{ color: 'var(--blush-rose-text)' }}
               >
                 <Icon name="PencilSquareIcon" size={14} />
               </button>

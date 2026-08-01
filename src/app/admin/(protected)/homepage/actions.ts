@@ -78,7 +78,15 @@ export async function createSection(formData: FormData) {
   if (error) throw new Error(error.message);
 
   if (inserted?.id) {
-    await resyncSectionProducts(supabase, inserted.id, values.productIds);
+    try {
+      await resyncSectionProducts(supabase, inserted.id, values.productIds);
+    } catch (err) {
+      // Supabase has no client-side multi-statement transaction, so this can fail after
+      // the section row above already committed — clean up the orphan rather than leaving
+      // a section with none of its intended products sitting in the list.
+      await supabase.from('homepage_sections').delete().eq('id', inserted.id);
+      throw err;
+    }
   }
 
   revalidatePath('/admin/homepage');
@@ -133,14 +141,17 @@ export async function reorderSection(sectionId: string, direction: 'up' | 'down'
   const current = sections[index];
   const swapWith = sections[swapIndex];
 
-  await supabase
+  const { error: currentError } = await supabase
     .from('homepage_sections')
     .update({ sort_order: swapWith.sort_order })
     .eq('id', current.id);
-  await supabase
+  if (currentError) throw new Error(currentError.message);
+
+  const { error: swapError } = await supabase
     .from('homepage_sections')
     .update({ sort_order: current.sort_order })
     .eq('id', swapWith.id);
+  if (swapError) throw new Error(swapError.message);
 
   revalidatePath('/admin/homepage');
   revalidatePath('/');

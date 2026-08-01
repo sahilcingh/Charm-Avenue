@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -7,9 +8,12 @@ export default function ContactForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.name.trim() && form.email.trim() && form.message.trim()) {
-      setSubmitted(true);
-    }
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return;
+
+    const message = [`Hi! I'm ${form.name} (${form.email}).`, '', form.message].join('\n');
+    const url = buildWhatsAppUrl(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '', message);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setSubmitted(true);
   };
 
   if (submitted) {
@@ -20,7 +24,8 @@ export default function ContactForm() {
           Message sent!
         </h3>
         <p style={{ color: 'var(--blush-muted)' }}>
-          Thanks for reaching out — we&apos;ll get back to you within 24 hours.
+          We&apos;ve opened WhatsApp with your message ready to send. We&apos;ll reply within 24
+          hours.
         </p>
       </div>
     );
@@ -31,13 +36,13 @@ export default function ContactForm() {
       onSubmit={handleSubmit}
       className="bg-white rounded-3xl p-6 md:p-8 card-bubble flex flex-col gap-4"
     >
-      <div>
-        <label
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Name
-        </label>
+        </span>
         <input
           type="text"
           required
@@ -47,14 +52,14 @@ export default function ContactForm() {
           style={{ color: 'var(--blush-text)' }}
           placeholder="Your name"
         />
-      </div>
-      <div>
-        <label
+      </label>
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Email
-        </label>
+        </span>
         <input
           type="email"
           required
@@ -64,14 +69,14 @@ export default function ContactForm() {
           style={{ color: 'var(--blush-text)' }}
           placeholder="your@email.com"
         />
-      </div>
-      <div>
-        <label
+      </label>
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Message
-        </label>
+        </span>
         <textarea
           required
           rows={5}
@@ -81,7 +86,7 @@ export default function ContactForm() {
           style={{ color: 'var(--blush-text)' }}
           placeholder="How can we help?"
         />
-      </div>
+      </label>
       <button
         type="submit"
         className="mt-2 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] self-start"

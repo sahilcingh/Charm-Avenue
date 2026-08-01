@@ -173,6 +173,7 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
         </label>
         <input
           type="number"
+          min={0}
           value={priceOverride}
           onChange={(e) => {
             setPriceOverride(e.target.value);
@@ -209,6 +210,7 @@ function VariantRow({ variant, productId }: { variant: DbProductVariant; product
         </label>
         <input
           type="number"
+          min={0}
           value={stockCount}
           onChange={(e) => {
             setStockCount(e.target.value);

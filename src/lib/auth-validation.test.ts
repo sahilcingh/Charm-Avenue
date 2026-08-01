@@ -180,6 +180,14 @@ describe('resolveLoginRedirect', () => {
   it('rejects a next param that does not start with a slash', () => {
     expect(resolveLoginRedirect({ isAdmin: false, next: 'evil.com' })).toBe('/');
   });
+
+  it('rejects a backslash next param as an open-redirect attempt — browsers treat \\ like / (failure case)', () => {
+    expect(resolveLoginRedirect({ isAdmin: false, next: '/\\evil.com' })).toBe('/');
+  });
+
+  it('rejects a mixed slash-backslash next param as an open-redirect attempt', () => {
+    expect(resolveLoginRedirect({ isAdmin: false, next: '/\\/evil.com' })).toBe('/');
+  });
 });
 
 describe('friendlyAuthError', () => {

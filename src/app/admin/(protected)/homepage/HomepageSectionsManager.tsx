@@ -248,8 +248,11 @@ function SectionRow({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // `products` is pre-filtered to active ones only, so a missing match here could be a
+  // genuinely deleted product OR one that's simply been hidden — "Unavailable" covers both
+  // instead of implying data loss that may not have happened.
   const productNames = section.productIds.map(
-    (id) => products.find((p) => p.id === id)?.name ?? 'Deleted product'
+    (id) => products.find((p) => p.id === id)?.name ?? 'Unavailable product'
   );
 
   const resetToSaved = () => {
@@ -260,6 +263,17 @@ function SectionRow({
     setLayout(section.layout);
     setSelected(section.productIds);
     setError(null);
+  };
+
+  const handleReorder = (direction: 'up' | 'down') => {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await reorderSection(section.id, direction);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not reorder sections.');
+      }
+    });
   };
 
   const handleSave = () => {
@@ -359,7 +373,7 @@ function SectionRow({
             <button
               type="button"
               disabled={isFirst || isPending}
-              onClick={() => startTransition(() => reorderSection(section.id, 'up'))}
+              onClick={() => handleReorder('up')}
               aria-label={`Move ${section.title} earlier`}
               className="w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-30"
               style={{ color: 'var(--blush-muted)' }}
@@ -369,7 +383,7 @@ function SectionRow({
             <button
               type="button"
               disabled={isLast || isPending}
-              onClick={() => startTransition(() => reorderSection(section.id, 'down'))}
+              onClick={() => handleReorder('down')}
               aria-label={`Move ${section.title} later`}
               className="w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-30"
               style={{ color: 'var(--blush-muted)' }}

@@ -59,13 +59,13 @@ export default function LoginForm() {
       onSubmit={handleSubmit}
       className="bg-white rounded-3xl p-6 md:p-8 card-bubble flex flex-col gap-4"
     >
-      <div>
-        <label
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Email
-        </label>
+        </span>
         <input
           type="email"
           value={form.email}
@@ -79,14 +79,14 @@ export default function LoginForm() {
             {errors.email}
           </p>
         )}
-      </div>
-      <div>
-        <label
+      </label>
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Password
-        </label>
+        </span>
         <input
           type="password"
           value={form.password}
@@ -100,7 +100,7 @@ export default function LoginForm() {
             {errors.password}
           </p>
         )}
-      </div>
+      </label>
 
       {formError && (
         <p className="text-sm font-medium" style={{ color: 'var(--blush-rose-dark)' }}>
@@ -125,7 +125,7 @@ export default function LoginForm() {
         <Link
           href="/signup"
           className="font-bold hover:underline"
-          style={{ color: 'var(--blush-rose)' }}
+          style={{ color: 'var(--blush-rose-text)' }}
         >
           Create an account
         </Link>

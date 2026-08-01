@@ -23,6 +23,18 @@ function TagRow({ tag }: { tag: DbTag }) {
     });
   };
 
+  const handleDelete = () => {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await deleteTag(tag.slug);
+      } catch (err) {
+        setConfirmingDelete(false);
+        setError(err instanceof Error ? err.message : 'Could not delete this tag.');
+      }
+    });
+  };
+
   return (
     <div
       className="flex items-center justify-between gap-3 px-4 py-3 border-b last:border-0"
@@ -87,7 +99,7 @@ function TagRow({ tag }: { tag: DbTag }) {
           {confirmingDelete ? (
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => startTransition(() => deleteTag(tag.slug))}
+                onClick={handleDelete}
                 disabled={isPending}
                 className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full text-white disabled:opacity-50"
                 style={{ background: 'var(--blush-rose-dark)' }}

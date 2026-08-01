@@ -132,13 +132,13 @@ export default function AccountMain({
               Saved here, so checkout can pre-fill them next time.
             </p>
           </div>
-          <div>
-            <label
+          <label className="block">
+            <span
               className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
               style={{ color: 'var(--blush-text)' }}
             >
               Phone Number
-            </label>
+            </span>
             <input
               type="tel"
               value={contact.phone}
@@ -147,14 +147,14 @@ export default function AccountMain({
               style={{ color: 'var(--blush-text)' }}
               placeholder="98765 43210"
             />
-          </div>
-          <div>
-            <label
+          </label>
+          <label className="block">
+            <span
               className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
               style={{ color: 'var(--blush-text)' }}
             >
               Delivery Address
-            </label>
+            </span>
             <textarea
               value={contact.address}
               onChange={(e) => setContact({ ...contact, address: e.target.value })}
@@ -163,7 +163,7 @@ export default function AccountMain({
               style={{ color: 'var(--blush-text)' }}
               placeholder="House/flat, street, area, city, PIN code"
             />
-          </div>
+          </label>
           {contactError && (
             <p className="text-sm font-medium" style={{ color: 'var(--blush-rose-dark)' }}>
               {contactError}
@@ -189,13 +189,13 @@ export default function AccountMain({
           <h3 className="font-elegant-serif text-lg" style={{ color: 'var(--blush-text)' }}>
             Change Password
           </h3>
-          <div>
-            <label
+          <label className="block">
+            <span
               className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
               style={{ color: 'var(--blush-text)' }}
             >
               New Password
-            </label>
+            </span>
             <input
               type="password"
               value={passwords.password}
@@ -204,14 +204,14 @@ export default function AccountMain({
               style={{ color: 'var(--blush-text)' }}
               placeholder="At least 6 characters"
             />
-          </div>
-          <div>
-            <label
+          </label>
+          <label className="block">
+            <span
               className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
               style={{ color: 'var(--blush-text)' }}
             >
               Confirm New Password
-            </label>
+            </span>
             <input
               type="password"
               value={passwords.confirmPassword}
@@ -220,7 +220,7 @@ export default function AccountMain({
               style={{ color: 'var(--blush-text)' }}
               placeholder="••••••••"
             />
-          </div>
+          </label>
           {passwordError && (
             <p className="text-sm font-medium" style={{ color: 'var(--blush-rose-dark)' }}>
               {passwordError}

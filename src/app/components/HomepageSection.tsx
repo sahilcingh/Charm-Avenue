@@ -252,6 +252,7 @@ function CarouselSection({
                 )}
                 <button
                   onClick={(e) => e.preventDefault()}
+                  aria-label={`Save ${item.name} to wishlist`}
                   className="w-8 h-8 rounded-full glass-white flex items-center justify-center"
                 >
                   <Icon name="HeartIcon" size={14} className="text-white" />

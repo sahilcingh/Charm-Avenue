@@ -387,7 +387,7 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
         <div className="flex items-center gap-1.5">
           <span
             className="font-elegant-serif font-bold text-base"
-            style={{ color: 'var(--blush-rose)' }}
+            style={{ color: 'var(--blush-rose-text)' }}
           >
             ₹{displayPrice}
           </span>

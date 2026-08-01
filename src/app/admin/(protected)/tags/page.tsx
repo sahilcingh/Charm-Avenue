@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
+import Icon from '@/components/ui/AppIcon';
 import type { DbTag } from '@/lib/supabase/types';
 import TagManager from './TagManager';
 
 export default async function AdminTagsPage() {
   const supabase = await createClient();
-  const { data: tags } = await supabase
+  const { data: tags, error } = await supabase
     .from('tags')
     .select('*')
     .order('label', { ascending: true });
@@ -23,7 +24,25 @@ export default async function AdminTagsPage() {
           &quot;Bestseller&quot;), separate from categories.
         </p>
       </div>
-      <TagManager tags={(tags as DbTag[]) ?? []} />
+      {error ? (
+        <div className="bg-white rounded-3xl p-8 card-bubble flex items-start gap-4">
+          <span
+            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+            style={{ background: 'var(--blush-bg)' }}
+          >
+            <Icon
+              name="ExclamationTriangleIcon"
+              size={18}
+              style={{ color: 'var(--blush-rose-dark)' }}
+            />
+          </span>
+          <p className="text-sm" style={{ color: 'var(--blush-rose-dark)' }}>
+            Couldn&apos;t load tags: {error.message}.
+          </p>
+        </div>
+      ) : (
+        <TagManager tags={(tags as DbTag[]) ?? []} />
+      )}
     </div>
   );
 }

@@ -53,6 +53,7 @@ function CategoryRow({ category, blockingProducts, onEdit, onDeleted }: Category
               width={56}
               height={56}
               className="w-full h-full object-cover"
+              unoptimized
             />
           </div>
           <div className="min-w-0">

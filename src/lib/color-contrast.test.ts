@@ -24,4 +24,13 @@ describe('contrastRatio', () => {
     expect(contrastRatio('#ffffff', '#e8828f')).toBeLessThan(4.5);
     expect(contrastRatio('#ffffff', '#25d366')).toBeLessThan(4.5);
   });
+
+  it(
+    'the text-safe rose token (--blush-rose-text) passes WCAG AA (4.5:1) on a white background ' +
+      '(failure case: plain --blush-rose as text — e.g. product prices, active nav links — only ' +
+      'reaches ~2.6:1 on white, the same underlying problem --blush-rose-button solves for fills)',
+    () => {
+      expect(contrastRatio('#ffffff', '#c62439')).toBeGreaterThanOrEqual(4.5);
+    }
+  );
 });

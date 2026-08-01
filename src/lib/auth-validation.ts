@@ -94,13 +94,15 @@ export interface ResolveLoginRedirectInput {
  * `next` must be a same-site relative path. A bare `startsWith('/')` check
  * isn't enough: `//evil.com` also starts with "/" but browsers resolve it as
  * protocol-relative to an external host, so that (and any absolute URL) is
- * rejected in favor of the safe homepage default.
+ * rejected in favor of the safe homepage default. A leading backslash (e.g.
+ * `/\evil.com`) is rejected too — browsers treat `\` the same as `/` when
+ * resolving a URL, so it's just as capable of leaving the site.
  */
 export function resolveLoginRedirect({ isAdmin, next }: ResolveLoginRedirectInput): string {
   if (isAdmin) {
     return '/admin/products';
   }
-  if (next && next.startsWith('/') && !next.startsWith('//')) {
+  if (next && next.startsWith('/') && !/^\/[/\\]/.test(next)) {
     return next;
   }
   return '/';

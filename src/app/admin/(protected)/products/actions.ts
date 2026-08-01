@@ -12,6 +12,18 @@ const VALID_STOCK_STATUSES: ProductStockStatus[] = [
 ];
 const PERSONALIZATION_MAX_LENGTH_FALLBACK = 50;
 
+function validateProductValues(values: Pick<ProductFormValues, 'price' | 'originalPrice'>) {
+  if (!Number.isFinite(values.price) || values.price < 0) {
+    throw new Error('Please enter a valid, non-negative price.');
+  }
+  if (
+    values.originalPrice !== null &&
+    (!Number.isFinite(values.originalPrice) || values.originalPrice < 0)
+  ) {
+    throw new Error('Please enter a valid, non-negative original price.');
+  }
+}
+
 function slugify(name: string) {
   return name
     .toLowerCase()
@@ -227,6 +239,7 @@ async function syncProductCategoriesAndTags(
 export async function createProduct(formData: FormData) {
   const { supabase, user } = await requireAdmin();
   const values = parseForm(formData);
+  validateProductValues(values);
 
   const imageUrl = await uploadImageIfProvided(supabase, formData);
   if (!imageUrl) {
@@ -304,6 +317,7 @@ export async function createProduct(formData: FormData) {
 export async function updateProduct(productId: string, formData: FormData) {
   const { supabase, user } = await requireAdmin();
   const values = parseForm(formData);
+  validateProductValues(values);
 
   const imageUrl = await uploadImageIfProvided(supabase, formData);
   const tagStyle = TAG_STYLES[values.tagStyle];
@@ -357,8 +371,33 @@ export async function updateProduct(productId: string, formData: FormData) {
   redirect('/admin/products');
 }
 
+/**
+ * combo_products.product_id and homepage_section_products.product_id are both
+ * `on delete cascade`, so deleting a product would otherwise silently strip it
+ * out of any combo or homepage section with zero warning — unlike deleting a
+ * category, which the DB itself blocks (`on delete restrict`). This check is
+ * the only thing standing between a delete and that silent breakage.
+ */
 export async function deleteProduct(productId: string, productName: string) {
   const { supabase, user } = await requireAdmin();
+
+  const [{ count: comboCount }, { count: sectionCount }] = await Promise.all([
+    supabase
+      .from('combo_products')
+      .select('product_id', { count: 'exact', head: true })
+      .eq('product_id', productId),
+    supabase
+      .from('homepage_section_products')
+      .select('product_id', { count: 'exact', head: true })
+      .eq('product_id', productId),
+  ]);
+  const usages: string[] = [];
+  if (comboCount) usages.push(`${comboCount} combo${comboCount === 1 ? '' : 's'}`);
+  if (sectionCount) usages.push(`${sectionCount} homepage section${sectionCount === 1 ? '' : 's'}`);
+  if (usages.length > 0) {
+    throw new Error(`This product is used in ${usages.join(' and ')}. Remove it from those first.`);
+  }
+
   const { error } = await supabase.from('products').delete().eq('id', productId);
   if (error) throw new Error(error.message);
 
@@ -426,7 +465,7 @@ export async function reorderProductImage(
   const current = list[index];
   const swapWith = list[swapIndex];
 
-  await Promise.all([
+  const [{ error: currentError }, { error: swapError }] = await Promise.all([
     supabase
       .from('product_images')
       .update({ sort_order: swapWith.sort_order })
@@ -436,6 +475,9 @@ export async function reorderProductImage(
       .update({ sort_order: current.sort_order })
       .eq('id', swapWith.id),
   ]);
+  if (currentError || swapError) {
+    throw new Error(currentError?.message ?? swapError?.message ?? 'Failed to reorder photo.');
+  }
 
   revalidatePath(`/admin/products/${productId}`);
 }
@@ -478,17 +520,33 @@ export async function updateVariant(variantId: string, productId: string, formDa
   const stockStatusRaw = String(formData.get('stockStatus') || '');
   const stockCountRaw = String(formData.get('stockCount') || '').trim();
 
+  const priceOverride = priceOverrideRaw !== '' ? Number(priceOverrideRaw) : null;
+  const originalPriceOverride =
+    originalPriceOverrideRaw !== '' ? Number(originalPriceOverrideRaw) : null;
+  const stockCount = stockCountRaw !== '' ? Number(stockCountRaw) : null;
+  if (priceOverride !== null && (!Number.isFinite(priceOverride) || priceOverride < 0)) {
+    throw new Error('Please enter a valid, non-negative price override.');
+  }
+  if (
+    originalPriceOverride !== null &&
+    (!Number.isFinite(originalPriceOverride) || originalPriceOverride < 0)
+  ) {
+    throw new Error('Please enter a valid, non-negative original price override.');
+  }
+  if (stockCount !== null && (!Number.isFinite(stockCount) || stockCount < 0)) {
+    throw new Error('Please enter a valid, non-negative stock count.');
+  }
+
   const update: Record<string, unknown> = {
     color,
     size: String(formData.get('size') || '').trim() || null,
     sku: String(formData.get('sku') || '').trim() || null,
-    price_override: priceOverrideRaw !== '' ? Number(priceOverrideRaw) : null,
-    original_price_override:
-      originalPriceOverrideRaw !== '' ? Number(originalPriceOverrideRaw) : null,
+    price_override: priceOverride,
+    original_price_override: originalPriceOverride,
     stock_status: VALID_STOCK_STATUSES.includes(stockStatusRaw as ProductStockStatus)
       ? stockStatusRaw
       : null,
-    stock_count: stockCountRaw !== '' ? Number(stockCountRaw) : null,
+    stock_count: stockCount,
     is_active: formData.get('isActive') !== 'off',
   };
   if (imageUrl) update.image = imageUrl;

@@ -127,7 +127,7 @@ export default function SignupForm() {
             <Link
               href="/login"
               className="font-bold hover:underline"
-              style={{ color: 'var(--blush-rose)' }}
+              style={{ color: 'var(--blush-rose-text)' }}
             >
               Sign in
             </Link>{' '}
@@ -135,13 +135,13 @@ export default function SignupForm() {
           </p>
         </div>
 
-        <div className="text-left">
-          <label
+        <label className="block text-left">
+          <span
             className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
             style={{ color: 'var(--blush-text)' }}
           >
             Verification Code
-          </label>
+          </span>
           <input
             type="text"
             inputMode="numeric"
@@ -158,7 +158,7 @@ export default function SignupForm() {
               {otpError}
             </p>
           )}
-        </div>
+        </label>
 
         <button
           type="submit"
@@ -190,13 +190,13 @@ export default function SignupForm() {
       onSubmit={handleSubmit}
       className="bg-white rounded-3xl p-6 md:p-8 card-bubble flex flex-col gap-4"
     >
-      <div>
-        <label
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Name
-        </label>
+        </span>
         <input
           type="text"
           value={form.name}
@@ -210,14 +210,14 @@ export default function SignupForm() {
             {errors.name}
           </p>
         )}
-      </div>
-      <div>
-        <label
+      </label>
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Email
-        </label>
+        </span>
         <input
           type="email"
           value={form.email}
@@ -231,14 +231,14 @@ export default function SignupForm() {
             {errors.email}
           </p>
         )}
-      </div>
-      <div>
-        <label
+      </label>
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Password
-        </label>
+        </span>
         <input
           type="password"
           value={form.password}
@@ -252,14 +252,14 @@ export default function SignupForm() {
             {errors.password}
           </p>
         )}
-      </div>
-      <div>
-        <label
+      </label>
+      <label className="block">
+        <span
           className="text-xs font-bold uppercase tracking-wide mb-1.5 block"
           style={{ color: 'var(--blush-text)' }}
         >
           Confirm Password
-        </label>
+        </span>
         <input
           type="password"
           value={form.confirmPassword}
@@ -273,7 +273,7 @@ export default function SignupForm() {
             {errors.confirmPassword}
           </p>
         )}
-      </div>
+      </label>
 
       {formError && (
         <p className="text-sm font-medium" style={{ color: 'var(--blush-rose-dark)' }}>

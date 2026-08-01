@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import Icon from '@/components/ui/AppIcon';
 import AutoRefresh from '@/components/AutoRefresh';
 import type { DbOrderItem } from '@/lib/supabase/types';
+import { normalizeOrder, normalizeOrderItem } from '@/lib/supabase/normalize-order';
 import { buildWhatsAppBillMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
 import OrderStatusSelect from '../OrderStatusSelect';
 
@@ -17,13 +18,18 @@ export default async function AdminOrderDetailPage({
 
   // order_items only keys on the id route param, not on the order row itself, so both queries
   // can run together instead of paying for two sequential round-trips on every order view.
-  const [{ data: order }, { data: items }] = await Promise.all([
-    supabase.from('orders').select('*').eq('id', id).maybeSingle(),
-    supabase.from('order_items').select('*').eq('order_id', id),
-  ]);
-  if (!order) notFound();
+  const [{ data: orderData, error: orderError }, { data: itemsData, error: itemsError }] =
+    await Promise.all([
+      supabase.from('orders').select('*').eq('id', id).maybeSingle(),
+      supabase.from('order_items').select('*').eq('order_id', id),
+    ]);
+  if (orderError) console.error('Failed to fetch order for admin detail view:', orderError.message);
+  if (itemsError)
+    console.error('Failed to fetch order_items for admin detail view:', itemsError.message);
+  if (!orderData) notFound();
 
-  const orderItems = (items ?? []) as DbOrderItem[];
+  const order = normalizeOrder(orderData);
+  const orderItems = ((itemsData ?? []) as DbOrderItem[]).map(normalizeOrderItem);
 
   const billMessage = buildWhatsAppBillMessage(
     order.id,

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin } from '@/lib/require-admin';
 import type { DbOrder, DbOrderItem } from '@/lib/supabase/types';
+import { normalizeOrder, normalizeOrderItem } from '@/lib/supabase/normalize-order';
 import { renderBillPdf } from '@/lib/pdf/render-bill-pdf';
 
 export const runtime = 'nodejs';
@@ -17,17 +18,32 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: order }, { data: items }] = await Promise.all([
-    supabase.from('orders').select('*').eq('id', id).maybeSingle(),
-    supabase.from('order_items').select('*').eq('order_id', id),
-  ]);
+  const [{ data: order, error: orderError }, { data: items, error: itemsError }] =
+    await Promise.all([
+      supabase.from('orders').select('*').eq('id', id).maybeSingle(),
+      supabase.from('order_items').select('*').eq('order_id', id),
+    ]);
 
+  if (orderError) {
+    console.error('Failed to fetch order for bill PDF:', orderError.message);
+    return NextResponse.json(
+      { error: 'Could not load this order. Please try again.' },
+      { status: 500 }
+    );
+  }
   if (!order) {
     return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   }
+  if (itemsError) {
+    console.error('Failed to fetch order_items for bill PDF:', itemsError.message);
+    return NextResponse.json(
+      { error: 'Could not load this order’s items. Please try again.' },
+      { status: 500 }
+    );
+  }
 
-  const orderRow = order as DbOrder;
-  const orderItems = (items ?? []) as DbOrderItem[];
+  const orderRow = normalizeOrder(order as DbOrder);
+  const orderItems = ((items ?? []) as DbOrderItem[]).map(normalizeOrderItem);
 
   const pdfBuffer = await renderBillPdf({
     orderId: orderRow.id,

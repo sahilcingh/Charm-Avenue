@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import Icon from '@/components/ui/AppIcon';
 import AutoRefresh from '@/components/AutoRefresh';
 import type { DbOrder, OrderStatus } from '@/lib/supabase/types';
+import { normalizeOrder } from '@/lib/supabase/normalize-order';
 import OrderStatusSelect from './OrderStatusSelect';
 import { OrderRow, OrderCard, StopPropagation } from './OrderRow';
 
@@ -39,8 +40,11 @@ export default async function AdminOrdersPage({
     supabase.from('orders').select('status, subtotal'),
   ]);
 
-  const list = (orders as OrderRowData[] | null) ?? [];
-  const all = (allOrders as Pick<DbOrder, 'status' | 'subtotal'>[] | null) ?? [];
+  const list = ((orders as OrderRowData[] | null) ?? []).map(normalizeOrder);
+  const all = ((allOrders as Pick<DbOrder, 'status' | 'subtotal'>[] | null) ?? []).map((o) => ({
+    ...o,
+    subtotal: Number(o.subtotal),
+  }));
   const pendingCount = all.filter(
     (o) => o.status === 'pending_whatsapp' || o.status === 'pending_payment'
   ).length;

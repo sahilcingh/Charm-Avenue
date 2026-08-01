@@ -175,6 +175,7 @@ export default async function AdminProductsPage() {
                     width={64}
                     height={64}
                     className="w-full h-full object-cover"
+                    unoptimized
                   />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -317,6 +318,7 @@ export default async function AdminProductsPage() {
                           width={64}
                           height={64}
                           className="w-full h-full object-cover"
+                          unoptimized
                         />
                       </div>
                     </td>

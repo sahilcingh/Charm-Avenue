@@ -88,8 +88,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         'id',
         lines.map((l) => l.productId)
       )
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (cancelled) return;
+        // A failed check must never be treated as "nothing is valid" — that would
+        // wipe the whole cart on a transient network/RLS blip instead of leaving
+        // it untouched until the next successful check.
+        if (error) {
+          console.error('Failed to validate cart against current products:', error.message);
+          return;
+        }
         const validIds = new Set((data ?? []).map((row: { id: string }) => row.id));
         setLines((prev) => {
           const pruned = prev.filter((l) => validIds.has(l.productId));

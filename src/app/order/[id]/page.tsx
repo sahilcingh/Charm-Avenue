@@ -7,6 +7,7 @@ import Icon from '@/components/ui/AppIcon';
 import AutoRefresh from '@/components/AutoRefresh';
 import { createServiceClient } from '@/lib/supabase/service-client';
 import type { DbOrder, DbOrderItem } from '@/lib/supabase/types';
+import { normalizeOrder, normalizeOrderItem } from '@/lib/supabase/normalize-order';
 import { ORDER_STATUS_LABELS } from '@/lib/order-status';
 
 export const metadata: Metadata = {
@@ -33,10 +34,11 @@ export default async function OrderLookupPage({ params }: { params: Promise<{ id
   // order_items only keys on the id route param, not on anything from the orders row, so it's
   // safe to fetch alongside it rather than waiting on it first — a 404's items query is wasted,
   // but that's cheaper than making every real order confirmation pay for two round-trips.
-  const [{ data: order, error: orderError }, { data: items }] = await Promise.all([
-    supabase.from('orders').select('*').eq('id', id).maybeSingle(),
-    supabase.from('order_items').select('*').eq('order_id', id),
-  ]);
+  const [{ data: order, error: orderError }, { data: items, error: itemsError }] =
+    await Promise.all([
+      supabase.from('orders').select('*').eq('id', id).maybeSingle(),
+      supabase.from('order_items').select('*').eq('order_id', id),
+    ]);
   if (orderError) {
     // A real query failure (bad/mismatched service-role key, wrong project, etc.)
     // looks identical to "no such order" to the visitor otherwise — log it
@@ -45,9 +47,15 @@ export default async function OrderLookupPage({ params }: { params: Promise<{ id
     console.error('[order/[id]] failed to fetch order', id, ':', orderError.message);
   }
   if (!order) notFound();
+  if (itemsError) {
+    // Same silent-success risk as above, but for the line items: a failed
+    // fetch here would otherwise render a real total with zero items, which
+    // reads as "your order had nothing in it" rather than an error.
+    console.error('[order/[id]] failed to fetch order_items', id, ':', itemsError.message);
+  }
 
-  const orderRow = order as DbOrder;
-  const orderItems = (items ?? []) as DbOrderItem[];
+  const orderRow = normalizeOrder(order as DbOrder);
+  const orderItems = ((items ?? []) as DbOrderItem[]).map(normalizeOrderItem);
   const status = ORDER_STATUS_LABELS[orderRow.status];
 
   return (

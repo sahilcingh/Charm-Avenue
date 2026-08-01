@@ -76,9 +76,35 @@ function ComboRow({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // `products` is pre-filtered to active ones only, so a missing match here could be a
+  // genuinely deleted product OR one that's simply been hidden — "Unavailable" covers both
+  // instead of implying data loss that may not have happened.
   const productNames = combo.productIds.map(
-    (id) => products.find((p) => p.id === id)?.name ?? 'Deleted product'
+    (id) => products.find((p) => p.id === id)?.name ?? 'Unavailable product'
   );
+
+  const handleToggleActive = (checked: boolean) => {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await toggleComboActive(combo.id, checked);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not update this combo.');
+      }
+    });
+  };
+
+  const handleDelete = () => {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await deleteCombo(combo.id);
+      } catch (err) {
+        setConfirmingDelete(false);
+        setError(err instanceof Error ? err.message : 'Could not delete this combo.');
+      }
+    });
+  };
 
   const toggleSelected = (id: string) => {
     setSelected((prev) => {
@@ -158,11 +184,6 @@ function ComboRow({
             </label>
             <ProductChecklist products={products} selected={selected} onToggle={toggleSelected} />
           </div>
-          {error && (
-            <p className="text-xs font-medium" style={{ color: 'var(--blush-rose-dark)' }}>
-              {error}
-            </p>
-          )}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -228,9 +249,7 @@ function ComboRow({
                 <input
                   type="checkbox"
                   checked={combo.is_active}
-                  onChange={(e) =>
-                    startTransition(() => toggleComboActive(combo.id, e.target.checked))
-                  }
+                  onChange={(e) => handleToggleActive(e.target.checked)}
                   className="sr-only"
                 />
               </span>
@@ -245,7 +264,7 @@ function ComboRow({
             {confirmingDelete ? (
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => startTransition(() => deleteCombo(combo.id))}
+                  onClick={handleDelete}
                   disabled={isPending}
                   className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full text-white disabled:opacity-50"
                   style={{ background: 'var(--blush-rose-dark)' }}
@@ -272,6 +291,11 @@ function ComboRow({
             )}
           </div>
         </div>
+      )}
+      {error && (
+        <p className="text-xs font-medium" style={{ color: 'var(--blush-rose-dark)' }}>
+          {error}
+        </p>
       )}
     </div>
   );

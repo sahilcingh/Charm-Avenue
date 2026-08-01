@@ -34,6 +34,10 @@ export default function CartClient() {
   // to the cart) looks identical to "no variant was ever selected" unless tracked separately.
   const [unavailableVariantIds, setUnavailableVariantIds] = useState<Set<string>>(new Set());
   const [combos, setCombos] = useState<ComboDefinition[]>([]);
+  // Set when the products/variants fetch itself fails — kept distinct from
+  // "cart is genuinely empty" or "variant no longer exists" so a transient
+  // network/RLS error doesn't get misread as either of those states.
+  const [fetchError, setFetchError] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -80,10 +84,12 @@ export default function CartClient() {
 
     if (lines.length === 0) {
       setProductsById({});
+      setFetchError(false);
       return;
     }
     let cancelled = false;
     const supabase = createClient();
+    setFetchError(false);
     supabase
       .from('products')
       .select('*, category:categories!products_category_slug_fkey(title)')
@@ -91,8 +97,16 @@ export default function CartClient() {
         'id',
         lines.map((l) => l.productId)
       )
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (cancelled) return;
+        // On a failed fetch, leave `productsById` as-is (null/previous) rather than `{}` —
+        // `{}` would make every line look removed and render "your bag is empty", which is
+        // wrong for a network blip and indistinguishable from an actually-empty cart.
+        if (error) {
+          console.error('Failed to load cart products:', error.message);
+          setFetchError(true);
+          return;
+        }
         const map: Record<string, Product> = {};
         ((data ?? []) as unknown as ProductRowWithCategory[]).forEach((row) => {
           map[row.id] = mapProductRow(row, row.category?.title);
@@ -106,8 +120,13 @@ export default function CartClient() {
         .from('product_variants')
         .select('*')
         .in('id', variantIds)
-        .then(({ data }) => {
+        .then(({ data, error }) => {
           if (cancelled) return;
+          if (error) {
+            console.error('Failed to load cart variants:', error.message);
+            setFetchError(true);
+            return;
+          }
           const map: Record<string, DbProductVariant> = {};
           ((data ?? []) as DbProductVariant[]).forEach((row) => {
             map[row.id] = row;
@@ -227,6 +246,33 @@ export default function CartClient() {
       clearCart();
       router.push(`/order/${result.orderId}`);
     });
+  }
+
+  if (fetchError && lines.length > 0) {
+    return (
+      <section className="w-full px-4 md:px-10 py-20">
+        <div className="max-w-screen-md mx-auto text-center">
+          <span className="text-5xl block mb-4">⚠️</span>
+          <h2 className="font-elegant-serif text-2xl mb-2" style={{ color: 'var(--blush-text)' }}>
+            Couldn&apos;t load your bag
+          </h2>
+          <p className="mb-8" style={{ color: 'var(--blush-muted)' }}>
+            Something went wrong loading your items. Your bag is safe — please try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02]"
+            style={{
+              background: 'var(--blush-rose-button)',
+              boxShadow: '0 4px 20px rgba(232,130,143,0.35)',
+            }}
+          >
+            <Icon name="ArrowPathIcon" size={16} />
+            Try Again
+          </button>
+        </div>
+      </section>
+    );
   }
 
   if (items.length === 0) {
@@ -430,10 +476,10 @@ export default function CartClient() {
               >
                 Your Details
               </p>
-              <div>
-                <label className={labelClass} style={{ color: 'var(--blush-text)' }}>
+              <label className="block">
+                <span className={labelClass} style={{ color: 'var(--blush-text)' }}>
                   Full Name
-                </label>
+                </span>
                 <input
                   type="text"
                   value={name}
@@ -447,11 +493,11 @@ export default function CartClient() {
                     {contactErrors.name}
                   </p>
                 )}
-              </div>
-              <div>
-                <label className={labelClass} style={{ color: 'var(--blush-text)' }}>
+              </label>
+              <label className="block">
+                <span className={labelClass} style={{ color: 'var(--blush-text)' }}>
                   Mobile Number
-                </label>
+                </span>
                 <input
                   type="tel"
                   inputMode="numeric"
@@ -467,11 +513,11 @@ export default function CartClient() {
                     {contactErrors.phone}
                   </p>
                 )}
-              </div>
-              <div>
-                <label className={labelClass} style={{ color: 'var(--blush-text)' }}>
+              </label>
+              <label className="block">
+                <span className={labelClass} style={{ color: 'var(--blush-text)' }}>
                   Delivery Address (optional)
-                </label>
+                </span>
                 <textarea
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
@@ -480,7 +526,7 @@ export default function CartClient() {
                   style={{ color: 'var(--blush-text)' }}
                   placeholder="We can also get this over WhatsApp"
                 />
-              </div>
+              </label>
             </div>
 
             {enquiryError && (

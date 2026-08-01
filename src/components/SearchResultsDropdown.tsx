@@ -60,7 +60,7 @@ export default function SearchResultsDropdown({
                 </span>
                 <span
                   className="font-elegant-serif font-bold text-sm shrink-0"
-                  style={{ color: 'var(--blush-rose)' }}
+                  style={{ color: 'var(--blush-rose-text)' }}
                 >
                   ₹{product.price}
                 </span>
@@ -73,7 +73,7 @@ export default function SearchResultsDropdown({
         href={`/search?q=${encodeURIComponent(query)}`}
         onClick={onNavigate}
         className="flex items-center justify-center gap-1.5 px-4 py-3 text-xs font-bold uppercase tracking-wide border-t transition-colors duration-150 hover:bg-[var(--blush-bg)]"
-        style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-rose)' }}
+        style={{ borderColor: 'var(--blush-border)', color: 'var(--blush-rose-text)' }}
       >
         View all results
         <Icon name="ArrowRightIcon" size={12} />
