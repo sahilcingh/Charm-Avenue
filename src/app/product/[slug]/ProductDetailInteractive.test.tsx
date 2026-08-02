@@ -201,12 +201,33 @@ describe('ProductDetailInteractive — switching back to the Default (pre-varian
       ],
       { stockStatus: 'in_stock', stockCount: 12 }
     );
-    expect(screen.getByText('Out of Stock')).toBeInTheDocument();
+    expect(screen.getByTestId('stock-badge')).toHaveTextContent('Out of Stock');
 
     act(() => galleryRow().getByRole('button', { name: 'Show Default' }).click());
 
-    expect(screen.getByText('In Stock')).toBeInTheDocument();
+    expect(screen.getByTestId('stock-badge')).toHaveTextContent('In Stock');
   });
+
+  it(
+    'disables Add to Bag while an out-of-stock variant is selected, and re-enables it once ' +
+      'Default (in stock) is selected (failure case: the button stayed fully clickable next to ' +
+      'an "Out of Stock" badge, letting shoppers add unavailable items to their bag)',
+    () => {
+      searchParamsValue = new URLSearchParams('color=Blue');
+      renderDetail(
+        [
+          makeVariant({ id: 'v1', color: 'Pink' }),
+          makeVariant({ id: 'v2', color: 'Blue', stock_status: 'out_of_stock' }),
+        ],
+        { stockStatus: 'in_stock', stockCount: 12 }
+      );
+      expect(screen.getByRole('button', { name: /out of stock/i })).toBeDisabled();
+
+      act(() => galleryRow().getByRole('button', { name: 'Show Default' }).click());
+
+      expect(screen.getByRole('button', { name: /add to bag/i })).toBeEnabled();
+    }
+  );
 });
 
 describe('ProductDetailInteractive — placeholder description text', () => {

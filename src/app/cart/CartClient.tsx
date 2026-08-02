@@ -8,7 +8,11 @@ import { useCart } from '@/lib/cart-context';
 import { createClient } from '@/lib/supabase/client';
 import { mapProductRow, type Product } from '@/lib/supabase/product-mapper';
 import type { DbCategory, DbProduct, DbProductVariant } from '@/lib/supabase/types';
-import { resolveVariantDisplay, formatVariantLabel } from '@/lib/supabase/product-variants';
+import {
+  resolveVariantDisplay,
+  formatVariantLabel,
+  STOCK_STATUS_LABELS,
+} from '@/lib/supabase/product-variants';
 import { resolveComboDiscounts, type ComboDefinition } from '@/lib/supabase/combo-discounts';
 import { validateContactDetails, type ContactDetailsErrors } from '@/lib/checkout-validation';
 import { createWhatsAppEnquiry, type CartLineItem } from './actions';
@@ -165,6 +169,11 @@ export default function CartClient() {
       if (!product) return null;
       const variant = line.variantId ? (variantsById[line.variantId] ?? null) : null;
       const isUnavailable = Boolean(line.variantId && unavailableVariantIds.has(line.variantId));
+      // A variant is fully authoritative on its own stock once one is selected — same
+      // fallback-to-the-base-product rule used on the storefront card and product page.
+      const effectiveStockStatus = variant ? variant.stock_status : product.stockStatus;
+      const isOutOfStock =
+        effectiveStockStatus === 'out_of_stock' || effectiveStockStatus === 'discontinued';
       const resolved = resolveVariantDisplay(
         {
           price: product.price,
@@ -178,11 +187,15 @@ export default function CartClient() {
         product,
         variant,
         isUnavailable,
+        isOutOfStock,
+        stockLabel: effectiveStockStatus ? STOCK_STATUS_LABELS[effectiveStockStatus] : null,
         effectivePrice: resolved.price,
         effectiveImage: resolved.image,
       };
     })
     .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+
+  const hasBlockingItems = items.some((item) => item.isUnavailable || item.isOutOfStock);
 
   const subtotal = items.reduce(
     (sum, { line, effectivePrice }) => sum + effectivePrice * line.quantity,
@@ -308,7 +321,16 @@ export default function CartClient() {
         {/* Line items */}
         <div className="md:col-span-2 flex flex-col gap-4">
           {items.map(
-            ({ line, product, variant, isUnavailable, effectivePrice, effectiveImage }) => {
+            ({
+              line,
+              product,
+              variant,
+              isUnavailable,
+              isOutOfStock,
+              stockLabel,
+              effectivePrice,
+              effectiveImage,
+            }) => {
               const lineOptions = {
                 variantId: line.variantId,
                 personalizationText: line.personalizationText,
@@ -360,6 +382,14 @@ export default function CartClient() {
                           style={{ color: 'var(--blush-rose-dark)' }}
                         >
                           This option is no longer available
+                        </p>
+                      )}
+                      {!isUnavailable && isOutOfStock && (
+                        <p
+                          className="text-xs font-semibold mt-0.5"
+                          style={{ color: 'var(--blush-rose-dark)' }}
+                        >
+                          {stockLabel?.label ?? 'Out of Stock'} — remove to continue
                         </p>
                       )}
                       {line.personalizationText && (
@@ -529,6 +559,11 @@ export default function CartClient() {
               </label>
             </div>
 
+            {hasBlockingItems && (
+              <p className="text-sm font-medium mt-4" style={{ color: 'var(--blush-rose-dark)' }}>
+                Remove the out-of-stock or unavailable item(s) above before continuing.
+              </p>
+            )}
             {enquiryError && (
               <p className="text-sm font-medium mt-4" style={{ color: 'var(--blush-rose-dark)' }}>
                 {enquiryError}
@@ -537,7 +572,7 @@ export default function CartClient() {
             <button
               type="button"
               onClick={handleEnquiry}
-              disabled={isPending}
+              disabled={isPending || hasBlockingItems}
               className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
               style={{
                 background: 'var(--whatsapp-green-button)',

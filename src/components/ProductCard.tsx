@@ -99,10 +99,13 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
   const displayImage = selectedVariant?.image ?? product.image;
   const displayPrice = selectedVariant?.price ?? product.price;
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product.originalPrice;
-  // Stock is only ever known per-variant here (see ProductColorVariant) — the base/"Default"
-  // photo has no stock field of its own to fall back to, unlike the product detail page.
-  const displayStockStatus = selectedVariant?.stockStatus ?? null;
+  // A specific variant's stock is fully authoritative while one is selected — but the
+  // "Default" option (no variant selected) is the base product's own stock state, same
+  // fallback the product detail page uses (see ProductDetailInteractive's effectiveStockStatus).
+  const displayStockStatus = selectedVariant ? selectedVariant.stockStatus : product.stockStatus;
   const stockLabel = displayStockStatus ? STOCK_STATUS_LABELS[displayStockStatus] : null;
+  const canAddToCart =
+    displayStockStatus !== 'out_of_stock' && displayStockStatus !== 'discontinued';
   const showDiscount =
     Boolean(displayOriginalPrice) &&
     isSaleWindowActive(product.saleStartsAt, product.saleEndsAt, new Date());
@@ -120,6 +123,7 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!canAddToCart) return;
     addToCart(product.id, 1, selectedVariant ? { variantId: selectedVariant.id } : undefined);
     setAdded(true);
     setTimeout(() => setAdded(false), 1200);
@@ -352,24 +356,33 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
           className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}
           style={{ background: 'rgba(30,23,18,0.45)' }}
         >
-          <button
-            onClick={handleQuickAdd}
-            className="px-4 py-2 rounded-full font-bold text-xs flex items-center gap-1.5 shadow-lg transition-colors"
-            style={{ background: '#FFFFFF', color: 'var(--blush-rose)' }}
-            onMouseEnter={(e) => {
-              const btn = e.currentTarget as HTMLButtonElement;
-              btn.style.background = 'var(--blush-rose)';
-              btn.style.color = '#FFFFFF';
-            }}
-            onMouseLeave={(e) => {
-              const btn = e.currentTarget as HTMLButtonElement;
-              btn.style.background = '#FFFFFF';
-              btn.style.color = 'var(--blush-rose)';
-            }}
-          >
-            <Icon name={added ? 'CheckIcon' : 'ShoppingBagIcon'} size={14} />
-            {added ? 'Added!' : 'Quick Add'}
-          </button>
+          {canAddToCart ? (
+            <button
+              onClick={handleQuickAdd}
+              className="px-4 py-2 rounded-full font-bold text-xs flex items-center gap-1.5 shadow-lg transition-colors"
+              style={{ background: '#FFFFFF', color: 'var(--blush-rose)' }}
+              onMouseEnter={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.background = 'var(--blush-rose)';
+                btn.style.color = '#FFFFFF';
+              }}
+              onMouseLeave={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.background = '#FFFFFF';
+                btn.style.color = 'var(--blush-rose)';
+              }}
+            >
+              <Icon name={added ? 'CheckIcon' : 'ShoppingBagIcon'} size={14} />
+              {added ? 'Added!' : 'Quick Add'}
+            </button>
+          ) : (
+            <span
+              className="px-4 py-2 rounded-full font-bold text-xs shadow-lg"
+              style={{ background: '#FFFFFF', color: 'var(--blush-muted)' }}
+            >
+              {stockLabel?.label ?? 'Unavailable'}
+            </span>
+          )}
         </div>
       </div>
 
@@ -399,6 +412,7 @@ function ProductCardContent({ product, transitionDelay = 0, className = '' }: Pr
         </div>
         {stockLabel && (
           <span
+            data-testid="stock-badge"
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 mt-1.5 text-[0.625rem] font-semibold"
             style={{ background: stockLabel.bg, color: stockLabel.color }}
           >

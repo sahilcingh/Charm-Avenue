@@ -415,13 +415,45 @@ describe('ProductCard — color swatches', () => {
         ],
       });
 
-      expect(screen.queryByText('Out of Stock')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('stock-badge')).not.toBeInTheDocument();
 
       act(() => screen.getByRole('button', { name: 'View Panda Lamp in Black' }).click());
-      expect(screen.getByText('Out of Stock')).toBeInTheDocument();
+      expect(screen.getByTestId('stock-badge')).toHaveTextContent('Out of Stock');
 
       act(() => screen.getByRole('button', { name: 'View Panda Lamp in Pink' }).click());
-      expect(screen.queryByText('Out of Stock')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('stock-badge')).not.toBeInTheDocument();
+    }
+  );
+
+  it(
+    'Quick Add does not add an out-of-stock variant to the cart, and works again once an ' +
+      'in-stock variant is selected (failure case: Quick Add ignored stock entirely, letting ' +
+      'shoppers add an unavailable item straight to their bag next to its own "Out of Stock" badge)',
+    () => {
+      mockLoggedOut();
+      renderCard({
+        colorVariants: [
+          ...colorVariants,
+          {
+            id: 'v3',
+            color: 'Black',
+            image: '/black.jpg',
+            price: null,
+            originalPrice: null,
+            stockStatus: 'out_of_stock',
+          },
+        ],
+      });
+
+      act(() => screen.getByRole('button', { name: 'View Panda Lamp in Black' }).click());
+      expect(screen.queryByRole('button', { name: 'Quick Add' })).not.toBeInTheDocument();
+      expect(JSON.parse(window.localStorage.getItem('charm-avenue-cart') ?? '[]')).toEqual([]);
+
+      act(() => screen.getByRole('button', { name: 'View Panda Lamp in Pink' }).click());
+      act(() => screen.getByRole('button', { name: 'Quick Add' }).click());
+      expect(JSON.parse(window.localStorage.getItem('charm-avenue-cart') ?? '[]')).toEqual([
+        { productId: 'p1', variantId: 'v1', quantity: 1 },
+      ]);
     }
   );
 

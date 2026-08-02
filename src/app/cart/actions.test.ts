@@ -6,6 +6,8 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 const getUserMock = vi.fn();
 const ordersInsertMock = vi.fn();
 const orderItemsInsertMock = vi.fn();
+const productsStockMock = vi.fn();
+const variantsStockMock = vi.fn();
 const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -15,8 +17,14 @@ vi.mock('@/lib/supabase/server', () => ({
       if (table === 'orders') {
         return { insert: ordersInsertMock };
       }
-      // 'order_items'
-      return { insert: orderItemsInsertMock };
+      if (table === 'order_items') {
+        return { insert: orderItemsInsertMock };
+      }
+      if (table === 'products') {
+        return { select: () => ({ in: productsStockMock }) };
+      }
+      // 'product_variants'
+      return { select: () => ({ in: variantsStockMock }) };
     },
   }),
 }));
@@ -36,11 +44,18 @@ beforeEach(() => {
   getUserMock.mockReset();
   ordersInsertMock.mockReset();
   orderItemsInsertMock.mockReset();
+  productsStockMock.mockReset();
+  variantsStockMock.mockReset();
   consoleErrorSpy.mockClear();
 
   mockLoggedOut();
   ordersInsertMock.mockResolvedValue({ error: null });
   orderItemsInsertMock.mockResolvedValue({ error: null });
+  // No stock data found for the requested ids is the harmless default for every existing
+  // test here (none of them are exercising the stock check) — it means "not tracked", not
+  // "out of stock", so it never blocks the enquiry unless a test explicitly overrides it.
+  productsStockMock.mockResolvedValue({ data: [] });
+  variantsStockMock.mockResolvedValue({ data: [] });
 });
 
 describe('createWhatsAppEnquiry', () => {
@@ -219,5 +234,62 @@ describe('createWhatsAppEnquiry', () => {
 
     expect(result.error).toBeTruthy();
     expect(orderItemsInsertMock).not.toHaveBeenCalled();
+  });
+
+  describe('stock re-check (defense in depth against a stale client)', () => {
+    it(
+      'rejects an out-of-stock product without creating an order (failure case: the cart UI ' +
+        'was the only thing blocking this — a stale page or a direct call could still submit it)',
+      async () => {
+        mockLoggedOut();
+        productsStockMock.mockResolvedValue({ data: [{ id: 'p1', stock_status: 'out_of_stock' }] });
+
+        const result = await createWhatsAppEnquiry(items, validContact);
+
+        expect(result.error).toBeTruthy();
+        expect(ordersInsertMock).not.toHaveBeenCalled();
+      }
+    );
+
+    it('rejects a discontinued product the same way', async () => {
+      mockLoggedOut();
+      productsStockMock.mockResolvedValue({ data: [{ id: 'p1', stock_status: 'discontinued' }] });
+
+      const result = await createWhatsAppEnquiry(items, validContact);
+
+      expect(result.error).toBeTruthy();
+      expect(ordersInsertMock).not.toHaveBeenCalled();
+    });
+
+    it('allows a made-to-order product through — it is a valid purchasable state, just a longer lead time', async () => {
+      mockLoggedOut();
+      productsStockMock.mockResolvedValue({ data: [{ id: 'p1', stock_status: 'made_to_order' }] });
+
+      const result = await createWhatsAppEnquiry(items, validContact);
+
+      expect(result.error).toBeUndefined();
+      expect(ordersInsertMock).toHaveBeenCalled();
+    });
+
+    it("checks the variant's own stock, not the base product's, when the line item has a variant", async () => {
+      mockLoggedOut();
+      const itemsWithVariant = [
+        {
+          productId: 'p1',
+          productName: 'Panda Lamp',
+          unitPrice: 130,
+          quantity: 1,
+          variantId: 'v1',
+        },
+      ];
+      // The base product is in stock — only the specific variant is not.
+      productsStockMock.mockResolvedValue({ data: [{ id: 'p1', stock_status: 'in_stock' }] });
+      variantsStockMock.mockResolvedValue({ data: [{ id: 'v1', stock_status: 'out_of_stock' }] });
+
+      const result = await createWhatsAppEnquiry(itemsWithVariant, validContact);
+
+      expect(result.error).toBeTruthy();
+      expect(ordersInsertMock).not.toHaveBeenCalled();
+    });
   });
 });

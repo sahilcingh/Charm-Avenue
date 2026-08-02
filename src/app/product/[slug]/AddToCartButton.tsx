@@ -10,6 +10,8 @@ interface AddToCartButtonProps {
   variantId?: string;
   personalizationText?: string;
   personalizationRequired?: boolean;
+  disabled?: boolean;
+  disabledLabel?: string;
 }
 
 export default function AddToCartButton({
@@ -18,6 +20,8 @@ export default function AddToCartButton({
   variantId,
   personalizationText,
   personalizationRequired,
+  disabled,
+  disabledLabel,
 }: AddToCartButtonProps) {
   const { addToCart } = useCart();
   const { showToast } = useToast();
@@ -25,6 +29,7 @@ export default function AddToCartButton({
   const [error, setError] = useState<string | null>(null);
 
   const handleClick = () => {
+    if (disabled) return;
     if (personalizationRequired && !personalizationText?.trim()) {
       setError('Please fill in the personalization field above.');
       return;
@@ -43,14 +48,19 @@ export default function AddToCartButton({
     <div>
       <button
         onClick={handleClick}
-        className="w-full sm:w-auto self-start px-10 py-4 rounded-full font-bold text-base uppercase tracking-widest flex items-center justify-center gap-2 text-white transition-all duration-300 hover:scale-[1.02]"
+        disabled={disabled}
+        className="w-full sm:w-auto self-start px-10 py-4 rounded-full font-bold text-base uppercase tracking-widest flex items-center justify-center gap-2 text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         style={{
-          background: added ? 'var(--blush-text)' : 'var(--blush-rose)',
-          boxShadow: '0 4px 20px rgba(232,130,143,0.4)',
+          background: disabled
+            ? 'var(--blush-muted)'
+            : added
+              ? 'var(--blush-text)'
+              : 'var(--blush-rose)',
+          boxShadow: disabled ? 'none' : '0 4px 20px rgba(232,130,143,0.4)',
         }}
       >
         <Icon name={added ? 'CheckIcon' : 'ShoppingBagIcon'} size={18} />
-        {added ? 'Added to Bag' : 'Add to Bag'}
+        {disabled ? (disabledLabel ?? 'Unavailable') : added ? 'Added to Bag' : 'Add to Bag'}
       </button>
       {error && (
         <p className="text-xs font-medium mt-2" style={{ color: 'var(--blush-rose-dark)' }}>

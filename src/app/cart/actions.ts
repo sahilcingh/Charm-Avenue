@@ -60,6 +60,34 @@ export async function createWhatsAppEnquiry(
   }
 
   const supabase = await createClient();
+
+  // Re-checked here, not just in the cart UI, as defense in depth against a stale
+  // client (the item went out of stock after the page loaded) or a tampered request.
+  const productIds = Array.from(new Set(items.map((item) => item.productId)));
+  const variantIds = Array.from(
+    new Set(items.map((item) => item.variantId).filter((id): id is string => Boolean(id)))
+  );
+  const [{ data: products }, { data: variants }] = await Promise.all([
+    supabase.from('products').select('id, stock_status').in('id', productIds),
+    variantIds.length > 0
+      ? supabase.from('product_variants').select('id, stock_status').in('id', variantIds)
+      : Promise.resolve({ data: [] as { id: string; stock_status: string | null }[] }),
+  ]);
+  const stockStatusByProductId = new Map((products ?? []).map((p) => [p.id, p.stock_status]));
+  const stockStatusByVariantId = new Map((variants ?? []).map((v) => [v.id, v.stock_status]));
+  const hasUnavailableItem = items.some((item) => {
+    const status = item.variantId
+      ? stockStatusByVariantId.get(item.variantId)
+      : stockStatusByProductId.get(item.productId);
+    return status === 'out_of_stock' || status === 'discontinued';
+  });
+  if (hasUnavailableItem) {
+    return {
+      error:
+        'One or more items in your bag are no longer available. Please remove them and try again.',
+    };
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();

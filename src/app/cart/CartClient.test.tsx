@@ -343,6 +343,43 @@ describe('CartClient', () => {
     }
   );
 
+  it(
+    'warns that an item is out of stock and blocks the "Enquire on WhatsApp" button until it is ' +
+      'removed (failure case: the button had no awareness of stock status at all, so an ' +
+      'out-of-stock item could be enquired about exactly like an in-stock one)',
+    async () => {
+      mockProductRows([
+        makeProductRow({ id: 'p1', name: 'Panda Lamp', price: 130, stock_status: 'out_of_stock' }),
+      ]);
+      renderCartWithLines([{ productId: 'p1', quantity: 1 }]);
+
+      await screen.findByText('Panda Lamp');
+      expect(screen.getByText(/Out of Stock/i)).toBeInTheDocument();
+      fillContactDetails('Priya Sharma', '9876543210');
+      expect(screen.getByRole('button', { name: /Enquire on WhatsApp/i })).toBeDisabled();
+      expect(createWhatsAppEnquiry).not.toHaveBeenCalled();
+    }
+  );
+
+  it('re-enables "Enquire on WhatsApp" once the out-of-stock item is removed from the bag', async () => {
+    mockProductRows([
+      makeProductRow({ id: 'p1', name: 'Panda Lamp', price: 130, stock_status: 'out_of_stock' }),
+      makeProductRow({ id: 'p2', name: 'Water Keychains', slug: 'water-keychains', price: 150 }),
+    ]);
+    renderCartWithLines([
+      { productId: 'p1', quantity: 1 },
+      { productId: 'p2', quantity: 1 },
+    ]);
+
+    await screen.findByText('Panda Lamp');
+    const row = screen.getByText('Panda Lamp').closest('div.flex.gap-4') as HTMLElement;
+    act(() => within(row).getByLabelText('Remove item').click());
+
+    expect(screen.queryByText(/Out of Stock/i)).not.toBeInTheDocument();
+    fillContactDetails('Priya Sharma', '9876543210');
+    expect(screen.getByRole('button', { name: /Enquire on WhatsApp/i })).toBeEnabled();
+  });
+
   it('shows an error and does not navigate when the enquiry fails to save', async () => {
     vi.mocked(createWhatsAppEnquiry).mockResolvedValue({
       error: 'Could not record your enquiry. Please try again.',

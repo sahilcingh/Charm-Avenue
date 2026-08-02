@@ -203,6 +203,8 @@ export default function ProductDetailInteractive({
   const effectiveStockStatus = selectedVariant ? selectedVariant.stock_status : stockStatus;
   const effectiveStockCount = selectedVariant ? selectedVariant.stock_count : stockCount;
   const stockLabel = effectiveStockStatus ? STOCK_STATUS_LABELS[effectiveStockStatus] : null;
+  const canAddToCart =
+    effectiveStockStatus !== 'out_of_stock' && effectiveStockStatus !== 'discontinued';
   const lowStock =
     effectiveStockStatus === 'in_stock' &&
     effectiveStockCount != null &&
@@ -363,6 +365,7 @@ export default function ProductDetailInteractive({
         <div className="mb-6">
           {stockLabel && (
             <span
+              data-testid="stock-badge"
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
               style={{ background: stockLabel.bg, color: stockLabel.color }}
             >
@@ -412,6 +415,8 @@ export default function ProductDetailInteractive({
           variantId={selectedVariant?.id}
           personalizationText={personalizationEnabled ? personalizationText : undefined}
           personalizationRequired={personalizationEnabled && personalizationRequired}
+          disabled={!canAddToCart}
+          disabledLabel={stockLabel?.label}
         />
 
         {/* Trust row */}
