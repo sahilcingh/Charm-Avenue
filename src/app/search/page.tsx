@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: 'Search | Charm Avenue by Nandini',
   description:
     'Search Charm Avenue for cute accessories, hair accessories, gifts & novelty and trending finds.',
+  robots: { index: false, follow: true },
 };
 
 export default async function SearchPage({

@@ -6,6 +6,7 @@ import { ToastProvider } from '@/lib/toast-context';
 import { AdminModeProvider } from '@/lib/admin-mode-context';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Clarity from '@/components/analytics/Clarity';
+import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site-url';
 import '../styles/tailwind.css';
 
@@ -48,6 +49,9 @@ export const metadata: Metadata = {
   title: 'Charm Avenue by Nandini | Cute Accessories & Everyday Finds',
   description:
     'Shop cute accessories, hair accessories, gifts & novelty finds starting ₹150. Fast shipping across India. Charm Avenue by Nandini.',
+  alternates: {
+    canonical: '/',
+  },
   icons: {
     icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
   },
@@ -65,6 +69,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       className={`${syne.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} ${dancingScript.variable}`}
     >
       <body className={plusJakartaSans.className}>
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Charm Avenue by Nandini',
+            url: SITE_URL,
+            logo: `${SITE_URL}/assets/images/app_logo.png`,
+            sameAs: ['https://www.instagram.com/charm_avenue.in'],
+          }}
+        />
         <Clarity />
         <ErrorBoundary>
           <ToastProvider>

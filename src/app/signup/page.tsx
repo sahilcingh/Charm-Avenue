@@ -7,6 +7,7 @@ import SignupForm from './SignupForm';
 export const metadata: Metadata = {
   title: 'Create Account | Charm Avenue by Nandini',
   description: 'Create a Charm Avenue account to check out faster and keep track of your details.',
+  robots: { index: false, follow: true },
 };
 
 export default function SignupPage() {

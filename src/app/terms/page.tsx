@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'Terms of Service | Charm Avenue by Nandini',
   description:
     'The terms and conditions for using the Charm Avenue by Nandini website and placing orders.',
+  alternates: { canonical: '/terms' },
 };
 
 const sections = [

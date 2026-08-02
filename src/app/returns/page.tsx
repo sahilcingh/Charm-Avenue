@@ -7,6 +7,7 @@ import PolicyContent from '@/components/PolicyContent';
 export const metadata: Metadata = {
   title: 'Returns Policy | Charm Avenue by Nandini',
   description: 'Our returns and exchange policy at Charm Avenue by Nandini.',
+  alternates: { canonical: '/returns' },
 };
 
 const sections = [

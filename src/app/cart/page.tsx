@@ -7,6 +7,7 @@ import CartClient from './CartClient';
 export const metadata: Metadata = {
   title: 'Your Bag | Charm Avenue by Nandini',
   description: 'Review the items in your Charm Avenue shopping bag.',
+  robots: { index: false, follow: true },
 };
 
 export default function CartPage() {

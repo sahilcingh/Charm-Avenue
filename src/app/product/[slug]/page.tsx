@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
+import JsonLd, { breadcrumbJsonLd } from '@/components/JsonLd';
 import ProductDetailInteractive from './ProductDetailInteractive';
 import {
   getAllActiveProducts,
@@ -15,6 +16,14 @@ import {
   getProductVariants,
 } from '@/lib/supabase/products-data';
 import { resolveGalleryImages } from '@/lib/supabase/product-gallery';
+import { SITE_URL } from '@/lib/site-url';
+
+const STOCK_STATUS_AVAILABILITY: Record<string, string> = {
+  in_stock: 'https://schema.org/InStock',
+  out_of_stock: 'https://schema.org/OutOfStock',
+  made_to_order: 'https://schema.org/PreOrder',
+  discontinued: 'https://schema.org/Discontinued',
+};
 
 export async function generateStaticParams() {
   const products = await getAllActiveProducts();
@@ -32,6 +41,7 @@ export async function generateMetadata({
   return {
     title: `${product.name} | Charm Avenue by Nandini`,
     description: product.description,
+    alternates: { canonical: `/product/${product.slug}` },
   };
 }
 
@@ -53,6 +63,41 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Home', url: SITE_URL },
+          { name: 'Shop', url: `${SITE_URL}/shop` },
+          { name: product.category, url: `${SITE_URL}/shop/${product.categorySlug}` },
+          { name: product.name, url: `${SITE_URL}/product/${product.slug}` },
+        ])}
+      />
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name,
+          description: product.description,
+          image: [product.image],
+          sku: product.id,
+          brand: { '@type': 'Brand', name: 'Charm Avenue' },
+          ...(product.reviewCount > 0 && {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: product.rating,
+              reviewCount: product.reviewCount,
+            },
+          }),
+          offers: {
+            '@type': 'Offer',
+            url: `${SITE_URL}/product/${product.slug}`,
+            priceCurrency: 'INR',
+            price: product.price,
+            availability:
+              STOCK_STATUS_AVAILABILITY[product.stockStatus ?? 'in_stock'] ??
+              'https://schema.org/InStock',
+          },
+        }}
+      />
       <Header />
 
       <section className="w-full px-4 md:px-10 pt-28 md:pt-32 pb-16">

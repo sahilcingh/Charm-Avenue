@@ -33,7 +33,7 @@ const AppLogo = memo(function AppLogo({
       {src ? (
         <AppImage
           src={src}
-          alt="Logo"
+          alt="Charm Avenue"
           width={size}
           height={size}
           style={{ width: size, height: size }}

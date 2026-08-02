@@ -7,6 +7,7 @@ import PolicyContent from '@/components/PolicyContent';
 export const metadata: Metadata = {
   title: 'Privacy Policy | Charm Avenue by Nandini',
   description: 'How Charm Avenue by Nandini collects, uses and protects your information.',
+  alternates: { canonical: '/privacy' },
 };
 
 const sections = [

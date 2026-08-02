@@ -11,6 +11,7 @@ import AccountMain from './AccountMain';
 export const metadata: Metadata = {
   title: 'My Account | Charm Avenue by Nandini',
   description: 'View and manage your Charm Avenue account.',
+  robots: { index: false, follow: true },
 };
 
 export default async function AccountPage() {

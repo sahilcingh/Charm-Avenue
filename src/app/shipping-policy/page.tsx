@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'Shipping Policy | Charm Avenue by Nandini',
   description:
     'Prepaid ordering, secure packaging and shipping timelines for Charm Avenue by Nandini.',
+  alternates: { canonical: '/shipping-policy' },
 };
 
 const sections = [

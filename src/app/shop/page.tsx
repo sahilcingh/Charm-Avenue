@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'Shop All | Charm Avenue by Nandini',
   description:
     'Shop cute accessories, hair accessories, gifts & novelty and trending finds, starting at just ₹150.',
+  alternates: { canonical: '/shop' },
 };
 
 export default async function ShopPage({

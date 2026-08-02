@@ -5,11 +5,13 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
 import ProductCard from '@/components/ProductCard';
+import JsonLd, { breadcrumbJsonLd } from '@/components/JsonLd';
 import {
   getCategories,
   getCategoryBySlug,
   getProductsByCategory,
 } from '@/lib/supabase/products-data';
+import { SITE_URL } from '@/lib/site-url';
 
 export async function generateStaticParams() {
   const categories = await getCategories();
@@ -27,6 +29,7 @@ export async function generateMetadata({
   return {
     title: `${cat.title} | Charm Avenue by Nandini`,
     description: cat.description,
+    alternates: { canonical: `/shop/${cat.slug}` },
   };
 }
 
@@ -42,6 +45,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
 
   return (
     <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--blush-bg)' }}>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Home', url: SITE_URL },
+          { name: 'Shop', url: `${SITE_URL}/shop` },
+          { name: cat.title, url: `${SITE_URL}/shop/${cat.slug}` },
+        ])}
+      />
       <Header />
       <PageHero
         eyebrow={`${cat.emoji} ${cat.tag}`}

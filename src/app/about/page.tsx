@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'About Us | Charm Avenue by Nandini',
   description:
     'Meet Nandini, the founder of Charm Avenue, bringing you trendy, stylish and affordable accessories and cute lifestyle products.',
+  alternates: { canonical: '/about' },
 };
 
 const whyChooseUs = [

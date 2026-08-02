@@ -11,6 +11,7 @@ import LoginForm from './LoginForm';
 export const metadata: Metadata = {
   title: 'Sign In | Charm Avenue by Nandini',
   description: 'Sign in to your Charm Avenue account.',
+  robots: { index: false, follow: true },
 };
 
 export default async function LoginPage({

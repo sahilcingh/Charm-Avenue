@@ -13,6 +13,7 @@ import { ORDER_STATUS_LABELS } from '@/lib/order-status';
 export const metadata: Metadata = {
   title: 'Your Order | Charm Avenue by Nandini',
   description: 'View your Charm Avenue order enquiry status.',
+  robots: { index: false, follow: true },
 };
 
 export default async function OrderLookupPage({ params }: { params: Promise<{ id: string }> }) {

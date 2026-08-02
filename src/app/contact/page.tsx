@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'Contact Us | Charm Avenue by Nandini',
   description:
     'Get in touch with Charm Avenue by Nandini for questions about orders, products or partnerships.',
+  alternates: { canonical: '/contact' },
 };
 
 const contactMethods = [
