@@ -6,17 +6,81 @@ import type { DbCategory, DbProduct } from '@/lib/supabase/types';
 import DeleteProductButton from './DeleteProductButton';
 import AddCategoryButton from './AddCategoryButton';
 
-export default async function AdminProductsPage() {
+const PAGE_SIZE = 20;
+
+function PaginationControls({ page, totalPages }: { page: number; totalPages: number }) {
+  if (totalPages <= 1) return null;
+  const prevDisabled = page <= 1;
+  const nextDisabled = page >= totalPages;
+  return (
+    <div
+      className="flex items-center justify-center gap-3 px-4 py-3 border-t"
+      style={{ borderColor: 'var(--blush-border)' }}
+    >
+      <Link
+        href={`/admin/products?page=${page - 1}`}
+        aria-label="Previous page"
+        aria-disabled={prevDisabled}
+        tabIndex={prevDisabled ? -1 : undefined}
+        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 ${
+          prevDisabled ? 'pointer-events-none opacity-30' : 'hover:bg-[var(--blush-bg)]'
+        }`}
+        style={{ color: 'var(--blush-muted)' }}
+      >
+        <Icon name="ChevronLeftIcon" size={16} />
+      </Link>
+      <span className="text-xs font-semibold" style={{ color: 'var(--blush-muted)' }}>
+        Page {page} of {totalPages}
+      </span>
+      <Link
+        href={`/admin/products?page=${page + 1}`}
+        aria-label="Next page"
+        aria-disabled={nextDisabled}
+        tabIndex={nextDisabled ? -1 : undefined}
+        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 ${
+          nextDisabled ? 'pointer-events-none opacity-30' : 'hover:bg-[var(--blush-bg)]'
+        }`}
+        style={{ color: 'var(--blush-muted)' }}
+      >
+        <Icon name="ChevronRightIcon" size={16} />
+      </Link>
+    </div>
+  );
+}
+
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Math.floor(Number(pageParam)) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const supabase = await createClient();
-  const [{ data: products, error }, { data: categories }] = await Promise.all([
-    supabase.from('products').select('*').order('created_at', { ascending: false }),
+  const [
+    { data: products, error, count: totalCount },
+    { data: categories },
+    { count: activeCount },
+  ] = await Promise.all([
+    supabase
+      .from('products')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to),
     supabase.from('categories').select('*'),
+    supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
   ]);
 
   const categoryBySlug = new Map((categories as DbCategory[] | null)?.map((c) => [c.slug, c]));
   const list = (products as DbProduct[] | null) ?? [];
-  const liveCount = list.filter((p) => p.is_active).length;
-  const hiddenCount = list.length - liveCount;
+  const total = totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const rangeStart = total === 0 ? 0 : from + 1;
+  const rangeEnd = Math.min(from + list.length, total);
+  const liveCount = activeCount ?? 0;
+  const hiddenCount = total - liveCount;
 
   // Total is the neutral anchor metric — no status color. Live/Hidden are a
   // breakdown of it, so each gets a quiet semantic tint (green vs. muted
@@ -26,7 +90,7 @@ export default async function AdminProductsPage() {
       key: 'total',
       icon: 'ShoppingBagIcon',
       label: 'Total',
-      value: list.length,
+      value: total,
       iconBg: 'var(--blush-bg)',
       iconColor: 'var(--blush-muted)',
       valueColor: 'var(--blush-text)',
@@ -78,7 +142,7 @@ export default async function AdminProductsPage() {
         </div>
       </div>
 
-      {!error && list.length > 0 && (
+      {!error && total > 0 && (
         <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8">
           {stats.map((stat) => (
             <div
@@ -136,7 +200,7 @@ export default async function AdminProductsPage() {
         </div>
       )}
 
-      {!error && list.length === 0 && (
+      {!error && list.length === 0 && total === 0 && (
         <div className="bg-white rounded-3xl p-14 card-bubble text-center">
           <span
             className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -150,6 +214,31 @@ export default async function AdminProductsPage() {
           <p className="text-sm" style={{ color: 'var(--blush-muted)' }}>
             Click &quot;Add Product&quot; above to create your first one.
           </p>
+        </div>
+      )}
+
+      {!error && list.length === 0 && total > 0 && (
+        <div className="bg-white rounded-3xl p-14 card-bubble text-center">
+          <span
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'var(--blush-bg)' }}
+          >
+            <Icon name="PhotoIcon" size={26} style={{ color: 'var(--blush-border)' }} />
+          </span>
+          <p className="font-bold mb-1" style={{ color: 'var(--blush-text)' }}>
+            No products on this page
+          </p>
+          <p className="text-sm mb-4" style={{ color: 'var(--blush-muted)' }}>
+            You&apos;re on page {page}, but there {total === 1 ? 'is' : 'are'} only {total}{' '}
+            {total === 1 ? 'product' : 'products'} in total.
+          </p>
+          <Link
+            href="/admin/products?page=1"
+            className="text-sm font-bold hover:underline"
+            style={{ color: 'var(--blush-rose-text)' }}
+          >
+            Back to page 1
+          </Link>
         </div>
       )}
 
@@ -253,8 +342,9 @@ export default async function AdminProductsPage() {
               background: 'var(--blush-bg)',
             }}
           >
-            Showing {list.length} {list.length === 1 ? 'product' : 'products'}
+            Showing {rangeStart}–{rangeEnd} of {total} {total === 1 ? 'product' : 'products'}
           </div>
+          <PaginationControls page={page} totalPages={totalPages} />
         </div>
       )}
 
@@ -401,8 +491,9 @@ export default async function AdminProductsPage() {
               background: 'var(--blush-bg)',
             }}
           >
-            Showing {list.length} {list.length === 1 ? 'product' : 'products'}
+            Showing {rangeStart}–{rangeEnd} of {total} {total === 1 ? 'product' : 'products'}
           </div>
+          <PaginationControls page={page} totalPages={totalPages} />
         </div>
       )}
     </div>

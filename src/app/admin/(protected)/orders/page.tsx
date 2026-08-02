@@ -219,9 +219,9 @@ export default async function AdminOrdersPage({
                 borderColor: 'var(--blush-border)',
               }}
             >
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col gap-1.5">
                 <p
-                  className="font-bold tracking-tight text-[0.9375rem] truncate min-w-0 flex-1"
+                  className="font-bold tracking-tight text-[0.9375rem] truncate"
                   style={{ color: 'var(--blush-text)' }}
                 >
                   {order.guest_name || 'WhatsApp enquiry'}
