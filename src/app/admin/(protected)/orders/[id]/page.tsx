@@ -76,7 +76,7 @@ export default async function AdminOrderDetailPage({
               })}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap gap-2 sm:gap-3">
             <a
               href={`/admin/orders/${order.id}/bill`}
               className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 transition-opacity hover:opacity-80"
