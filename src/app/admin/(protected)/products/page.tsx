@@ -5,6 +5,7 @@ import AppImage from '@/components/ui/AppImage';
 import type { DbCategory, DbProduct } from '@/lib/supabase/types';
 import DeleteProductButton from './DeleteProductButton';
 import AddCategoryButton from './AddCategoryButton';
+import StockStatusSelect from './StockStatusSelect';
 
 const PAGE_SIZE = 20;
 
@@ -303,6 +304,10 @@ export default async function AdminProductsPage({
                       />
                       {product.is_active ? 'Live' : 'Hidden'}
                     </span>
+                    <StockStatusSelect
+                      productId={product.id}
+                      initialStatus={product.stock_status}
+                    />
                   </div>
                   <p className="mt-1.5">
                     <span
@@ -443,28 +448,34 @@ export default async function AdminProductsPage({
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
-                        style={
-                          product.is_active
-                            ? {
-                                background: '#E8F5E9',
-                                color: '#2E7D32',
-                                border: '1px solid rgba(46,125,50,0.16)',
-                              }
-                            : {
-                                background: '#EFE6E2',
-                                color: '#8A7A75',
-                                border: '1px solid rgba(138,122,117,0.18)',
-                              }
-                        }
-                      >
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span
-                          className="w-1.5 h-1.5 rounded-full shrink-0"
-                          style={{ background: product.is_active ? '#2E7D32' : '#8A7A75' }}
+                          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+                          style={
+                            product.is_active
+                              ? {
+                                  background: '#E8F5E9',
+                                  color: '#2E7D32',
+                                  border: '1px solid rgba(46,125,50,0.16)',
+                                }
+                              : {
+                                  background: '#EFE6E2',
+                                  color: '#8A7A75',
+                                  border: '1px solid rgba(138,122,117,0.18)',
+                                }
+                          }
+                        >
+                          <span
+                            className="w-1.5 h-1.5 rounded-full shrink-0"
+                            style={{ background: product.is_active ? '#2E7D32' : '#8A7A75' }}
+                          />
+                          {product.is_active ? 'Live' : 'Hidden'}
+                        </span>
+                        <StockStatusSelect
+                          productId={product.id}
+                          initialStatus={product.stock_status}
                         />
-                        {product.is_active ? 'Live' : 'Hidden'}
-                      </span>
+                      </div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5 justify-end">

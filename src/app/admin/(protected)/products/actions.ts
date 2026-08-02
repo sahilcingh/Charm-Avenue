@@ -558,6 +558,23 @@ export async function updateVariant(variantId: string, productId: string, formDa
   revalidatePath('/shop');
 }
 
+/** Quick inline toggle from the products list — same column ProductForm's Stock & Availability section writes to. */
+export async function updateProductStockStatus(productId: string, status: ProductStockStatus) {
+  const { supabase } = await requireAdmin();
+  if (!VALID_STOCK_STATUSES.includes(status)) {
+    throw new Error('Invalid stock status.');
+  }
+
+  const { error } = await supabase
+    .from('products')
+    .update({ stock_status: status })
+    .eq('id', productId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/admin/products');
+  revalidatePath('/shop');
+}
+
 export async function removeVariant(variantId: string, productId: string) {
   const { supabase } = await requireAdmin();
   const { error } = await supabase.from('product_variants').delete().eq('id', variantId);

@@ -9,6 +9,7 @@ import {
   addVariant,
   updateVariant,
   removeVariant,
+  updateProductStockStatus,
 } from './actions';
 
 const getUserMock = vi.fn();
@@ -879,6 +880,44 @@ describe('updateVariant', () => {
       'variant-1'
     );
   });
+});
+
+describe('updateProductStockStatus — admin-only enforcement', () => {
+  it('rejects a logged-out caller and never updates a row (vulnerability case)', async () => {
+    mockLoggedOut();
+    await expect(updateProductStockStatus('p1', 'out_of_stock')).rejects.toThrow(/admin/i);
+    expect(productsUpdateEqMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects a logged-in non-admin caller and never updates a row (vulnerability case)', async () => {
+    mockNonAdmin();
+    await expect(updateProductStockStatus('p1', 'out_of_stock')).rejects.toThrow(/admin/i);
+    expect(productsUpdateEqMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateProductStockStatus', () => {
+  it('updates just the stock_status column for the given product (normal case)', async () => {
+    mockAdmin();
+    await updateProductStockStatus('p1', 'out_of_stock');
+    expect(productsUpdateEqMock).toHaveBeenCalledWith('id', 'p1');
+  });
+
+  it('rejects a tampered/invalid status value without touching the database (defense in depth)', async () => {
+    mockAdmin();
+    await expect(
+      updateProductStockStatus('p1', 'bogus_value' as unknown as 'in_stock')
+    ).rejects.toThrow(/invalid/i);
+    expect(productsUpdateEqMock).not.toHaveBeenCalled();
+  });
+
+  it.each(['in_stock', 'out_of_stock', 'made_to_order', 'discontinued'] as const)(
+    'accepts %s as a valid status',
+    async (status) => {
+      mockAdmin();
+      await expect(updateProductStockStatus('p1', status)).resolves.toBeUndefined();
+    }
+  );
 });
 
 describe('removeVariant — admin-only enforcement', () => {
