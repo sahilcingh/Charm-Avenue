@@ -6,6 +6,7 @@ import { ToastProvider } from '@/lib/toast-context';
 import { AdminModeProvider } from '@/lib/admin-mode-context';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Clarity from '@/components/analytics/Clarity';
+import { SITE_URL } from '@/lib/site-url';
 import '../styles/tailwind.css';
 
 const syne = Syne({
@@ -43,7 +44,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(SITE_URL),
   title: 'Charm Avenue by Nandini | Cute Accessories & Everyday Finds',
   description:
     'Shop cute accessories, hair accessories, gifts & novelty finds starting ₹150. Fast shipping across India. Charm Avenue by Nandini.',
