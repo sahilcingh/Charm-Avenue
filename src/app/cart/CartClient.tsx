@@ -580,7 +580,7 @@ export default function CartClient() {
               }}
             >
               <Icon name="ChatBubbleLeftRightIcon" size={18} />
-              {isPending ? 'Sending your enquiry…' : 'Enquire on WhatsApp'}
+              {isPending ? 'Sending your enquiry…' : 'Place your order on WhatsApp'}
             </button>
             <Link
               href="/shop"
