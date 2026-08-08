@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/require-admin';
 import { TAG_STYLES, type TagStyleKey, type DbCategory } from '@/lib/supabase/types';
+import { compressProductImage } from '@/lib/product-image-compression';
 
 function slugify(title: string) {
   return title
@@ -27,16 +28,17 @@ async function uploadCategoryImageIfProvided(
   const file = formData.get('imageFile');
   if (!(file instanceof File) || file.size === 0) return null;
 
-  const ext = file.name.split('.').pop() || 'jpg';
+  const { body, contentType, ext } = await compressProductImage(file);
   const path = `categories/${Date.now()}-${slugify(file.name.replace(/\.[^.]+$/, ''))}.${ext}`;
 
   // Every path is unique (timestamped) and never overwritten (upsert: false),
   // so this object's bytes never change — safe to cache for a year rather
   // than the default hour, which was causing Supabase to re-serve the same
   // image on every cache expiry (billed as Cached Egress).
-  const { error } = await supabase.storage.from('product-images').upload(path, file, {
+  const { error } = await supabase.storage.from('product-images').upload(path, body, {
     cacheControl: '31536000',
     upsert: false,
+    contentType,
   });
   if (error) throw new Error(`Image upload failed: ${error.message}`);
 

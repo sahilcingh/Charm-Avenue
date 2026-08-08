@@ -13,6 +13,9 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
   },
+  // sharp ships native bindings — this keeps webpack from trying to bundle them and
+  // just lets Node require it directly at runtime, same as any other native module.
+  serverExternalPackages: ['sharp'],
   typescript: {
     ignoreBuildErrors: true,
   },
