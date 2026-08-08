@@ -1,9 +1,31 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import React from 'react';
 import AppImage from './AppImage';
 
+const SUPABASE_URL = 'https://qgnxtmmlphalrqushegq.supabase.co';
+const PRODUCT_PHOTO = `${SUPABASE_URL}/storage/v1/object/public/product-images/photo.jpg`;
+
 describe('AppImage', () => {
+  it(
+    'routes a Supabase-hosted photo through the same-origin image proxy instead of requesting it ' +
+      "directly (this is what keeps Vercel's optimizer quota and Supabase's egress usage both flat)",
+    async () => {
+      // SUPABASE_HOST (in image-proxy.ts) is computed once at module load, so the env var has to
+      // be in place *before* that module is (re-)imported — too late to matter once AppImage
+      // itself has already been imported statically above.
+      vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', SUPABASE_URL);
+      vi.resetModules();
+      const { default: FreshAppImage } = await import('./AppImage');
+
+      render(<FreshAppImage src={PRODUCT_PHOTO} alt="Product" />);
+      expect(screen.getByAltText('Product')).toHaveAttribute(
+        'src',
+        expect.stringContaining(`/api/image-proxy?url=${encodeURIComponent(PRODUCT_PHOTO)}`)
+      );
+    }
+  );
+
   it('renders the given src', () => {
     render(<AppImage src="/a.jpg" alt="A" />);
     expect(screen.getByAltText('A')).toHaveAttribute('src', expect.stringContaining('a.jpg'));

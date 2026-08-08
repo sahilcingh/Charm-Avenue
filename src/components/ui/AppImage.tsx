@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect, memo } from 'react';
 import Image from 'next/image';
+import { toProxiedSrc } from '@/lib/image-proxy';
 
 // On-brand soft pink shimmer shown behind every image while it loads,
 // since remote images need a manually-supplied blur placeholder.
@@ -139,16 +140,21 @@ const AppImage = memo(function AppImage({
     return classes.filter(Boolean).join(' ');
   }, [className, isLoading, onClick]);
 
+  const { src: resolvedSrc, unoptimized: proxyUnoptimized } = useMemo(
+    () => toProxiedSrc(imageSrc),
+    [imageSrc]
+  );
+
   const imageProps = useMemo(() => {
     type ImageComponentProps = React.ComponentProps<typeof Image>;
     const baseProps: Omit<Partial<ImageComponentProps>, 'src' | 'alt'> &
       Pick<ImageComponentProps, 'src' | 'alt'> = {
-      src: imageSrc,
+      src: resolvedSrc,
       alt,
       className: imageClassName,
       quality,
       placeholder,
-      unoptimized,
+      unoptimized: unoptimized || proxyUnoptimized,
       onError: handleError,
       onLoad: handleLoad,
       onClick,
@@ -166,7 +172,8 @@ const AppImage = memo(function AppImage({
 
     return baseProps;
   }, [
-    imageSrc,
+    resolvedSrc,
+    proxyUnoptimized,
     alt,
     imageClassName,
     quality,
